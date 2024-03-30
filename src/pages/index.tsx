@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
-import { Login } from './auth/Login';
+import { Login } from './auth/Login/Login.tsx';
 import { Signup } from './auth/Signup.tsx';
 import { Error404 } from '../components/errors/Error404.tsx';
 import { Error403 } from '../components/errors/Error403.tsx';

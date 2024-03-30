@@ -1,15 +1,20 @@
-import {ConfigProvider} from "antd";
-import {BrowserRouter} from "react-router-dom";
-import {Provider} from "react-redux";
-import React from "react";
 import './assets/styles/index.scss';
-import {store} from "./redux/store";
-import {AppRoutes} from "./pages";
+import { ConfigProvider } from 'antd';
+import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import React from 'react';
+import { store } from './redux/store';
+import { AppRoutes } from './pages';
 
 const App: React.FC = () => {
     return (
         <Provider store={store}>
-            <ConfigProvider theme={{ hashed: false, components: { Layout: { colorBgBase: '#fff' } } }}>
+            <ConfigProvider
+                theme={{
+                    hashed: false,
+                    components: { Layout: { colorBgBase: '#fff' } },
+                }}
+            >
                 <BrowserRouter>
                     <AppRoutes />
                 </BrowserRouter>
@@ -18,4 +23,4 @@ const App: React.FC = () => {
     );
 };
 
-export default App
+export default App;
