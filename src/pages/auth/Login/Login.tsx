@@ -1,13 +1,13 @@
-import { Button, Divider, Form, Input, message, Typography } from 'antd';
+import { Button, Divider, Form, Input, message } from 'antd';
 import Password from 'antd/es/input/Password';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, Navigate } from 'react-router-dom';
 import { updateUser } from '../../../redux/slices/user.slice.ts';
-import { login } from '../../../requests/auth.request.ts';
+import { googleLogin, login } from '../../../requests/auth.request.ts';
 import { State } from '../../../types/state.type.ts';
-import './Login.scss';
 import { FcGoogle } from '@react-icons/all-files/fc/FcGoogle';
+import { useGoogleLogin } from '@react-oauth/google';
 
 export const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
@@ -32,14 +32,32 @@ export const Login: React.FC = () => {
         }
     };
 
+    const loginWithGoogle = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            try {
+                console.log(tokenResponse);
+                await googleLogin({ access_token: tokenResponse.access_token });
+            } catch (err) {
+                console.log('Login with google error:', err);
+            }
+        },
+    });
+
     if (user) return <Navigate to="/" />;
 
     return (
-        <div className="login-container">
-            <div className="login-background"></div>
-            <div className="login-form">
-                <Typography.Title level={2}>Welcome to BKOffice</Typography.Title>
-                <Button className="ant-btn" size="large" icon={<FcGoogle className="anticon" size={20} />}>
+        <div className="h-screen flex flex-row bg-auth-bg bg-cover justify-center">
+            <div
+                className="w-1/3 bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-70 border border-gray-100
+ flex flex-col p-10 my-20 justify-center"
+            >
+                <h2>Welcome to BKOffice 🎉</h2>
+                <Button
+                    className="ant-btn"
+                    size="large"
+                    onClick={() => loginWithGoogle()}
+                    icon={<FcGoogle className="anticon" size={20} />}
+                >
                     Login with Google
                 </Button>
                 <Divider plain>Or login with</Divider>{' '}
@@ -52,7 +70,7 @@ export const Login: React.FC = () => {
                 >
                     <Form.Item
                         name="email"
-                        label="Email:"
+                        label={<span className="font-medium">Email</span>}
                         rules={[
                             {
                                 required: true,
@@ -66,26 +84,26 @@ export const Login: React.FC = () => {
 
                     <Form.Item
                         name="password"
-                        label="Mật khẩu:"
+                        label={<span className="font-medium">Password</span>}
                         rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
                     >
                         <Password size="large" />
                     </Form.Item>
 
                     <Button style={{ width: '100%' }} size="large" type="primary" htmlType="submit" loading={loading}>
-                        Đăng nhập
+                        Login
                     </Button>
                 </Form>
                 <div className="flex flex-row mt-3 justify-between">
                     <div>
                         <span>
-                            <Link to={'/logup'}>Quên mật khẩu</Link>
+                            <Link to={'/forgot-password'}>Forgot password</Link>
                         </span>
                     </div>
                     <div>
                         {' '}
                         <span>
-                            <Link to={'/logup'}>Đăng kí</Link>
+                            <Link to={'/signup'}>Signup</Link>
                         </span>
                     </div>
                 </div>

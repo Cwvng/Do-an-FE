@@ -16,6 +16,10 @@ module.exports = {
             screens: {
                 pc: '1400px',
             },
+            backgroundImage: {
+                'auth-bg':
+                    "url('https://birchtree.me/content/images/size/w2000/2020/08/DB0B3B0A-1888-41AB-B044-AB24A90229CE..jpeg')",
+            },
         },
     },
     variants: {

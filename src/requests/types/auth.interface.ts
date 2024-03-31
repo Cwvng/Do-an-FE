@@ -1,6 +1,6 @@
 export interface SignupBody {
-    firstName: string;
-    lastName: string;
+    firstname: string;
+    lastname: string;
     email: string;
     mobile?: string;
     company?: string;
@@ -10,6 +10,9 @@ export interface SignupBody {
 export interface LoginBody {
     email: string;
     password: string;
+}
+export interface GoogleLoginBody {
+    access_token: string;
 }
 
 export interface ChangePassword {
