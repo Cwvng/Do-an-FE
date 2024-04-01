@@ -15,6 +15,9 @@ const App: React.FC = () => {
                     theme={{
                         hashed: false,
                         components: { Layout: { colorBgBase: '#fff' } },
+                        token: {
+                            colorPrimary: '#2596be',
+                        },
                     }}
                 >
                     <BrowserRouter>

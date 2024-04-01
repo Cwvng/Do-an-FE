@@ -46,9 +46,9 @@ export const Login: React.FC = () => {
     if (user) return <Navigate to="/" />;
 
     return (
-        <div className="h-screen flex flex-row bg-auth-bg bg-cover justify-center">
+        <div className="h-screen flex flex-row bg-auth-bg bg-cover justify-center items-center">
             <div
-                className="w-1/3 bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-70 border border-gray-100
+                className="w-1/3 h-min bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-70 border border-gray-100
  flex flex-col p-10 my-20 justify-center"
             >
                 <h2>Welcome to BKOffice 🎉</h2>

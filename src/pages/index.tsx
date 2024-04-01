@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { Login } from './auth/Login/Login.tsx';
 import { Signup } from './auth/Signup/Signup.tsx';
@@ -7,20 +6,15 @@ import { Error404 } from '../components/errors/Error404.tsx';
 import { Error403 } from '../components/errors/Error403.tsx';
 import { AuthLayout } from '../layout/auth/AuthLayout.tsx';
 import { AppLayout } from '../layout/app/AppLayout.tsx';
-import { State } from '../types/state.type.ts';
+import { getAccessToken } from '../utils/storage.util.ts';
 
 interface ProtectedRouteProps {
     children: any;
 }
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }: ProtectedRouteProps) => {
-    const user = useSelector((state: State) => state.user);
-
-    if (user?.id) {
-        // if (!user.status) return <Navigate to="/401" replace />;
-        return children;
-    }
-    // return children;
-    return <Navigate to="/login" replace />;
+    const access_token = getAccessToken();
+    if (!access_token) return <Navigate to="/login" replace />;
+    return children;
 };
 
 export const AppRoutes: React.FC = () => {

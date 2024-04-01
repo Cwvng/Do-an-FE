@@ -4,8 +4,8 @@ import { GoogleLoginBody, LoginBody, SignupBody } from './types/auth.interface.t
 
 export const login = async (body: LoginBody) => {
     const { data } = await api.post('/auth/login', body);
-    const { accessToken } = data;
-    setAccessToken(accessToken);
+    const { access_token } = data;
+    setAccessToken(access_token);
     return data;
 };
 export const googleLogin = async (body: GoogleLoginBody) => {
@@ -13,8 +13,8 @@ export const googleLogin = async (body: GoogleLoginBody) => {
     return data;
 };
 export const signup = async (body: SignupBody) => {
-    const { data } = await api.post('/register', body);
-    const { accessToken } = data;
-    setAccessToken(accessToken);
+    const { data } = await api.post('/auth/signup', body);
+    const { access_token } = data;
+    setAccessToken(access_token);
     return data;
 };

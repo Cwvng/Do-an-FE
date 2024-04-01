@@ -1,15 +1,16 @@
-import { Button, Col, Form, Input, message, Row } from 'antd';
+import { Button, Col, Form, Input, message, Row, Select } from 'antd';
 import Password from 'antd/es/input/Password';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { updateUser } from '../../../redux/slices/user.slice.ts';
-import { login } from '../../../requests/auth.request.ts';
+import { signup } from '../../../requests/auth.request.ts';
 import { State } from '../../../types/state.type.ts';
 
 export const Signup: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
+    const navigate = useNavigate();
 
     const user = useSelector((state: State) => state.user);
     const dispatch = useDispatch();
@@ -18,11 +19,11 @@ export const Signup: React.FC = () => {
         try {
             setLoading(true);
             const values = await form.validateFields();
-
-            const data = await login(values);
-            dispatch(updateUser(data.user));
-
-            message.success('Đăng nhập thành công');
+            // delete values.confirmPassword;
+            const { user } = await signup(values);
+            dispatch(updateUser(user));
+            navigate('/');
+            message.success('Signup successfully');
         } catch (err) {
             console.error(err);
         } finally {
@@ -33,9 +34,9 @@ export const Signup: React.FC = () => {
     if (user) return <Navigate to="/" />;
 
     return (
-        <div className="h-screen flex flex-row bg-auth-bg bg-cover justify-center">
+        <div className="h-screen flex flex-row bg-auth-bg bg-cover justify-center items-center">
             <div
-                className="w-1/3 bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-70 border border-gray-100
+                className="w-1/3 h-min bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-70 border border-gray-100
  flex flex-col p-10 my-20 justify-center"
             >
                 <h2>Sign up a new account ✍️</h2>
@@ -46,7 +47,7 @@ export const Signup: React.FC = () => {
                     onFinish={handleFinish}
                     style={{ width: '100%' }}
                 >
-                    <Row gutter={16}>
+                    <Row gutter={20}>
                         <Col span={12}>
                             <Form.Item
                                 name="firstname"
@@ -74,22 +75,37 @@ export const Signup: React.FC = () => {
                             </Form.Item>
                         </Col>
                     </Row>
+                    <Row gutter={20}>
+                        <Col span={12}>
+                            <Form.Item
+                                name="email"
+                                label={<span className="font-medium">Email</span>}
+                                rules={[
+                                    {
+                                        required: true,
+                                        pattern: /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                                        message: 'Email không hợp lệ',
+                                    },
+                                ]}
+                            >
+                                <Input size="large" />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                name="gender"
+                                rules={[{ required: true, message: 'Please select an option!' }]}
+                                label={<span className="font-medium">Gender</span>}
+                            >
+                                <Select size="large">
+                                    <Select.Option value="male">Male</Select.Option>
+                                    <Select.Option value="female">Female</Select.Option>
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                    </Row>
 
-                    <Form.Item
-                        name="email"
-                        label={<span className="font-medium">Email</span>}
-                        rules={[
-                            {
-                                required: true,
-                                pattern: /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/,
-                                message: 'Email không hợp lệ',
-                            },
-                        ]}
-                    >
-                        <Input size="large" />
-                    </Form.Item>
-
-                    <Row gutter={16}>
+                    <Row gutter={20}>
                         <Col span={12}>
                             <Form.Item
                                 name="password"
@@ -101,16 +117,26 @@ export const Signup: React.FC = () => {
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                name="cfPassword"
+                                name="confirmPassword"
                                 label={<span className="font-medium">Confirm password</span>}
-                                rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
+                                rules={[
+                                    { required: true, message: 'Vui lòng xác nhận mật khẩu' },
+                                    {
+                                        validator: (_, value) => {
+                                            if (value === form.getFieldValue('password')) {
+                                                return Promise.resolve();
+                                            } else {
+                                                return Promise.reject('Mật khẩu không trùng khớp');
+                                            }
+                                        },
+                                    },
+                                ]}
                             >
                                 <Password size="large" />
                             </Form.Item>
                         </Col>
                     </Row>
-
-                    <Button style={{ width: '100%' }} size="large" type="primary" htmlType="submit" loading={loading}>
+                    <Button className="w-full mt-2" size="large" type="primary" htmlType="submit" loading={loading}>
                         Signup
                     </Button>
                 </Form>
