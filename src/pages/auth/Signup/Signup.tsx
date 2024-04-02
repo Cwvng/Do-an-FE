@@ -110,7 +110,12 @@ export const Signup: React.FC = () => {
                             <Form.Item
                                 name="password"
                                 label={<span className="font-medium">Password</span>}
-                                rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
+                                rules={[
+                                    {
+                                        required: true,
+                                        pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/,
+                                    },
+                                ]}
                             >
                                 <Password size="large" />
                             </Form.Item>
@@ -120,7 +125,10 @@ export const Signup: React.FC = () => {
                                 name="confirmPassword"
                                 label={<span className="font-medium">Confirm password</span>}
                                 rules={[
-                                    { required: true, message: 'Vui lòng xác nhận mật khẩu' },
+                                    {
+                                        required: true,
+                                        pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/,
+                                    },
                                     {
                                         validator: (_, value) => {
                                             if (value === form.getFieldValue('password')) {
@@ -141,10 +149,12 @@ export const Signup: React.FC = () => {
                     </Button>
                 </Form>
                 <div className="flex flex-row mt-3 justify-between">
-                    <div>
+                    <div className=" font-medium">
                         Already have an account?{' '}
                         <span>
-                            <Link to={'/login'}>Login now</Link>
+                            <Link className="text-primary font-medium" to={'/login'}>
+                                Login now
+                            </Link>
                         </span>
                     </div>
                 </div>

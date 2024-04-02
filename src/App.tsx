@@ -16,7 +16,7 @@ const App: React.FC = () => {
                         hashed: false,
                         components: { Layout: { colorBgBase: '#fff' } },
                         token: {
-                            colorPrimary: '#2596be',
+                            colorPrimary: '#628DB6',
                         },
                     }}
                 >

@@ -51,7 +51,7 @@ export const Login: React.FC = () => {
                 className="w-1/3 h-min bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-70 border border-gray-100
  flex flex-col p-10 my-20 justify-center"
             >
-                <h2>Welcome to BKOffice 🎉</h2>
+                <h2>Welcome to HUSTle 🎉</h2>
                 <Button
                     className="ant-btn"
                     size="large"
@@ -97,13 +97,17 @@ export const Login: React.FC = () => {
                 <div className="flex flex-row mt-3 justify-between">
                     <div>
                         <span>
-                            <Link to={'/forgot-password'}>Forgot password</Link>
+                            <Link className="text-primary font-medium" to={'/forgot-password'}>
+                                Forgot password
+                            </Link>
                         </span>
                     </div>
                     <div>
                         {' '}
                         <span>
-                            <Link to={'/signup'}>Signup</Link>
+                            <Link className="text-primary font-medium" to={'/signup'}>
+                                Signup
+                            </Link>
                         </span>
                     </div>
                 </div>
