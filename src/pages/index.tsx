@@ -7,6 +7,9 @@ import { Error403 } from '../components/errors/Error403.tsx';
 import { AuthLayout } from '../layout/auth/AuthLayout.tsx';
 import { AppLayout } from '../layout/app/AppLayout.tsx';
 import { getAccessToken } from '../utils/storage.util.ts';
+import { Home } from './home/home.tsx';
+import { Messages } from './messages/Messages.tsx';
+import { Tasks } from './tasks/Tasks.tsx';
 
 interface ProtectedRouteProps {
     children: any;
@@ -71,7 +74,11 @@ export const AppRoutes: React.FC = () => {
                         </AppLayout>
                     </ProtectedRoute>
                 }
-            ></Route>
+            >
+                <Route path="/" element={<Home />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/tasks" element={<Tasks />} />
+            </Route>
         </Routes>
     );
 };

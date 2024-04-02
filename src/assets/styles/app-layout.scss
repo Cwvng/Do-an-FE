@@ -3,7 +3,7 @@
   display: flex;
 
   .sidebar {
-    border-right: 1px solid #ddd;
+    border-right: 2px solid #ddd;
     .ant-layout-sider,
     .ant-layout-sider-children {
       height: 100%;
@@ -55,13 +55,6 @@
     }
     display: flex;
     justify-content: space-between;
-
-    .btn-back {
-      border: 0;
-      padding: 0;
-      box-shadow: none;
-    }
-
     .profile {
       padding: 4px;
       display: flex;
