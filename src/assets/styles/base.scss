@@ -1,0 +1,17 @@
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif,
+  'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+html {
+  @apply text-[calc(16/375*100vw)] md:text-[calc(16/1400*100vw)] pc:text-[16px];
+}
+
+html,
+body,
+#root,
+.app-layout {
+  height: 100%;
+  margin: 0;
+}
