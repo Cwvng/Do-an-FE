@@ -1,9 +1,5 @@
-import { createSlice, CaseReducer } from '@reduxjs/toolkit';
-import { UserAction, UserState } from '../../types/user-state.type';
-
-interface UserReducers {
-    [K: string]: CaseReducer<UserState, UserAction>;
-}
+import { createSlice } from '@reduxjs/toolkit';
+import { UserAction, UserReducers, UserState } from '../../types/user-state.type';
 
 export const userSlice = createSlice<UserState, UserReducers>({
     name: 'user',
