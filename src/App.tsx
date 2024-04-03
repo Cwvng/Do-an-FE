@@ -14,7 +14,16 @@ const App: React.FC = () => {
                 <ConfigProvider
                     theme={{
                         hashed: false,
-                        components: { Layout: { colorBgBase: '#fff' } },
+                        components: {
+                            Layout: { colorBgBase: '#fff' },
+                            Menu: {
+                                iconSize: 25,
+                                collapsedIconSize: 20,
+                                itemColor: '#3E5B76',
+                                itemSelectedBg: '#628DB6',
+                                itemSelectedColor: '#FFF',
+                            },
+                        },
                         token: {
                             colorPrimary: '#628DB6',
                         },
