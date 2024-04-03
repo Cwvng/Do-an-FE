@@ -10,8 +10,12 @@ import React from 'react';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
 import { IoMdSettings } from 'react-icons/io';
 import { IoNotifications } from 'react-icons/io5';
+import { TiThMenu } from 'react-icons/ti';
 
-export const AppHeader: React.FC = () => {
+interface AppHeaderProps {
+    toggleSidebar: () => void;
+}
+export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
     const dispatch = useDispatch();
     const user = useSelector((state: State) => state.user);
 
@@ -34,27 +38,34 @@ export const AppHeader: React.FC = () => {
         },
     ];
     return (
-        <Header className="bg-primary flex flex-row items-center justify-end gap-2">
+        <Header className="bg-primary flex flex-row items-center justify-between gap-2 px-4">
             <Button
                 className="border-none bg-transparent"
-                icon={<IoNotifications className="text-2xl text-slate-600" />}
-            ></Button>
-            <Button
-                className="border-none bg-transparent	"
-                icon={<IoMdSettings className="text-2xl text-slate-600" />}
-            ></Button>
-            <Dropdown menu={{ items }} placement="bottomCenter" arrow={{ pointAtCenter: true }}>
-                <Button className="border-none bg-transparent	flex items-center px-0">
-                    {user?.profilePic ? (
-                        <Avatar
-                            src={<img className="object-cover rounded-full" src={user.profilePic} alt="avatar" />}
-                            className="align-middle"
-                        />
-                    ) : (
-                        <FaUserCircle className="text-2xl text-slate-600 align-middle" />
-                    )}
-                </Button>
-            </Dropdown>
+                onClick={toggleSidebar}
+                icon={<TiThMenu className="text-2xl text-slate-600" />}
+            />
+            <div className="flex gap-3">
+                <Button
+                    className="border-none bg-transparent"
+                    icon={<IoNotifications className="text-2xl text-slate-600" />}
+                ></Button>
+                <Button
+                    className="border-none bg-transparent	"
+                    icon={<IoMdSettings className="text-2xl text-slate-600" />}
+                ></Button>
+                <Dropdown menu={{ items }} placement="bottomRight" arrow={{ pointAtCenter: true }}>
+                    <Button className="border-none bg-transparent	flex items-center px-0">
+                        {user?.profilePic ? (
+                            <Avatar
+                                src={<img className="object-cover rounded-full" src={user.profilePic} alt="avatar" />}
+                                className="align-middle"
+                            />
+                        ) : (
+                            <FaUserCircle className="text-2xl text-slate-600 align-middle" />
+                        )}
+                    </Button>
+                </Dropdown>
+            </div>
         </Header>
     );
 };

@@ -1,6 +1,5 @@
-import { Button, Layout, Menu } from 'antd';
+import { Layout, Menu } from 'antd';
 import { ItemType, SubMenuType } from 'antd/es/menu/hooks/useItems';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { GoHomeFill } from 'react-icons/go';
 import React, { useEffect, useState } from 'react';
 import { SelectInfo } from 'rc-menu/lib/interface';
@@ -8,8 +7,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { MdOutlineTaskAlt } from 'react-icons/md';
 import { IoChatbubbles } from 'react-icons/io5';
 
-export const Sidebar: React.FC = () => {
-    const [collapsed, setCollapsed] = useState(false);
+interface SidebarProps {
+    collapsed: boolean;
+}
+export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     const [selectedMenu, setSelectedMenu] = useState('');
     const [openKey, setOpenKey] = useState(['']);
 
@@ -42,18 +43,19 @@ export const Sidebar: React.FC = () => {
     const menuItems: ItemType[] = [
         {
             key: '/',
-            label: 'Home',
-            icon: <GoHomeFill className="text-2xl" />,
+            label: <span className="text-bold">Dashboard</span>,
+            icon: <GoHomeFill />,
         },
         {
             key: '/tasks',
-            label: 'Task',
-            icon: <MdOutlineTaskAlt className="text-2xl" />,
+            label: <span className="text-bold">Tasks</span>,
+            icon: <MdOutlineTaskAlt />,
         },
+
         {
             key: '/messages',
             label: <span className="text-bold">Messages</span>,
-            icon: <IoChatbubbles className="text-2xl" />,
+            icon: <IoChatbubbles />,
         },
     ];
 
@@ -63,7 +65,7 @@ export const Sidebar: React.FC = () => {
             collapsible
             collapsed={collapsed}
             collapsedWidth={60}
-            width={150}
+            width={200}
             trigger={null}
         >
             <div className="p-8"></div>
@@ -75,17 +77,6 @@ export const Sidebar: React.FC = () => {
                 openKeys={openKey}
                 onOpenChange={setOpenKey}
             />
-            <Button onClick={() => setCollapsed(!collapsed)}>
-                {collapsed ? (
-                    <FaChevronRight />
-                ) : (
-                    <span className="inline-flex gap-1 items-center">
-                        <span className="inline-flex items-center">
-                            <FaChevronLeft />
-                        </span>
-                    </span>
-                )}
-            </Button>
         </Layout.Sider>
     );
 };
