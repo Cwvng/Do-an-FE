@@ -1,21 +1,21 @@
 import { Layout } from 'antd';
 import React from 'react';
 import { AppHeader } from './AppHeader.tsx';
-import { Sidebar } from './AppSideBar.tsx';
+import { AppSidebar } from './AppSideBar.tsx';
 
 interface IAppLayout {
     children: any;
 }
 export const AppLayout: React.FC<IAppLayout> = ({ children }) => {
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(true);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
 
     const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
     return (
-        <Layout className="dashboard min-h-full">
-            <Sidebar collapsed={isSidebarCollapsed} />
-            <Layout className="main">
-                <AppHeader toggleSidebar={toggleSidebar} />
-                <Layout.Content className="page">{children}</Layout.Content>
+        <Layout>
+            <AppHeader toggleSidebar={toggleSidebar} />
+            <Layout>
+                <AppSidebar collapsed={isSidebarCollapsed} />
+                <Layout.Content className="bg-gray-100 font-semibold">{children}</Layout.Content>
             </Layout>
         </Layout>
     );

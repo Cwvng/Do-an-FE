@@ -17,11 +17,12 @@ const App: React.FC = () => {
                         components: {
                             Layout: { colorBgBase: '#fff' },
                             Menu: {
-                                iconSize: 25,
+                                iconSize: 20,
                                 collapsedIconSize: 20,
                                 itemColor: '#3E5B76',
                                 itemSelectedBg: '#628DB6',
                                 itemSelectedColor: '#FFF',
+                                itemHoverColor: '#628DB6',
                             },
                         },
                         token: {

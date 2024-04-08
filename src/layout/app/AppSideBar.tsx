@@ -10,7 +10,7 @@ import { IoChatbubbles } from 'react-icons/io5';
 interface SidebarProps {
     collapsed: boolean;
 }
-export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
+export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     const [selectedMenu, setSelectedMenu] = useState('');
     const [openKey, setOpenKey] = useState(['']);
 
@@ -61,15 +61,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
 
     return (
         <Layout.Sider
-            className="!bg-white flex flex-col sidebar"
+            className="!bg-white flex flex-col border-r border-border"
             collapsible
             collapsed={collapsed}
             collapsedWidth={60}
-            width={200}
+            width={180}
             trigger={null}
         >
-            <div className="p-8"></div>
             <Menu
+                style={{ minHeight: '100vh' }}
                 items={menuItems}
                 mode="inline"
                 onSelect={handleMenuSelect}
