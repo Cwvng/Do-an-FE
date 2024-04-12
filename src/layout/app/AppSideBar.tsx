@@ -69,7 +69,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
             trigger={null}
         >
             <Menu
-                style={{ minHeight: '100vh' }}
+                className="h-full"
                 items={menuItems}
                 mode="inline"
                 onSelect={handleMenuSelect}
