@@ -25,6 +25,7 @@ module.exports = {
                 secondary: '#3E5B76',
                 hoverBg: 'rgba(98,141,182,0.2)',
                 border: '#e5e7eb',
+                lightBg: 'rgba(98,141,182,0.22)',
             },
         },
     },

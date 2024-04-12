@@ -11,11 +11,11 @@ export const AppLayout: React.FC<IAppLayout> = ({ children }) => {
 
     const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
     return (
-        <Layout>
+        <Layout className="flex flex-col h-full min-h-150">
             <AppHeader toggleSidebar={toggleSidebar} />
-            <Layout>
+            <Layout className="flex-1">
                 <AppSidebar collapsed={isSidebarCollapsed} />
-                <Layout.Content className="bg-gray-100 font-semibold">{children}</Layout.Content>
+                <Layout.Content className="bg-gsray-100 font-semibold">{children}</Layout.Content>
             </Layout>
         </Layout>
     );
