@@ -21,32 +21,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }: ProtectedRo
 };
 
 export const AppRoutes: React.FC = () => {
-    // const [loading, setLoading] = useState(true);
-
-    // const dispatch = useDispatch();
-    //
-    // useEffect(() => {
-    //     getData();
-    // }, []);
-    //
-    // const getData = async () => {
-    //     try {
-    //         const constants = await getConstants();
-    //
-    //         dispatch(updateConfig(constants));
-    //
-    //         const data = await refreshAccessToken();
-    //         dispatch(updateUser(data.user));
-    //
-    //         const { records: projects } = await getProjects({ take: 99999999999999 });
-    //         dispatch(updateProjects(projects));
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
-    // if (loading) return <Loading />;
-
     return (
         <Routes>
             {/* error pages */}

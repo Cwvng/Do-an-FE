@@ -1,7 +1,6 @@
 import { Header } from 'antd/es/layout/layout';
 import { useNavigate } from 'react-router-dom';
-import { FaUserCircle } from 'react-icons/fa';
-import { Button, Dropdown, MenuProps } from 'antd';
+import { Avatar, Button, Dropdown, MenuProps } from "antd";
 import { useDispatch, useSelector } from 'react-redux';
 import { State } from '../../types/state.type';
 import { removeUser } from '../../redux/slices/user.slice';
@@ -22,12 +21,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
 
     const handleLogout = () => {
         removeAccessToken();
-        dispatch(removeUser({}));
+        dispatch(removeUser());
         navigate('/login');
     };
     const items: MenuProps['items'] = [
         {
-            label: user?.firstname || 'Username',
+            label: user?.userInfo?.firstname || 'Username',
             key: 'mail',
         },
         {
@@ -57,7 +56,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
                 ></Button>
                 <Dropdown menu={{ items }} placement="bottomRight" arrow={{ pointAtCenter: true }}>
                     <Button className="border-none bg-transparent	flex items-center px-0">
-                        <FaUserCircle className="text-2xl text-gray-700 align-middle" />
+                        <Avatar style={{ backgroundColor: 'color.primary' }}></Avatar>
                     </Button>
                 </Dropdown>
             </div>

@@ -1,22 +1,33 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { UserAction, UserReducers, UserState } from '../../types/user-state.type';
+import { UserProfileReducers, UserProfileState } from '../../types/user-state.type';
 
-export const userSlice = createSlice<UserState, UserReducers>({
+const initialState: UserProfileState = {
+    userInfo: null,
+    chatList: [],
+};
+export const userSlice = createSlice<UserProfileState, UserProfileReducers>({
     name: 'user',
-    initialState: null,
+    initialState: initialState,
     reducers: {
-        updateUser: (state: UserState, action: UserAction) => {
+        updateUser: (state, action) => {
             return {
                 ...(state || {}),
-                ...action.payload,
-            } as UserState;
+                userInfo: action.payload,
+            } as UserProfileState;
         },
+        //@ts-ignore
         removeUser: () => {
             return null;
+        },
+        updateChatList: (state, action) => {
+            state.chatList = action.payload;
+        },
+        addChat: (state, action) => {
+            state.chatList = [...state.chatList, action.payload];
         },
     },
 });
 
-export const { updateUser, removeUser } = userSlice.actions;
+export const { updateUser, removeUser, updateChatList, addChat } = userSlice.actions;
 
 export const userReducer = userSlice.reducer;

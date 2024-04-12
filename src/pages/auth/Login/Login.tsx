@@ -2,7 +2,7 @@ import { Button, Divider, Form, Input, message } from 'antd';
 import Password from 'antd/es/input/Password';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { updateUser } from '../../../redux/slices/user.slice.ts';
 import { googleLogin, login } from '../../../requests/auth.request.ts';
 import { State } from '../../../types/state.type.ts';
@@ -15,6 +15,7 @@ export const Login: React.FC = () => {
 
     const user = useSelector((state: State) => state.user);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const handleFinish = async () => {
         try {
@@ -23,14 +24,13 @@ export const Login: React.FC = () => {
 
             const data = await login(values);
             dispatch(updateUser(data.user));
-
-            message.success('Đăng nhập thành công');
-        } catch (err) {
-            console.error(err);
+            message.success('Welcome to HUST workspace');
+            navigate('/');
         } finally {
             setLoading(false);
         }
     };
+    if (user) return <Navigate to="/" />;
 
     const loginWithGoogle = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
@@ -42,8 +42,6 @@ export const Login: React.FC = () => {
             }
         },
     });
-
-    if (user) return <Navigate to="/" />;
 
     return (
         <div className="h-screen flex flex-row bg-auth-bg bg-cover justify-center items-center">
