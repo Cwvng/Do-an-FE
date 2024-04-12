@@ -1,5 +1,5 @@
 import React from 'react';
-import ChatList from '../../components/message/ChatList.tsx';
+import ChatList from '../../components/chat/ChatList.tsx';
 
 export const Messages: React.FC = () => {
     return (

@@ -1,5 +1,5 @@
-import { UserState } from './user-state.type.ts';
+import { UserProfileState } from './user-state.type.ts';
 
 export interface State {
-    user: UserState;
+    user: UserProfileState;
 }

@@ -1,18 +1,25 @@
-import { CaseReducer } from '@reduxjs/toolkit';
+import { CaseReducer, PayloadAction } from '@reduxjs/toolkit';
+import { ChatsResponse } from '../requests/types/chat.interface.ts';
 
-export interface User {
-    id: number;
-    firstname: string;
-    lastname: string;
-    email: string;
-    profilePic: string;
+export interface UserProfileState {
+    userInfo: UserInfo | null;
+    chatList: ChatsResponse[];
+}
+export interface UserInfo {
+    id: number | null;
+    firstname: string | null;
+    lastname: string | null;
+    email: string | null;
+    profilePic: string | null;
 }
 
-export interface UserAction {
-    type: string;
-    payload: Partial<User>;
-}
-export interface UserReducers {
-    [K: string]: CaseReducer<UserState, UserAction>;
-}
-export type UserState = User | null | undefined;
+export type UserProfileCaseReducer<P = any> = CaseReducer<UserProfileState, PayloadAction<P>>;
+
+export type UserProfileReducers = {
+    [K: string]: UserProfileCaseReducer;
+} & {
+    updateUser: UserProfileCaseReducer<Partial<UserProfileState>>;
+    removeUser: CaseReducer<UserProfileState, PayloadAction<undefined>>;
+    updateChatList: UserProfileCaseReducer<ChatsResponse[]>;
+    addChat: UserProfileCaseReducer<ChatsResponse>;
+};

@@ -24,9 +24,15 @@ const App: React.FC = () => {
                                 itemSelectedColor: '#FFF',
                                 itemHoverColor: '#628DB6',
                             },
+                            Select: {
+                                multipleItemBg: 'rgba(98,141,182,0.25)',
+                            },
+                            Avatar: { groupSpace: 2, groupOverlapping: -15 },
                         },
                         token: {
                             colorPrimary: '#628DB6',
+                            colorError: '#f56a00',
+                            colorErrorBg: '#fde3cf',
                         },
                     }}
                 >
