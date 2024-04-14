@@ -1,11 +1,10 @@
 import { Button, Divider, Form, Input, message } from 'antd';
 import Password from 'antd/es/input/Password';
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import { updateUser } from '../../../redux/slices/user.slice.ts';
 import { googleLogin, login } from '../../../requests/auth.request.ts';
-import { State } from '../../../types/state.type.ts';
 import { FcGoogle } from '@react-icons/all-files/fc/FcGoogle';
 import { useGoogleLogin } from '@react-oauth/google';
 
@@ -13,7 +12,6 @@ export const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
 
-    const user = useSelector((state: State) => state.user);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -24,13 +22,13 @@ export const Login: React.FC = () => {
 
             const data = await login(values);
             dispatch(updateUser(data.user));
+
             message.success('Welcome to HUST workspace');
             navigate('/');
         } finally {
             setLoading(false);
         }
     };
-    if (user) return <Navigate to="/" />;
 
     const loginWithGoogle = useGoogleLogin({
         onSuccess: async (tokenResponse) => {

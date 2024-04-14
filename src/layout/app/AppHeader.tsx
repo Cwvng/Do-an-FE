@@ -1,6 +1,6 @@
 import { Header } from 'antd/es/layout/layout';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Button, Dropdown, MenuProps } from "antd";
+import { Avatar, Button, Dropdown, MenuProps } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { State } from '../../types/state.type';
 import { removeUser } from '../../redux/slices/user.slice';
@@ -56,7 +56,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
                 ></Button>
                 <Dropdown menu={{ items }} placement="bottomRight" arrow={{ pointAtCenter: true }}>
                     <Button className="border-none bg-transparent	flex items-center px-0">
-                        <Avatar style={{ backgroundColor: 'color.primary' }}></Avatar>
+                        <Avatar src={user.userInfo?.profilePic}></Avatar>
                     </Button>
                 </Dropdown>
             </div>

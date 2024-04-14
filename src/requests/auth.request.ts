@@ -18,3 +18,7 @@ export const signup = async (body: SignupBody) => {
     setAccessToken(access_token);
     return data;
 };
+export const getLoggedUserInfo = async () => {
+    const { data } = await api.get('/auth/user');
+    return data;
+};
