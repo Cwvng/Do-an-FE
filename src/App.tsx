@@ -27,7 +27,7 @@ const App: React.FC = () => {
                             Select: {
                                 multipleItemBg: 'rgba(98,141,182,0.25)',
                             },
-                            Avatar: { groupSpace: 2, groupOverlapping: -15 },
+                            Avatar: { groupSpace: 2, groupOverlapping: -20 },
                         },
                         token: {
                             colorPrimary: '#628DB6',

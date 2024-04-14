@@ -1,11 +1,14 @@
 import React from 'react';
 import { ChatsResponse } from '../../requests/types/chat.interface.ts';
 import { Avatar, theme } from 'antd';
+import { useSelector } from 'react-redux';
+import { State } from '../../types/state.type.ts';
 
 interface ChatNameCardProps {
     item: ChatsResponse;
 }
 export const ChatNameCard: React.FC<ChatNameCardProps> = ({ item }) => {
+    const user = useSelector((state: State) => state.user);
     const { token } = theme.useToken();
     return (
         <div className="relative flex items-center border-primary hover:bg-hoverBg hover:cursor-pointer p-1 gap-5 h-15 max-w-full mb-2">
@@ -36,7 +39,7 @@ export const ChatNameCard: React.FC<ChatNameCardProps> = ({ item }) => {
                     )}
                 </div>
             </div>
-            <div className="basis-4/5 flex flex-col justify-end gap-1">
+            <div className="basis-4/5 relative flex flex-col justify-start gap-1">
                 <div className="flex justify-between items-center">
                     <span className="text-base text-secondary">
                         {item.isGroupChat ? item.chatName : item.users[1].firstname + item.users[1].lastname}
@@ -48,9 +51,16 @@ export const ChatNameCard: React.FC<ChatNameCardProps> = ({ item }) => {
                         })}
                     </span>
                 </div>
-                <span className="truncate max-w-50">
-                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
-                </span>
+                <div>
+                    {item?.latestMessage && (
+                        <span className="truncate max-w-50">
+                            {item.latestMessage.sender._id == user.userInfo?._id
+                                ? 'You'
+                                : item.latestMessage.sender.firstname}
+                            : {item.latestMessage.content}
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     );

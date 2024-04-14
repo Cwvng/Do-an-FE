@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { Dispatch, SetStateAction, useEffect } from 'react';
 import { Divider, Form, FormProps, Input, message, Modal, Select, SelectProps, Space, Spin, Tooltip } from 'antd';
 import { FaSearch } from 'react-icons/fa';
 import { ChatNameCard } from './ChatNameCard.tsx';
@@ -9,7 +9,10 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { getAllOtherUsers } from '../../requests/user.request.ts';
 import { createGroupChat, createNewChat, getAllChats } from '../../requests/chat.request.ts';
 
-const ChatList: React.FC = () => {
+interface ChatListProps {
+    setSelectedChat: Dispatch<SetStateAction<ChatsResponse | undefined>>;
+}
+const ChatList: React.FC<ChatListProps> = ({ setSelectedChat }) => {
     const [openPinnedList, setOpenPinnedList] = React.useState(false);
     const [openChatList, setOpenChatList] = React.useState(true);
     const [openCreateChat, setOpenCreateChat] = React.useState(false);
@@ -60,7 +63,7 @@ const ChatList: React.FC = () => {
                     userId: values.users[0],
                 };
                 const res = await createNewChat(body);
-                const index = chatList.findIndex((e) => (e._id = res._id));
+                const index = chatList.findIndex((e) => e._id === res._id);
                 if (index < 0) {
                     setChatList([res, ...chatList]);
                     message.success('Created new chat');
@@ -135,7 +138,11 @@ const ChatList: React.FC = () => {
                 <div style={{ overflowY: 'scroll', overflowX: 'hidden' }}>
                     {openChatList &&
                         (chatList && chatList.length > 0 ? (
-                            chatList.map((item, index) => <ChatNameCard item={item} key={index} />)
+                            chatList.map((item, index) => (
+                                <div key={index} onClick={() => setSelectedChat(item)}>
+                                    <ChatNameCard item={item} />
+                                </div>
+                            ))
                         ) : (
                             <span className="text-center text-sm text-border">No chat yet</span>
                         ))}

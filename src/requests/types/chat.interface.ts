@@ -16,6 +16,7 @@ export interface ChatsResponse {
     isGroupChat: boolean;
     users: UserResponse[];
     groupAdmin: UserResponse | null;
+    latestMessage: FullChatResponse | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -25,4 +26,13 @@ export interface CreateGroupChatBody {
 }
 export interface CreateNewChatBody {
     userId: string;
+}
+export interface FullChatResponse {
+    _id: string;
+    sender: UserResponse;
+    content: string;
+    chat: ChatsResponse;
+    readBy: [];
+    createdAt: string;
+    updatedAt: string;
 }
