@@ -1,16 +1,16 @@
 import React from 'react';
-import { FullChatResponse } from '../../requests/types/chat.interface.ts';
+import { FullChatResponse } from '../../../requests/types/chat.interface.ts';
 import ScrollableFeed from 'react-scrollable-feed';
 import { isLastMessage, isSameSender, isSameSenderMargin, isSameUser } from './utils.tsx';
 import { useSelector } from 'react-redux';
-import { State } from '../../types/state.type.ts';
 import { Avatar, Tooltip } from 'antd';
+import { AppState } from '../../../redux/store';
 
 interface MessageContainerProps {
     messages: FullChatResponse[];
 }
-export const MessageContainer: React.FC<MessageContainerProps> = ({ messages }) => {
-    const user = useSelector((state: State) => state.user).userInfo;
+export const Index: React.FC<MessageContainerProps> = ({ messages }) => {
+    const user = useSelector((state: AppState) => state.user).userInfo;
     return (
         <ScrollableFeed>
             {messages &&

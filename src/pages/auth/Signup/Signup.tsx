@@ -1,18 +1,17 @@
 import { Button, Col, Form, Input, message, Row, Select } from 'antd';
 import Password from 'antd/es/input/Password';
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { updateUser } from '../../../redux/slices/user.slice.ts';
 import { signup } from '../../../requests/auth.request.ts';
-import { State } from '../../../types/state.type.ts';
+import { AppState, useDispatch, useSelector } from '../../../redux/store';
 
 export const Signup: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
     const navigate = useNavigate();
 
-    const user = useSelector((state: State) => state.user);
+    const user = useSelector((state: AppState) => state.user);
     const dispatch = useDispatch();
 
     const handleFinish = async () => {

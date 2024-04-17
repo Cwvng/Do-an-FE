@@ -1,17 +1,21 @@
 import React from 'react';
-import { ChatsResponse } from '../../requests/types/chat.interface.ts';
+import { ChatsResponse } from '../../../requests/types/chat.interface.ts';
 import { Avatar, theme } from 'antd';
 import { useSelector } from 'react-redux';
-import { State } from '../../types/state.type.ts';
+import { isTodayMessage } from './utils.tsx';
+import { AppState } from '../../../redux/store';
 
 interface ChatNameCardProps {
     item: ChatsResponse;
+    isSelected: boolean;
 }
-export const ChatNameCard: React.FC<ChatNameCardProps> = ({ item }) => {
-    const user = useSelector((state: State) => state.user);
+export const Index: React.FC<ChatNameCardProps> = ({ item, isSelected }) => {
+    const user = useSelector((state: AppState) => state.user);
     const { token } = theme.useToken();
     return (
-        <div className="relative flex items-center border-primary hover:bg-hoverBg hover:cursor-pointer p-1 gap-5 h-15 max-w-full mb-2">
+        <div
+            className={`${isSelected ? 'bg-hoverBg' : ''} relative flex items-center rounded-md  border-primary hover:bg-hoverBg hover:cursor-pointer p-1 gap-5 h-15 max-w-full mb-2`}
+        >
             <div className="basis-1/5 relative h-full flex items-center">
                 <div className="relative w-full h-full flex items-center justify-center">
                     {item.isGroupChat ? (
@@ -44,12 +48,7 @@ export const ChatNameCard: React.FC<ChatNameCardProps> = ({ item }) => {
                     <span className="text-base text-secondary">
                         {item.isGroupChat ? item.chatName : item.users[1].firstname + item.users[1].lastname}
                     </span>
-                    <span className="text-xs text-secondary">
-                        {new Date(item.updatedAt).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                        })}
-                    </span>
+                    <span className="text-xs text-secondary">{isTodayMessage(item.updatedAt)}</span>
                 </div>
                 <div>
                     {item?.latestMessage && (

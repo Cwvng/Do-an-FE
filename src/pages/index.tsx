@@ -8,7 +8,7 @@ import { AuthLayout } from '../layout/auth/AuthLayout.tsx';
 import { AppLayout } from '../layout/app/AppLayout.tsx';
 import { getAccessToken } from '../utils/storage.util.ts';
 import { Home } from './home/home.tsx';
-import { Messages } from './messages/Messages.tsx';
+import { Index } from './messages';
 import { Tasks } from './tasks/Tasks.tsx';
 
 interface ProtectedRouteProps {
@@ -50,7 +50,7 @@ export const AppRoutes: React.FC = () => {
                 }
             >
                 <Route path="/" element={<Home />} />
-                <Route path="/messages" element={<Messages />} />
+                <Route path="/messages" element={<Index />} />
                 <Route path="/tasks" element={<Tasks />} />
             </Route>
         </Routes>
