@@ -19,11 +19,13 @@ module.exports = {
             backgroundImage: {
                 'auth-bg':
                     "url('https://birchtree.me/content/images/size/w2000/2020/08/DB0B3B0A-1888-41AB-B044-AB24A90229CE..jpeg')",
+                'msg-bg':
+                    "url('https://is.zobj.net/image-server/v1/images?r=DBZ_detbClA07Z8Dbb5a5Dn-kprwa3QsD6L3yV647tKbM3FMKXwA_dk-FhrwHGnhyAU5iKZ2PLIEHPo010UFSGhilP10BKL5p2StZr3UJ5sybIENj5rcPmIn3ish9xxmbMKZ7NDwSfK0wQkgxbJ4vo1vtU3Rz14ac4HSAuXYnbEApbPaaVcjz-ZuDoRtYPd0ZH6NcJNVPq37vyin3hpPEfh22hdEx4AMa9oFaA",
             },
             colors: {
                 primary: '#628DB6',
                 secondary: '#3E5B76',
-                hoverBg: 'rgba(98,141,182,0.2)',
+                hoverBg: 'rgba(98,141,182,0.34)',
                 border: '#e5e7eb',
                 lightBg: 'rgba(98,141,182,0.22)',
             },

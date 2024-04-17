@@ -1,32 +1,31 @@
 import { Header } from 'antd/es/layout/layout';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Button, Dropdown, MenuProps } from 'antd';
-import { useDispatch, useSelector } from 'react-redux';
-import { State } from '../../types/state.type';
-import { removeUser } from '../../redux/slices/user.slice';
+import { userLogout } from '../../redux/slices/user.slice';
 import { removeAccessToken } from '../../utils/storage.util';
 import React from 'react';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
 import { IoIosMenu, IoMdSettings } from 'react-icons/io';
 import { IoNotifications } from 'react-icons/io5';
+import { AppState, useDispatch, useSelector } from '../../redux/store';
 
 interface AppHeaderProps {
     toggleSidebar: () => void;
 }
 export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
     const dispatch = useDispatch();
-    const user = useSelector((state: State) => state.user);
+    const user = useSelector((state: AppState) => state.user);
 
     const navigate = useNavigate();
 
     const handleLogout = () => {
         removeAccessToken();
-        dispatch(removeUser());
+        dispatch(userLogout());
         navigate('/login');
     };
     const items: MenuProps['items'] = [
         {
-            label: user?.userInfo?.firstname || 'Username',
+            label: user?.userInfo?.firstname ?? 'Username',
             key: 'mail',
         },
         {

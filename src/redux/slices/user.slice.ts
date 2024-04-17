@@ -1,32 +1,26 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { UserInfo, UserProfileReducers, UserProfileState } from '../../types/user-state.type';
+import { UserInfo, UserProfileReducers, UserProfileState } from '../../types/user-state.type.ts';
 import { getLoggedUserInfo } from '../../requests/auth.request.ts';
+import { setAccessToken } from '../../utils/storage.util.ts';
+import { AppDispatch } from '../store';
 
 const initialState: UserProfileState = {
     isAuthenticated: false,
+    userInfo: null,
     isLoading: false,
-    userInfo: undefined,
-    chatList: [],
 };
+
 export const userSlice = createSlice<UserProfileState, UserProfileReducers>({
-    name: 'user',
-    initialState: initialState,
+    name: 'userSlice',
+    initialState,
     reducers: {
+        logout: (state) => {
+            state.isAuthenticated = false;
+            state.userInfo = null;
+        },
+
         updateUser: (state, action) => {
-            return {
-                ...(state || {}),
-                userInfo: action.payload,
-            } as UserProfileState;
-        },
-        //@ts-ignore
-        removeUser: () => {
-            return null;
-        },
-        updateChatList: (state, action) => {
-            state.chatList = action.payload;
-        },
-        addChat: (state, action) => {
-            state.chatList = [...state.chatList, action.payload];
+            state.userInfo = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -45,9 +39,20 @@ export const userSlice = createSlice<UserProfileState, UserProfileReducers>({
             });
     },
 });
-export const getUserInfo = createAsyncThunk<UserInfo>('auth/user', async () => {
+
+export const { logout, updateUser } = userSlice.actions;
+
+export const getUserInfo = createAsyncThunk<UserInfo>('auth/me', async () => {
     return getLoggedUserInfo();
 });
-export const { updateUser, removeUser, updateChatList, addChat } = userSlice.actions;
+
+export const userLogout = () => async (dispatch: AppDispatch) => {
+    try {
+        setAccessToken(null);
+        dispatch(logout());
+    } catch (err: any) {
+        throw new Error(err);
+    }
+};
 
 export const userReducer = userSlice.reducer;

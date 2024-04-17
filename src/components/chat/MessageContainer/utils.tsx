@@ -1,4 +1,4 @@
-import { FullChatResponse } from '../../requests/types/chat.interface.ts';
+import { FullChatResponse } from '../../../requests/types/chat.interface.ts';
 
 export const isSameSenderMargin = (
     messages: FullChatResponse[],

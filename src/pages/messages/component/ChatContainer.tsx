@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
 import { Avatar, Form, FormProps, Input, theme } from 'antd';
 import { IoMdSend } from 'react-icons/io';
-import { ChatsResponse, FullChatResponse } from '../../requests/types/chat.interface.ts';
-import { accessChat } from '../../requests/chat.request.ts';
-import { Loading } from '../loading/Loading.tsx';
-import { MessageContainer } from '../message/MessageContainer.tsx';
-import { SendMessagesBody } from '../../requests/types/message.interface.ts';
-import { sendNewMessage } from '../../requests/message.request.ts';
+import { ChatsResponse, FullChatResponse } from '../../../requests/types/chat.interface.ts';
+import { accessChat } from '../../../requests/chat.request.ts';
+import { Index } from '../../../components/chat/MessageContainer';
+import { SendMessagesBody } from '../../../requests/types/message.interface.ts';
+import { sendNewMessage } from '../../../requests/message.request.ts';
 
 interface ChatContainerProps {
     selectedChat: ChatsResponse | undefined;
@@ -16,7 +15,6 @@ type FieldType = {
     content: string;
 };
 export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) => {
-    const [loading, setLoading] = React.useState(false);
     const [chatData, setChatData] = React.useState<FullChatResponse[]>([]);
 
     const { token } = theme.useToken();
@@ -24,13 +22,12 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) =>
 
     const getSelectedChatData = async () => {
         try {
-            setLoading(true);
             if (selectedChat) {
                 const res = await accessChat(selectedChat._id);
                 setChatData(res);
             }
         } finally {
-            setLoading(false);
+            console.log('done');
         }
     };
     const sendMessage: FormProps<FieldType>['onFinish'] = async (values) => {
@@ -45,7 +42,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) =>
                 form.resetFields();
             }
         } finally {
-            setLoading(false);
+            console.log('sent');
         }
     };
 
@@ -53,7 +50,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) =>
         getSelectedChatData();
     }, [selectedChat]);
 
-    if (loading) return <Loading />;
     return (
         <div className="flex h-full flex-col">
             <div className="flex items-center border-b-1 border-border px-5 py-3 gap-3">
@@ -68,31 +64,29 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) =>
                             })}
                         </Avatar.Group>
                         <div className="flex flex-col">
-                            <span className="text-lg">{selectedChat?.chatName}</span>
-                            <span className="text-sm text-secondary">{selectedChat?.users.length} members</span>
+                            <span className="text-lg text-secondary">{selectedChat?.chatName}</span>
+                            <span className="text-sm ">{selectedChat?.users.length} members</span>
                         </div>
                     </>
                 ) : (
                     <>
                         <Avatar size="large" src={selectedChat?.users[1].profilePic} />
                         <div className="flex flex-col">
-                            <span className="text-lg">
+                            <span className="text-lg text-secondary">
                                 {selectedChat?.users[1].firstname} {selectedChat?.users[1].lastname}
                             </span>
-                            <span className="text-sm text-secondary">🟢 Active now</span>
+                            <span className="text-sm ">🟢 Active now</span>
                         </div>
                     </>
                 )}
             </div>
             <div className="bg-lightBg relative flex-1 flex flex-col justify-between p-5">
                 <div>
-                    <MessageContainer messages={chatData} />
+                    <Index messages={chatData} />
                 </div>
                 <div className="absolute bottom-0 right-0 w-full p-3">
                     <Form form={form} onFinish={sendMessage}>
-                        <Form.Item
-                            name="content" // This name should match the field in the FieldType
-                        >
+                        <Form.Item name="content">
                             <Input
                                 className="p-3"
                                 suffix={<IoMdSend className="text-primary text-xl hover:cursor-pointer" />}

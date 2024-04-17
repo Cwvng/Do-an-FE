@@ -1,18 +1,19 @@
 import React, { Dispatch, SetStateAction, useEffect } from 'react';
 import { Divider, Form, FormProps, Input, message, Modal, Select, SelectProps, Space, Spin, Tooltip } from 'antd';
 import { FaSearch } from 'react-icons/fa';
-import { ChatNameCard } from './ChatNameCard.tsx';
+import { Index } from '../../../components/chat/ChatNameCard';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
-import { ChatsResponse, CreateGroupChatBody, CreateNewChatBody } from '../../requests/types/chat.interface.ts';
+import { ChatsResponse, CreateGroupChatBody, CreateNewChatBody } from '../../../requests/types/chat.interface.ts';
 import { IoCreate } from 'react-icons/io5';
 import { LoadingOutlined } from '@ant-design/icons';
-import { getAllOtherUsers } from '../../requests/user.request.ts';
-import { createGroupChat, createNewChat, getAllChats } from '../../requests/chat.request.ts';
+import { getAllOtherUsers } from '../../../requests/user.request.ts';
+import { createGroupChat, createNewChat, getAllChats } from '../../../requests/chat.request.ts';
 
 interface ChatListProps {
     setSelectedChat: Dispatch<SetStateAction<ChatsResponse | undefined>>;
+    selectedChat: ChatsResponse | undefined;
 }
-const ChatList: React.FC<ChatListProps> = ({ setSelectedChat }) => {
+const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) => {
     const [openPinnedList, setOpenPinnedList] = React.useState(false);
     const [openChatList, setOpenChatList] = React.useState(true);
     const [openCreateChat, setOpenCreateChat] = React.useState(false);
@@ -80,7 +81,11 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat }) => {
     const getChatList = async () => {
         try {
             setLoading(true);
-            setChatList(await getAllChats());
+            const chats = await getAllChats();
+            setChatList(chats);
+            if (chats.length > 0 && !selectedChat) {
+                setSelectedChat(chats[0]);
+            }
         } finally {
             setLoading(false);
         }
@@ -121,7 +126,7 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat }) => {
                         <IoIosArrowUp aria-label="Expand pinned list" />
                     )}
                 </div>
-                {/*{openPinnedList && Array.from({ length: 2 }, (_, index) => <ChatNameCard item={item} key={index} />)}*/}
+                {/*{openPinnedList && Array.from({ length: 2 }, (_, index) => <Index item={item} key={index} />)}*/}
                 <div
                     className="mb-3 flex items-center justify-between hover:cursor-pointer hover:bg-hoverBg p-1"
                     onClick={toggleChatList}
@@ -140,7 +145,7 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat }) => {
                         (chatList && chatList.length > 0 ? (
                             chatList.map((item, index) => (
                                 <div key={index} onClick={() => setSelectedChat(item)}>
-                                    <ChatNameCard item={item} />
+                                    <Index isSelected={selectedChat?._id === item._id} item={item} />
                                 </div>
                             ))
                         ) : (
