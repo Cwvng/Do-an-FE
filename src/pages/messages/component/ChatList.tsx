@@ -1,13 +1,13 @@
 import React, { Dispatch, SetStateAction, useEffect } from 'react';
 import { Divider, Form, FormProps, Input, message, Modal, Select, SelectProps, Space, Spin, Tooltip } from 'antd';
 import { FaSearch } from 'react-icons/fa';
-import { Index } from '../../../components/chat/ChatNameCard';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { ChatsResponse, CreateGroupChatBody, CreateNewChatBody } from '../../../requests/types/chat.interface.ts';
 import { IoCreate } from 'react-icons/io5';
 import { LoadingOutlined } from '@ant-design/icons';
 import { getAllOtherUsers } from '../../../requests/user.request.ts';
 import { createGroupChat, createNewChat, getAllChats } from '../../../requests/chat.request.ts';
+import { ChatNameCard } from '../../../components/chat/ChatNameCard';
 
 interface ChatListProps {
     setSelectedChat: Dispatch<SetStateAction<ChatsResponse | undefined>>;
@@ -145,7 +145,7 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) =>
                         (chatList && chatList.length > 0 ? (
                             chatList.map((item, index) => (
                                 <div key={index} onClick={() => setSelectedChat(item)}>
-                                    <Index isSelected={selectedChat?._id === item._id} item={item} />
+                                    <ChatNameCard isSelected={selectedChat?._id === item._id} item={item} />
                                 </div>
                             ))
                         ) : (

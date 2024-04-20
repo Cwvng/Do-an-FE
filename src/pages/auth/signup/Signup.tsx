@@ -1,17 +1,16 @@
 import { Button, Col, Form, Input, message, Row, Select } from 'antd';
 import Password from 'antd/es/input/Password';
 import React, { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { updateUser } from '../../../redux/slices/user.slice.ts';
 import { signup } from '../../../requests/auth.request.ts';
-import { AppState, useDispatch, useSelector } from '../../../redux/store';
+import { useDispatch } from '../../../redux/store';
 
 export const Signup: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
     const navigate = useNavigate();
 
-    const user = useSelector((state: AppState) => state.user);
     const dispatch = useDispatch();
 
     const handleFinish = async () => {
@@ -22,15 +21,13 @@ export const Signup: React.FC = () => {
             const { user } = await signup(values);
             dispatch(updateUser(user));
             navigate('/');
-            message.success('Signup successfully');
+            message.success('signup successfully');
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
         }
     };
-
-    if (user) return <Navigate to="/" />;
 
     return (
         <div className="h-screen flex flex-row bg-auth-bg bg-cover justify-center items-center">

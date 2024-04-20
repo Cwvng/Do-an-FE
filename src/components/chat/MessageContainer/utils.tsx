@@ -40,7 +40,9 @@ export const isLastMessage = (messages: FullChatResponse[], i: number, userId: s
 export const isSameUser = (messages: FullChatResponse[], m: FullChatResponse, i: number) => {
     return i > 0 && messages[i - 1].sender._id === m.sender._id;
 };
-
+export const isUserMessage = (m: FullChatResponse, userId: string | undefined) => {
+    return m.sender._id === userId;
+};
 // export const getSender = (loggedUser, users) => {
 //     return users[0]?._id === loggedUser?._id ? users[1].name : users[0].name;
 // };

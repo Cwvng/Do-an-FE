@@ -37,7 +37,7 @@ export const Login: React.FC = () => {
                 console.log(tokenResponse);
                 await googleLogin({ access_token: tokenResponse.access_token });
             } catch (err) {
-                console.log('Login with google error:', err);
+                console.log('login with google error:', err);
             }
         },
     });
