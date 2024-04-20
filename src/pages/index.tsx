@@ -1,23 +1,25 @@
 import React from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
-import { Login } from './auth/Login/Login.tsx';
-import { Signup } from './auth/Signup/Signup.tsx';
+import { Login } from './auth/login/Login.tsx';
+import { Signup } from './auth/signup/Signup.tsx';
 import { Error404 } from '../components/errors/Error404.tsx';
 import { Error403 } from '../components/errors/Error403.tsx';
 import { AuthLayout } from '../layout/auth/AuthLayout.tsx';
 import { AppLayout } from '../layout/app/AppLayout.tsx';
-import { getAccessToken } from '../utils/storage.util.ts';
 import { Home } from './home/home.tsx';
 import { Index } from './messages';
 import { Tasks } from './tasks/Tasks.tsx';
+import { AppState, useSelector } from '../redux/store';
 
 interface ProtectedRouteProps {
     children: any;
 }
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }: ProtectedRouteProps) => {
-    const access_token = getAccessToken();
-    if (!access_token) return <Navigate to="/login" replace />;
-    return children;
+    const user = useSelector((app: AppState) => app.user);
+    if (!user.isAuthenticated) {
+        return <Navigate to={{ pathname: '/login' }} />;
+    }
+    return <>{children}</>;
 };
 
 export const AppRoutes: React.FC = () => {

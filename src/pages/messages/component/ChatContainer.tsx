@@ -3,9 +3,12 @@ import { Avatar, Form, FormProps, Input, theme } from 'antd';
 import { IoMdSend } from 'react-icons/io';
 import { ChatsResponse, FullChatResponse } from '../../../requests/types/chat.interface.ts';
 import { accessChat } from '../../../requests/chat.request.ts';
-import { Index } from '../../../components/chat/MessageContainer';
+import { MessageContainer } from '../../../components/chat/MessageContainer';
 import { SendMessagesBody } from '../../../requests/types/message.interface.ts';
 import { sendNewMessage } from '../../../requests/message.request.ts';
+import { useSocketContext } from '../../../context/SocketContext.tsx';
+import { getReceiverUser } from '../../../utils/message.util.tsx';
+import { AppState, useSelector } from '../../../redux/store';
 
 interface ChatContainerProps {
     selectedChat: ChatsResponse | undefined;
@@ -18,6 +21,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) =>
     const [chatData, setChatData] = React.useState<FullChatResponse[]>([]);
 
     const { token } = theme.useToken();
+    const { socket, onlineUsers } = useSocketContext();
+    const userId = useSelector((app: AppState) => app.user.userInfo?._id);
+    const receiver = getReceiverUser(selectedChat?.users, userId);
     const [form] = Form.useForm();
 
     const getSelectedChatData = async () => {
@@ -32,9 +38,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) =>
     };
     const sendMessage: FormProps<FieldType>['onFinish'] = async (values) => {
         try {
-            if (selectedChat) {
+            if (selectedChat && values.content !== '') {
                 const body: SendMessagesBody = {
-                    content: values.content,
+                    content: values.content.trim(),
                     chatId: selectedChat._id,
                 };
                 const res = await sendNewMessage(body);
@@ -45,6 +51,17 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) =>
             console.log('sent');
         }
     };
+    //@ts-ignore
+    useEffect(() => {
+        socket?.on('newMessage', (newMessage) => {
+            newMessage.shouldShake = true;
+            // const sound = new Audio(notificationSound);
+            // sound.play();
+            setChatData([...chatData, newMessage]);
+        });
+
+        return () => socket?.off('newMessage');
+    }, [socket, setChatData, chatData]);
 
     useEffect(() => {
         getSelectedChatData();
@@ -70,23 +87,34 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) =>
                     </>
                 ) : (
                     <>
-                        <Avatar size="large" src={selectedChat?.users[1].profilePic} />
+                        <Avatar size="large" src={receiver?.profilePic} />
                         <div className="flex flex-col">
                             <span className="text-lg text-secondary">
-                                {selectedChat?.users[1].firstname} {selectedChat?.users[1].lastname}
+                                {receiver?.firstname} {receiver?.lastname}
                             </span>
-                            <span className="text-sm ">🟢 Active now</span>
+                            {onlineUsers.includes(getReceiverUser(selectedChat?.users, userId)?._id) && (
+                                <span className="text-sm ">🟢 Active now</span>
+                            )}
                         </div>
                     </>
                 )}
             </div>
-            <div className="bg-lightBg relative flex-1 flex flex-col justify-between p-5">
-                <div>
-                    <Index messages={chatData} />
+            <div className="bg-lightBg flex flex-col h-full overflow-y-hidden justify-between p-5">
+                <div className="h-full overflow-y-hidden">
+                    <MessageContainer messages={chatData} />
                 </div>
-                <div className="absolute bottom-0 right-0 w-full p-3">
-                    <Form form={form} onFinish={sendMessage}>
-                        <Form.Item name="content">
+                <div className="mt-5">
+                    <Form className="" form={form} onFinish={sendMessage}>
+                        <Form.Item
+                            name="content"
+                            rules={[
+                                {
+                                    pattern: /^(?!\s*$).+/,
+                                    message: 'Message should not be an empty string',
+                                    validateTrigger: '',
+                                },
+                            ]}
+                        >
                             <Input
                                 className="p-3"
                                 suffix={<IoMdSend className="text-primary text-xl hover:cursor-pointer" />}
