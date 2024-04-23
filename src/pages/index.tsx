@@ -8,53 +8,51 @@ import { AuthLayout } from '../layout/auth/AuthLayout.tsx';
 import { AppLayout } from '../layout/app/AppLayout.tsx';
 import { Home } from './home/home.tsx';
 import { Index } from './messages';
-import { Tasks } from './tasks/Tasks.tsx';
-import { AppState, useSelector } from '../redux/store';
+import { Projects } from './projects/Projects.tsx';
+import { getAccessToken } from '../utils/storage.util.ts';
 
 interface ProtectedRouteProps {
-    children: any;
+  children: any;
 }
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }: ProtectedRouteProps) => {
-    const user = useSelector((app: AppState) => app.user);
-    if (!user.isAuthenticated) {
-        return <Navigate to={{ pathname: '/login' }} />;
-    }
-    return <>{children}</>;
+  const access_token = getAccessToken();
+  if (!access_token) return <Navigate to="/login" replace />;
+  return children;
 };
 
 export const AppRoutes: React.FC = () => {
-    return (
-        <Routes>
-            {/* error pages */}
-            <Route path="/*" element={<Error404 />} />
-            <Route path="/403" element={<Error403 />} />
+  return (
+    <Routes>
+      {/* error pages */}
+      <Route path="/*" element={<Error404 />} />
+      <Route path="/403" element={<Error403 />} />
 
-            {/* auth routes */}
-            <Route
-                element={
-                    <AuthLayout>
-                        <Outlet />
-                    </AuthLayout>
-                }
-            >
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-            </Route>
+      {/* auth routes */}
+      <Route
+        element={
+          <AuthLayout>
+            <Outlet />
+          </AuthLayout>
+        }
+      >
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+      </Route>
 
-            {/* authenticated routes */}
-            <Route
-                element={
-                    <ProtectedRoute>
-                        <AppLayout>
-                            <Outlet />
-                        </AppLayout>
-                    </ProtectedRoute>
-                }
-            >
-                <Route path="/" element={<Home />} />
-                <Route path="/messages" element={<Index />} />
-                <Route path="/tasks" element={<Tasks />} />
-            </Route>
-        </Routes>
-    );
+      {/* authenticated routes */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <Outlet />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/" element={<Home />} />
+        <Route path="/messages" element={<Index />} />
+        <Route path="/project/:id" element={<Projects />} />
+      </Route>
+    </Routes>
+  );
 };

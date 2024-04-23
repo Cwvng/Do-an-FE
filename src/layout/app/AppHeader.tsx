@@ -8,6 +8,7 @@ import { RiLogoutBoxRLine } from 'react-icons/ri';
 import { IoIosMenu, IoMdSettings } from 'react-icons/io';
 import { IoNotifications } from 'react-icons/io5';
 import { AppState, useDispatch, useSelector } from '../../redux/store';
+import { CircleButton } from '../../components/common/button/CircleButton';
 
 interface AppHeaderProps {
     toggleSidebar: () => void;
@@ -42,19 +43,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
                     onClick={toggleSidebar}
                     icon={<IoIosMenu className="text-2xl text-gray-700" />}
                 />
-                <h2 className="text-secondary">HUST Workspace</h2>
+                <h2 className="text-secondary hover:cursor-pointer" onClick={() => navigate('/')}>
+                    HUST Workspace
+                </h2>
             </div>
             <div className="flex gap-3">
-                <Button
-                    className="border-none bg-transparent"
-                    icon={<IoNotifications className="text-2xl text-gray-700" />}
-                ></Button>
-                <Button
-                    className="border-none bg-transparent	"
-                    icon={<IoMdSettings className="text-2xl text-gray-700" />}
-                ></Button>
+                <CircleButton icon={<IoNotifications className="text-2xl text-gray-700" />}></CircleButton>
+                <CircleButton icon={<IoMdSettings className="text-2xl text-gray-700" />}></CircleButton>
                 <Dropdown menu={{ items }} placement="bottomRight" arrow={{ pointAtCenter: true }}>
-                    <Button className="border-none bg-transparent	flex items-center px-0">
+                    <Button shape="circle" className="border-none bg-transparent	flex items-center px-0">
                         <Avatar src={user.userInfo?.profilePic}></Avatar>
                     </Button>
                 </Dropdown>
