@@ -4,79 +4,89 @@ import { GoHomeFill } from 'react-icons/go';
 import React, { useEffect, useState } from 'react';
 import { SelectInfo } from 'rc-menu/lib/interface';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MdOutlineTaskAlt } from 'react-icons/md';
 import { IoChatbubbles } from 'react-icons/io5';
+import { BsFillKanbanFill } from 'react-icons/bs';
+import { FaTasks } from 'react-icons/fa';
 
 interface SidebarProps {
-    collapsed: boolean;
+  collapsed: boolean;
 }
 export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
-    const [selectedMenu, setSelectedMenu] = useState('');
-    const [openKey, setOpenKey] = useState(['']);
+  const [selectedMenu, setSelectedMenu] = useState('');
+  const [openKey, setOpenKey] = useState(['']);
 
-    const location = useLocation();
-    const navigate = useNavigate();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        for (const item of menuItems) {
-            if (location.pathname.includes(item?.key as string)) {
-                setSelectedMenu(item?.key as string);
-                setOpenKey([item?.key] as string[]);
-            }
+  useEffect(() => {
+    for (const item of menuItems) {
+      if (location.pathname.includes(item?.key as string)) {
+        setSelectedMenu(item?.key as string);
+        setOpenKey([item?.key] as string[]);
+      }
 
-            const children = (item as SubMenuType)?.children;
-            if (children) {
-                for (const child of children) {
-                    if (location.pathname.includes(child?.key as string)) {
-                        setSelectedMenu(child?.key as string);
-                        return;
-                    }
-                }
-            }
+      const children = (item as SubMenuType)?.children;
+      if (children) {
+        for (const child of children) {
+          if (location.pathname.includes(child?.key as string)) {
+            setSelectedMenu(child?.key as string);
+            return;
+          }
         }
-    }, [location.pathname]);
+      }
+    }
+  }, [location.pathname]);
 
-    const handleMenuSelect = ({ key }: SelectInfo) => {
-        navigate(key);
-    };
+  const handleMenuSelect = ({ key }: SelectInfo) => {
+    navigate(key);
+  };
 
-    const menuItems: ItemType[] = [
-        {
-            key: '/',
-            label: <span className="text-bold">Dashboard</span>,
-            icon: <GoHomeFill />,
-        },
-        {
-            key: '/tasks',
-            label: <span className="text-bold">Tasks</span>,
-            icon: <MdOutlineTaskAlt />,
-        },
+  const menuItems: ItemType[] = [
+    {
+      key: '/',
+      label: <span className="text-bold">Dashboard</span>,
+      icon: <GoHomeFill />,
+    },
+    {
+      key: '/projects',
+      label: <span className="text-bold">Kanban Board</span>,
+      icon: <BsFillKanbanFill />,
+      children: [
+        { label: <span className="text-bold">Project 1</span>, key: '/project/1' },
+        { label: <span className="text-bold">Project 2</span>, key: '/project/2' },
+      ],
+    },
+    {
+      key: '/issues',
+      label: <span className="text-bold">Issues</span>,
+      icon: <FaTasks />,
+    },
 
-        {
-            key: '/messages',
-            label: <span className="text-bold">Messages</span>,
-            icon: <IoChatbubbles />,
-        },
-    ];
+    {
+      key: '/messages',
+      label: <span className="text-bold">Messages</span>,
+      icon: <IoChatbubbles />,
+    },
+  ];
 
-    return (
-        <Layout.Sider
-            className="!bg-white flex flex-col border-r border-border"
-            collapsible
-            collapsed={collapsed}
-            collapsedWidth={60}
-            width={180}
-            trigger={null}
-        >
-            <Menu
-                className="h-full"
-                items={menuItems}
-                mode="inline"
-                onSelect={handleMenuSelect}
-                selectedKeys={[selectedMenu]}
-                openKeys={openKey}
-                onOpenChange={setOpenKey}
-            />
-        </Layout.Sider>
-    );
+  return (
+    <Layout.Sider
+      className="!bg-white flex flex-col border-r border-border"
+      collapsible
+      collapsed={collapsed}
+      collapsedWidth={60}
+      width={200}
+      trigger={null}
+    >
+      <Menu
+        className="h-full"
+        items={menuItems}
+        mode="inline"
+        onSelect={handleMenuSelect}
+        selectedKeys={[selectedMenu]}
+        openKeys={openKey}
+        onOpenChange={setOpenKey}
+      />
+    </Layout.Sider>
+  );
 };

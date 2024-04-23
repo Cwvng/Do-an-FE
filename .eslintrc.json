@@ -18,6 +18,15 @@
     "react"
   ],
   "rules": {
-    "react/react-in-jsx-scope": "off"
+    "prettier/prettier": "warn",
+    "react/display-name": "off",
+    "react/no-unescaped-entities": "off",
+    "import/no-anonymous-default-export": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-empty-function": "off"
   }
 }
