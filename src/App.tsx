@@ -45,7 +45,6 @@ const App: React.FC = () => {
               },
               Select: {
                 multipleItemBg: 'rgba(98,141,182,0.25)',
-                selectorBg: 'rgba(98,141,182,0.37)',
               },
               Avatar: { groupSpace: 2, groupOverlapping: -20 },
               Tabs: { itemSelectedColor: '#3E5B76', inkBarColor: '#3E5B76', titleFontSize: 20 },
