@@ -1,15 +1,15 @@
 import React from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
-import { Login } from './auth/login/Login.tsx';
-import { Signup } from './auth/signup/Signup.tsx';
+import { Login } from './auth/login';
+import { Signup } from './auth/signup';
 import { Error404 } from '../components/errors/Error404.tsx';
 import { Error403 } from '../components/errors/Error403.tsx';
 import { AuthLayout } from '../layout/auth/AuthLayout.tsx';
 import { AppLayout } from '../layout/app/AppLayout.tsx';
-import { Home } from './home/home.tsx';
-import { Index } from './messages';
-import { Projects } from './projects/Projects.tsx';
+import { Dashboard } from './dashboard';
+import { Projects } from './projects';
 import { getAccessToken } from '../utils/storage.util.ts';
+import { Messages } from './messages';
 
 interface ProtectedRouteProps {
   children: any;
@@ -49,8 +49,8 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Home />} />
-        <Route path="/messages" element={<Index />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/messages" element={<Messages />} />
         <Route path="/project/:id" element={<Projects />} />
       </Route>
     </Routes>

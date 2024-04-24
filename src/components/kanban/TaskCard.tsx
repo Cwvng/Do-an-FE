@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FaTrash } from 'react-icons/fa';
-import { Id, Task } from './type.tsx';
+import { Id, Issue } from './type.tsx';
 import { Input } from 'antd';
 
 interface TaskCardProps {
-  task: Task;
+  task: Issue;
   deleteTask: (id: Id) => void;
   updateTask: (id: Id, content: string) => void;
 }
