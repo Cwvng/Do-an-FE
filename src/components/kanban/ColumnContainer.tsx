@@ -1,9 +1,9 @@
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import React, { useMemo, useState } from 'react';
 import { CSS } from '@dnd-kit/utilities';
-import { Column, Id, Task } from './type.tsx';
+import { Column, Id, Issue } from './type.tsx';
 import { FaPlus } from 'react-icons/fa';
-import { TaskCard } from './TaskCard.tsx';
+import { IssueCard } from './IssueCard.tsx';
 import { Button, Input } from 'antd';
 import { IoClose } from 'react-icons/io5';
 
@@ -14,7 +14,7 @@ interface ColumnContainerProps {
   createTask: (columnId: Id) => void;
   updateTask: (id: Id, content: string) => void;
   deleteTask: (id: Id) => void;
-  tasks: Task[];
+  tasks: Issue[];
 }
 
 export const ColumnContainer: React.FC<ColumnContainerProps> = ({
@@ -101,7 +101,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
       <div className="flex flex-grow flex-col gap-4 overflow-x-hidden overflow-y-auto">
         <SortableContext items={tasksIds}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} deleteTask={deleteTask} updateTask={updateTask} />
+            <IssueCard key={task.id} task={task} deleteTask={deleteTask} updateTask={updateTask} />
           ))}
         </SortableContext>
       </div>

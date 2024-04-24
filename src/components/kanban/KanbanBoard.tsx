@@ -11,10 +11,10 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { createPortal } from 'react-dom';
-import { Column, Id, Task } from './type.tsx';
+import { Column, Id, Issue } from './type.tsx';
 import { FaPlus } from 'react-icons/fa';
 import { ColumnContainer } from './ColumnContainer.tsx';
-import { TaskCard } from './TaskCard.tsx';
+import { IssueCard } from './IssueCard.tsx';
 import { Button } from 'antd';
 
 const defaultCols: Column[] = [
@@ -23,7 +23,7 @@ const defaultCols: Column[] = [
     title: 'New ✨',
   },
   {
-    id: 'doing',
+    id: 'In progress',
     title: 'In progress 🔄',
   },
   {
@@ -32,7 +32,7 @@ const defaultCols: Column[] = [
   },
 ];
 
-const defaultTasks: Task[] = [
+const defaultTasks: Issue[] = [
   {
     id: '1',
     columnId: 'new',
@@ -40,12 +40,12 @@ const defaultTasks: Task[] = [
   },
   {
     id: '3',
-    columnId: 'doing',
+    columnId: 'In progress',
     content: 'Conduct security testing',
   },
   {
     id: '4',
-    columnId: 'doing',
+    columnId: 'In progress',
     content: 'Analyze competitors',
   },
   {
@@ -85,12 +85,12 @@ const defaultTasks: Task[] = [
   },
   {
     id: '12',
-    columnId: 'doing',
+    columnId: 'In progress',
     content: 'Implement error logging and monitoring',
   },
   {
     id: '13',
-    columnId: 'doing',
+    columnId: 'In progress',
     content: 'Design and implement responsive UI',
   },
 ];
@@ -99,11 +99,11 @@ export const KanbanBoard: React.FC = () => {
   const [columns, setColumns] = useState<Column[]>(defaultCols);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
-  const [tasks, setTasks] = useState<Task[]>(defaultTasks);
+  const [tasks, setTasks] = useState<Issue[]>(defaultTasks);
 
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
 
-  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [activeTask, setActiveTask] = useState<Issue | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -162,7 +162,7 @@ export const KanbanBoard: React.FC = () => {
               />
             )}
             {activeTask && (
-              <TaskCard task={activeTask} deleteTask={deleteTask} updateTask={updateTask} />
+              <IssueCard task={activeTask} deleteTask={deleteTask} updateTask={updateTask} />
             )}
           </DragOverlay>,
           document.body,
@@ -172,7 +172,7 @@ export const KanbanBoard: React.FC = () => {
   );
 
   function createTask(columnId: Id) {
-    const newTask: Task = {
+    const newTask: Issue = {
       id: generateId(),
       columnId,
       content: `Task ${tasks.length + 1}`,

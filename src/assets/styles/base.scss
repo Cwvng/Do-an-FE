@@ -18,6 +18,10 @@ body,
 .ant-menu-light .ant-menu-submenu-selected >.ant-menu-submenu-title{
   color: #3E5B76;
 }
+.ant-btn .ant-icon{
+  display: inline-flex;
+  align-items: center;
+}
 *, ::before, ::after {
   border-width: 0;
   border-style: solid;
