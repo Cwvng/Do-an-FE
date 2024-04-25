@@ -12,18 +12,16 @@ export const Messages: React.FC = () => {
   };
   return (
     <div className="flex flex-row bg-white h-full">
-      <div className="basis-1/4 border-r border-border">
+      <div className="w-1/4 border-r border-border">
         <ChatList selectedChat={selectedChat} setSelectedChat={setSelectedChat} />
       </div>
       <div
-        className={
-          openAttachment ? 'basis-2/4 border-r border-border' : 'basis-3/4 border-r border-border'
-        }
+        className={openAttachment ? 'w-2/4 border-r border-border' : 'w-3/4 border-r border-border'}
       >
         <ChatContainer toggleAttachment={toggleAttachment} selectedChat={selectedChat} />
       </div>
       {openAttachment && (
-        <div className="basis-1/4 ">
+        <div className="flex-1">
           <Attachment />
         </div>
       )}

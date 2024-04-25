@@ -29,7 +29,9 @@ body,
 }
 /* width */
 ::-webkit-scrollbar {
-  width: 0px;
+  width: 0;
+  height: 5px;
+  border-radius: 10px;
 }
 
 /* Track */
