@@ -9,7 +9,6 @@ import {
   Select,
   SelectProps,
   Space,
-  Spin,
   Tooltip,
 } from 'antd';
 import { FaSearch } from 'react-icons/fa';
@@ -20,10 +19,10 @@ import {
   CreateNewChatBody,
 } from '../../../requests/types/chat.interface.ts';
 import { IoCreate } from 'react-icons/io5';
-import { LoadingOutlined } from '@ant-design/icons';
 import { getAllOtherUsers } from '../../../requests/user.request.ts';
 import { createGroupChat, createNewChat, getAllChats } from '../../../requests/chat.request.ts';
 import { ChatNameCard } from '../../../components/chat/ChatNameCard';
+import { useSocketContext } from '../../../context/SocketContext.tsx';
 
 interface ChatListProps {
   setSelectedChat: Dispatch<SetStateAction<ChatsResponse | undefined>>;
@@ -34,11 +33,11 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) =>
   const [openChatList, setOpenChatList] = React.useState(true);
   const [openCreateChat, setOpenCreateChat] = React.useState(false);
   const [submitLoading, setSubmitLoading] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
   const [options, setOptions] = React.useState<SelectProps['options']>([]);
   const [chatList, setChatList] = React.useState<ChatsResponse[]>([]);
 
   const [form] = Form.useForm();
+  const { socket } = useSocketContext();
 
   const togglePinnedList = () => setOpenPinnedList((prevState) => !prevState);
   const toggleChatList = () => setOpenChatList((prevState) => !prevState);
@@ -96,16 +95,25 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) =>
   };
   const getChatList = async () => {
     try {
-      setLoading(true);
       const chats = await getAllChats();
       setChatList(chats);
       if (chats.length > 0 && !selectedChat) {
         setSelectedChat(chats[0]);
       }
     } finally {
-      setLoading(false);
+      //
     }
   };
+
+  //@ts-ignore
+  useEffect(() => {
+    socket?.on('updateChatList', (newMessage) => {
+      newMessage.shouldShake = true;
+      getChatList();
+    });
+
+    return () => socket?.off('updateChatList');
+  }, [socket, chatList, setChatList]);
 
   useEffect(() => {
     getUserList();
@@ -156,7 +164,6 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) =>
             <IoIosArrowUp aria-label="Expand chat list" />
           )}
         </div>
-        {loading && <Spin indicator={<LoadingOutlined spin style={{ fontSize: 24 }} />} />}
         <div style={{ overflowY: 'scroll', overflowX: 'hidden' }}>
           {openChatList &&
             (chatList && chatList.length > 0 ? (
