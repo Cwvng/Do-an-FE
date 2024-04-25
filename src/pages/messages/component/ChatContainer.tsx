@@ -62,7 +62,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat, togg
       newMessage.shouldShake = true;
       // const sound = new Audio(notificationSound);
       // sound.play();
-      setChatData([...chatData, newMessage]);
+      if (newMessage.chat._id === selectedChat?._id) setChatData([...chatData, newMessage]);
     });
 
     return () => socket?.off('newMessage');
@@ -135,7 +135,12 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat, togg
             >
               <Input
                 className="p-3"
-                suffix={<IoMdSend className="text-primary text-xl hover:cursor-pointer" />}
+                suffix={
+                  <IoMdSend
+                    onClick={form.submit}
+                    className="text-primary text-xl hover:cursor-pointer"
+                  />
+                }
               />
             </Form.Item>
           </Form>

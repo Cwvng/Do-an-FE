@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { AppState } from '../../../redux/store';
 import { getReceiverUser } from '../../../utils/message.util.tsx';
 import { useSocketContext } from '../../../context/SocketContext.tsx';
-import { isTodayMessage } from './utils.tsx';
+import { isTodayMessage } from '../utils.tsx';
 
 interface ChatNameCardProps {
   item: ChatsResponse;
