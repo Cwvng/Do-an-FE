@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   Divider,
   Form,
@@ -20,24 +20,24 @@ import {
 } from '../../../requests/types/chat.interface.ts';
 import { IoCreate } from 'react-icons/io5';
 import { getAllOtherUsers } from '../../../requests/user.request.ts';
-import { createGroupChat, createNewChat, getAllChats } from '../../../requests/chat.request.ts';
+import { createGroupChat, createNewChat } from '../../../requests/chat.request.ts';
 import { ChatNameCard } from '../../../components/chat/ChatNameCard';
-import { useSocketContext } from '../../../context/SocketContext.tsx';
+import { AppState, useDispatch, useSelector } from '../../../redux/store';
+import { getChatList, setSelectedChat } from '../../../redux/slices/user.slice.ts';
 
 interface ChatListProps {
-  setSelectedChat: Dispatch<SetStateAction<ChatsResponse | undefined>>;
-  selectedChat: ChatsResponse | undefined;
+  chatList: ChatsResponse[] | null;
 }
-const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) => {
+const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
   const [openPinnedList, setOpenPinnedList] = React.useState(false);
   const [openChatList, setOpenChatList] = React.useState(true);
   const [openCreateChat, setOpenCreateChat] = React.useState(false);
   const [submitLoading, setSubmitLoading] = React.useState(false);
   const [options, setOptions] = React.useState<SelectProps['options']>([]);
-  const [chatList, setChatList] = React.useState<ChatsResponse[]>([]);
 
   const [form] = Form.useForm();
-  const { socket } = useSocketContext();
+  const dispatch = useDispatch();
+  const selectedChat = useSelector((app: AppState) => app.user.selectedChat);
 
   const togglePinnedList = () => setOpenPinnedList((prevState) => !prevState);
   const toggleChatList = () => setOpenChatList((prevState) => !prevState);
@@ -71,17 +71,17 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) =>
           name: values.name.trim(),
           users: values.users,
         };
-        const res = await createGroupChat(body);
-        setChatList([res, ...chatList]);
+        await createGroupChat(body);
+        dispatch(getChatList());
         message.success('Created a new group chat');
       } else {
         const body: CreateNewChatBody = {
           userId: values.users[0],
         };
         const res = await createNewChat(body);
-        const index = chatList.findIndex((e) => e._id === res._id);
-        if (index < 0) {
-          setChatList([res, ...chatList]);
+        const index = chatList?.findIndex((e) => e._id === res._id);
+        if (index && index < 0) {
+          dispatch(getChatList());
           message.success('Created new chat');
         } else {
           //access to chat
@@ -93,33 +93,10 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) =>
       setOpenCreateChat(false);
     }
   };
-  const getChatList = async () => {
-    try {
-      const chats = await getAllChats();
-      setChatList(chats);
-      if (chats.length > 0 && !selectedChat) {
-        setSelectedChat(chats[0]);
-      }
-    } finally {
-      //
-    }
-  };
-
-  //@ts-ignore
-  useEffect(() => {
-    socket?.on('updateChatList', (newMessage) => {
-      newMessage.shouldShake = true;
-      getChatList();
-    });
-
-    return () => socket?.off('updateChatList');
-  }, [socket, chatList, setChatList]);
 
   useEffect(() => {
     getUserList();
-    getChatList();
   }, []);
-
   return (
     <>
       <div className="flex flex-col h-full px-5">
@@ -168,7 +145,7 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) =>
           {openChatList &&
             (chatList && chatList.length > 0 ? (
               chatList.map((item, index) => (
-                <div key={index} onClick={() => setSelectedChat(item)}>
+                <div key={index} onClick={() => dispatch(setSelectedChat(item))}>
                   <ChatNameCard isSelected={selectedChat?._id === item._id} item={item} />
                 </div>
               ))
@@ -187,7 +164,15 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) =>
         onOk={form.submit}
       >
         <Form layout="vertical" form={form} onFinish={createChat}>
-          <Form.Item name="users" label={<span className="font-medium">Members</span>}>
+          <Form.Item
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+            name="users"
+            label={<span className="font-medium">Members</span>}
+          >
             <Select
               className="w-full"
               showSearch
@@ -208,7 +193,15 @@ const ChatList: React.FC<ChatListProps> = ({ setSelectedChat, selectedChat }) =>
               )}
             />
           </Form.Item>
-          <Form.Item dependencies={['users']}>
+          <Form.Item
+            rules={[
+              {
+                required: true,
+                message: 'Group name is required',
+              },
+            ]}
+            dependencies={['users']}
+          >
             {({ getFieldValue }) => (
               <Form.Item name="name" label={<span className="font-medium">Group chat name</span>}>
                 <Input size="large" disabled={getFieldValue('users')?.length < 2} />
