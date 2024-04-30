@@ -1,35 +1,41 @@
 import React, { useEffect } from 'react';
-import { Avatar, Form, FormProps, Input, theme } from 'antd';
+import { Avatar, Dropdown, Form, FormProps, Input, MenuProps, Modal, theme } from 'antd';
 import { IoMdSend } from 'react-icons/io';
-import { ChatsResponse, FullChatResponse } from '../../../requests/types/chat.interface.ts';
-import { accessChat } from '../../../requests/chat.request.ts';
+import { FullChatResponse } from '../../../requests/types/chat.interface.ts';
+import { accessChat, deleteChat } from '../../../requests/chat.request.ts';
 import { MessageContainer } from '../../../components/chat/MessageContainer';
 import { SendMessagesBody } from '../../../requests/types/message.interface.ts';
 import { sendNewMessage } from '../../../requests/message.request.ts';
 import { useSocketContext } from '../../../context/SocketContext.tsx';
 import { getReceiverUser } from '../../../utils/message.util.tsx';
-import { AppState, useSelector } from '../../../redux/store';
+import { AppState, useDispatch, useSelector } from '../../../redux/store';
 import { FaSearch } from 'react-icons/fa';
 import { CircleButton } from '../../../components/common/button/CircleButton.tsx';
 import { IoImageOutline } from 'react-icons/io5';
 import { FaEllipsisVertical } from 'react-icons/fa6';
+import { Loading } from '../../../components/loading/Loading.tsx';
+import { getChatList } from '../../../redux/slices/user.slice.ts';
+import { ExclamationCircleFilled } from '@ant-design/icons';
 
 interface ChatContainerProps {
-  selectedChat: ChatsResponse | undefined;
   toggleAttachment: () => void;
 }
 
 type FieldType = {
   content: string;
 };
-export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat, toggleAttachment }) => {
+export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }) => {
   const [chatData, setChatData] = React.useState<FullChatResponse[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [openModal, setOpenModal] = React.useState(false);
 
   const { token } = theme.useToken();
   const { socket, onlineUsers } = useSocketContext();
   const userId = useSelector((app: AppState) => app.user.userInfo?._id);
+  const selectedChat = useSelector((app: AppState) => app.user.selectedChat);
   const receiver = getReceiverUser(selectedChat?.users, userId);
   const [form] = Form.useForm();
+  const dispatch = useDispatch();
 
   const getSelectedChatData = async () => {
     try {
@@ -50,12 +56,50 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat, togg
         };
         const res = await sendNewMessage(body);
         setChatData([...chatData, res]);
+        dispatch(getChatList());
         form.resetFields();
       }
     } finally {
       console.log('sent');
     }
   };
+
+  const deleteSelectedChat = async () => {
+    try {
+      setLoading(true);
+      if (selectedChat?._id) await deleteChat(selectedChat._id);
+      dispatch(getChatList());
+    } finally {
+      setLoading(false);
+    }
+  };
+  const isConfirmToDelete = () => {
+    Modal.confirm({
+      centered: true,
+      title: 'Do you want to delete these items?',
+      icon: <ExclamationCircleFilled />,
+      onOk() {
+        deleteSelectedChat();
+      },
+      okText: 'Yes',
+      cancelText: 'No',
+    });
+  };
+
+  const items: MenuProps['items'] = [
+    {
+      label: <span onClick={() => setOpenModal(true)}>Edit chat</span>,
+      key: 'editChat',
+    },
+    {
+      label: (
+        <span className="text-red-500" onClick={isConfirmToDelete}>
+          Delete chat
+        </span>
+      ),
+      key: 'deleteChat',
+    },
+  ];
   //@ts-ignore
   useEffect(() => {
     socket?.on('newMessage', (newMessage) => {
@@ -72,6 +116,17 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat, togg
     getSelectedChatData();
   }, [selectedChat]);
 
+  if (loading) return <Loading />;
+  if (!selectedChat)
+    return (
+      <div className="bg-lightBg h-full flex items-center justify-center flex-col">
+        <img
+          className="w-1/2"
+          src="https://cdni.iconscout.com/illustration/premium/thumb/message-notification-in-laptop-with-coffee-cup-3178506-2670442.png"
+        />
+        <span className="text-secondary ">No chat selected</span>
+      </div>
+    );
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-row justify-between items-center border-b-1 border-border px-5 py-3 gap-3">
@@ -114,7 +169,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat, togg
             icon={<IoImageOutline size="20" />}
             onClick={toggleAttachment}
           />
-          <CircleButton type="primary" icon={<FaEllipsisVertical size="20" />} />
+          <Dropdown menu={{ items }} placement="bottomLeft" arrow={{ pointAtCenter: true }}>
+            <CircleButton type="primary" icon={<FaEllipsisVertical size="20" />} />
+          </Dropdown>
         </div>
       </div>
       <div className="bg-lightBg flex flex-col h-full overflow-y-hidden justify-between p-5">
@@ -146,6 +203,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat, togg
           </Form>
         </div>
       </div>
+      <Modal
+        title={<span className="text-xl font-bold text-primary">Edit chat</span>}
+        centered
+        open={openModal}
+        onCancel={() => setOpenModal(false)}
+        okText="Save"
+        onOk={form.submit}
+      ></Modal>
     </div>
   );
 };
