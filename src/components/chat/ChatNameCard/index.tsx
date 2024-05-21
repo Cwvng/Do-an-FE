@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChatsResponse } from '../../../requests/types/chat.interface.ts';
+import { Chat } from '../../../requests/types/chat.interface.ts';
 import { Avatar, theme } from 'antd';
 import { useSelector } from 'react-redux';
 import { AppState } from '../../../redux/store';
@@ -8,7 +8,7 @@ import { useSocketContext } from '../../../context/SocketContext.tsx';
 import { isTodayMessage } from '../utils.tsx';
 
 interface ChatNameCardProps {
-  item: ChatsResponse;
+  item: Chat;
   isSelected: boolean;
 }
 

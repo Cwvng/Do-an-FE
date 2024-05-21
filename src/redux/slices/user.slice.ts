@@ -4,6 +4,7 @@ import { getLoggedUserInfo } from '../../requests/auth.request.ts';
 import { setAccessToken } from '../../utils/storage.util.ts';
 import { AppDispatch } from '../store';
 import { getAllChats } from '../../requests/chat.request.ts';
+import { getProjectById } from '../../requests/project.request.ts';
 
 const initialState: UserProfileState = {
   isAuthenticated: false,
@@ -11,6 +12,7 @@ const initialState: UserProfileState = {
   isLoading: false,
   chatList: null,
   selectedChat: null,
+  selectedProject: null,
 };
 
 export const userSlice = createSlice<UserProfileState, UserProfileReducers>({
@@ -53,16 +55,32 @@ export const userSlice = createSlice<UserProfileState, UserProfileReducers>({
       })
       .addCase(getChatList.rejected, (state) => {
         state.isLoading = false;
+      })
+      .addCase(getProjectDetail.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getProjectDetail.fulfilled, (state, action) => {
+        state.selectedProject = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(getProjectDetail.rejected, (state) => {
+        state.isLoading = false;
       });
   },
 });
 
 export const { logout, updateUser, setSelectedChat } = userSlice.actions;
 
-export const getUserInfo = createAsyncThunk<UserInfo>('auth/me', async () => {
+export const getUserInfo = createAsyncThunk<UserInfo>('/user', async () => {
   return getLoggedUserInfo();
 });
+export const getChatList = createAsyncThunk('/chat', async () => {
+  return getAllChats();
+});
 
+export const getProjectDetail = createAsyncThunk('/project', async (id: string) => {
+  return await getProjectById(id);
+});
 export const userLogout = () => async (dispatch: AppDispatch) => {
   try {
     setAccessToken(null);
@@ -72,7 +90,4 @@ export const userLogout = () => async (dispatch: AppDispatch) => {
   }
 };
 
-export const getChatList = createAsyncThunk('/chat', async () => {
-  return getAllChats();
-});
 export const userReducer = userSlice.reducer;

@@ -1,4 +1,4 @@
-export interface UserResponse {
+export interface User {
   _id: string;
   firstname: string;
   lastname: string;
@@ -10,13 +10,13 @@ export interface UserResponse {
   createdAt: string;
   updatedAt: string;
 }
-export interface ChatsResponse {
+export interface Chat {
   _id: string;
   chatName: string;
   isGroupChat: boolean;
-  users: UserResponse[];
-  groupAdmin: UserResponse | null;
-  latestMessage: FullChatResponse | null;
+  users: User[];
+  groupAdmin: User | null;
+  latestMessage: Message | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,11 +27,11 @@ export interface CreateGroupChatBody {
 export interface CreateNewChatBody {
   userId: string;
 }
-export interface FullChatResponse {
+export interface Message {
   _id: string;
-  sender: UserResponse;
+  sender: User;
   content: string;
-  chat: ChatsResponse;
+  chat: Chat;
   readBy: [];
   createdAt: string;
   updatedAt: string;

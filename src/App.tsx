@@ -8,6 +8,7 @@ import { getAccessToken } from './utils/storage.util.ts';
 import { getUserInfo } from './redux/slices/user.slice.ts';
 import { AppState, useDispatch, useSelector } from './redux/store';
 import { SocketContextProvider } from './context/SocketContext.tsx';
+import { Toaster } from 'react-hot-toast';
 
 const App: React.FC = () => {
   const userProfile = useSelector((state: AppState) => state.user);
@@ -51,6 +52,13 @@ const App: React.FC = () => {
               Card: {
                 headerBg: '#3E5B76',
               },
+              Table: {
+                headerColor: '#3E5B76',
+              },
+              Button: {
+                defaultBorderColor: '#628DB6',
+                defaultColor: '#628DB6',
+              },
             },
             token: {
               colorPrimary: '#628DB6',
@@ -59,6 +67,7 @@ const App: React.FC = () => {
             },
           }}
         >
+          <Toaster />
           <AppRoutes />
         </ConfigProvider>
       </GoogleOAuthProvider>

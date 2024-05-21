@@ -14,7 +14,7 @@ import {
 import { FaSearch } from 'react-icons/fa';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import {
-  ChatsResponse,
+  Chat,
   CreateGroupChatBody,
   CreateNewChatBody,
 } from '../../../requests/types/chat.interface.ts';
@@ -26,7 +26,7 @@ import { AppState, useDispatch, useSelector } from '../../../redux/store';
 import { getChatList, setSelectedChat } from '../../../redux/slices/user.slice.ts';
 
 interface ChatListProps {
-  chatList: ChatsResponse[] | null;
+  chatList: Chat[] | null;
 }
 const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
   const [openPinnedList, setOpenPinnedList] = React.useState(false);
