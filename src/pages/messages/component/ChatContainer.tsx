@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Avatar, Dropdown, Form, FormProps, Input, MenuProps, Modal, theme } from 'antd';
 import { IoMdSend } from 'react-icons/io';
-import { FullChatResponse } from '../../../requests/types/chat.interface.ts';
+import { Message } from '../../../requests/types/chat.interface.ts';
 import { accessChat, deleteChat } from '../../../requests/chat.request.ts';
 import { MessageContainer } from '../../../components/chat/MessageContainer';
 import { SendMessagesBody } from '../../../requests/types/message.interface.ts';
@@ -25,7 +25,7 @@ type FieldType = {
   content: string;
 };
 export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }) => {
-  const [chatData, setChatData] = React.useState<FullChatResponse[]>([]);
+  const [chatData, setChatData] = React.useState<Message[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [openModal, setOpenModal] = React.useState(false);
 

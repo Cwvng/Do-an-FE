@@ -6,7 +6,6 @@ import { SelectInfo } from 'rc-menu/lib/interface';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { IoChatbubbles } from 'react-icons/io5';
 import { BsFillKanbanFill } from 'react-icons/bs';
-import { FaTasks } from 'react-icons/fa';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -49,19 +48,9 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     },
     {
       key: '/projects',
-      label: <span className="text-bold">Kanban Board</span>,
+      label: <span className="text-bold">Projects</span>,
       icon: <BsFillKanbanFill />,
-      children: [
-        { label: <span className="text-bold">Project 1</span>, key: '/project/1' },
-        { label: <span className="text-bold">Project 2</span>, key: '/project/2' },
-      ],
     },
-    {
-      key: '/issues',
-      label: <span className="text-bold">Issues</span>,
-      icon: <FaTasks />,
-    },
-
     {
       key: '/messages',
       label: <span className="text-bold">Messages</span>,

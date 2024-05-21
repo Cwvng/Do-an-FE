@@ -1,38 +1,40 @@
-import { SortableContext, useSortable } from '@dnd-kit/sortable';
+import { Column, Id } from './type.tsx';
 import React, { useMemo, useState } from 'react';
+import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Column, Id, Issue } from './type.tsx';
-import { FaPlus } from 'react-icons/fa';
-import { IssueCard } from './IssueCard.tsx';
 import { Button, Input } from 'antd';
 import { IoClose } from 'react-icons/io5';
+import { IssueCard } from './IssueCard.tsx';
+import { FaPlus } from 'react-icons/fa';
+import { Issue } from '../../requests/types/issue.interface.ts';
 
 interface ColumnContainerProps {
   column: Column;
   deleteColumn: (id: Id) => void;
   updateColumn: (id: Id, title: string) => void;
-  createTask: (columnId: Id) => void;
-  updateTask: (id: Id, content: string) => void;
-  deleteTask: (id: Id) => void;
-  tasks: Issue[];
+  createIssue: (columnId: Id) => void;
+  updateIssue: (id: Id, content: string) => void;
+  deleteIssue: (id: Id) => void;
+  issues: Issue[];
 }
 
 export const ColumnContainer: React.FC<ColumnContainerProps> = ({
   column,
   deleteColumn,
   updateColumn,
-  createTask,
-  tasks,
-  deleteTask,
-  updateTask,
+  createIssue,
+  issues,
+  deleteIssue,
+  updateIssue,
 }: ColumnContainerProps) => {
   const [editMode, setEditMode] = useState(false);
 
-  const tasksIds = useMemo(() => {
-    return tasks.map((task) => task.id);
-  }, [tasks]);
+  const issuesIds = useMemo(() => {
+    return issues.map((issue) => issue._id);
+  }, [issues]);
 
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
+    //@ts-ignore
     id: column.id,
     data: {
       type: 'Column',
@@ -60,7 +62,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-lightBg w-[250px] h-[500px] max-h-[500px] rounded-md flex flex-col text-secondary px-2"
+      className="bg-lightBg w-[250px] h-[500px] max-h-[500px] rounded-md flex flex-col text-secondary px-2 shadow-[0_3px_10px_rgb(0,0,0,0.2)]"
     >
       {/* Column title */}
       <div
@@ -97,11 +99,19 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
         />
       </div>
 
-      {/* Column task container */}
+      {/* Column issue container */}
       <div className="flex flex-grow flex-col gap-4 overflow-x-hidden overflow-y-auto">
-        <SortableContext items={tasksIds}>
-          {tasks.map((task) => (
-            <IssueCard key={task.id} task={task} deleteTask={deleteTask} updateTask={updateTask} />
+        <SortableContext
+          //@ts-ignore
+          items={issuesIds}
+        >
+          {issues.map((issue) => (
+            <IssueCard
+              key={issue._id}
+              issue={issue}
+              deleteIssue={deleteIssue}
+              updateIssue={updateIssue}
+            />
           ))}
         </SortableContext>
       </div>
@@ -109,7 +119,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
       <Button
         className="flex items-center gap-5 text-secondary hover:bg-hoverBg p-5 bg-lightBg border-none"
         onClick={() => {
-          createTask(column.id);
+          createIssue(column.id);
         }}
       >
         <FaPlus />

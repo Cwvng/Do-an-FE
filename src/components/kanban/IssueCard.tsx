@@ -1,36 +1,51 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { FaTrash } from 'react-icons/fa';
-import { Id, Issue } from './type.tsx';
-import { Breadcrumb, Input, Modal } from 'antd';
+import { FaCheck, FaTrash } from 'react-icons/fa';
+import { Id } from './type.tsx';
+import { Breadcrumb, Button, Form, FormProps, Input, Modal, Spin } from 'antd';
 import { CircleButton } from '../common/button/CircleButton.tsx';
 import { MdEdit } from 'react-icons/md';
 import { IssueDetail } from './IssueDetail';
 import { useParams } from 'react-router-dom';
+import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
+import { UniqueIdentifier } from '@dnd-kit/core';
+import { LoadingOutlined } from '@ant-design/icons';
 
-interface TaskCardProps {
-  task: Issue;
-  deleteTask: (id: Id) => void;
-  updateTask: (id: Id, content: string) => void;
+interface IssueCardProps {
+  issue: Issue;
+  deleteIssue: (id: Id) => void;
+  updateIssue: (id: Id, values: string) => void;
 }
 
-export const IssueCard: React.FC<TaskCardProps> = ({
-  task,
-  deleteTask,
-  updateTask,
-}: TaskCardProps) => {
+export const IssueCard: React.FC<IssueCardProps> = ({
+  issue,
+  deleteIssue,
+  updateIssue,
+}: IssueCardProps) => {
   const [mouseIsOver, setMouseIsOver] = useState(false);
   const [editMode, setEditMode] = useState(true);
   const [openModal, setOpenModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { id } = useParams();
+  const [form] = Form.useForm();
 
+  const submitForm: FormProps<UpdateIssueBody>['onFinish'] = async (values) => {
+    try {
+      setLoading(true);
+      console.log('submit', values);
+      if (values.label) updateIssue(issue._id, values.label.trim());
+    } finally {
+      setLoading(false);
+      toggleEditMode();
+    }
+  };
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
-    id: task.id,
+    id: issue._id as UniqueIdentifier,
     data: {
-      type: 'Task',
-      task,
+      type: 'Issue',
+      issue,
     },
     disabled: editMode,
   });
@@ -64,21 +79,33 @@ export const IssueCard: React.FC<TaskCardProps> = ({
         style={style}
         {...attributes}
         {...listeners}
-        className="flex bg-white p-2.5 h-[100px] min-h-[100px] items-start border-1 border-hoverBg text-left rounded-lg cursor-grab relative task"
+        className="flex bg-white p-2.5 h-[100px] min-h-[100px] items-start border-1 border-hoverBg text-left rounded-lg cursor-grab relative issue"
       >
-        <Input
-          className="w-full resize-none border-none rounded bg-transparent text-secondary focus:outline-none"
-          value={task.content}
-          autoFocus
-          placeholder="Issue's title"
-          onBlur={toggleEditMode}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && e.shiftKey) {
-              toggleEditMode();
-            }
-          }}
-          onChange={(e) => updateTask(task.id, e.target.value)}
-        />
+        <Form form={form} onFinish={submitForm}>
+          <Form.Item name="label" initialValue={issue.label}>
+            <Input
+              className="w-full resize-none border-none rounded bg-transparent text-secondary focus:outline-none"
+              autoFocus
+              placeholder="Issue's label"
+              onBlur={form.submit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.shiftKey) {
+                  toggleEditMode();
+                }
+              }}
+            />
+          </Form.Item>
+
+          <div className="flex flex-row gap-2 items-center absolute right-4 top-2/3 -translate-y-1/2 ">
+            <CircleButton
+              className=" opacity-60 hover:opacity-100"
+              onClick={form.submit}
+              htmlType="submit"
+              icon={<FaCheck size={20} />}
+            />
+            {loading && <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />}
+          </div>
+        </Form>
       </div>
     );
   }
@@ -91,7 +118,7 @@ export const IssueCard: React.FC<TaskCardProps> = ({
         {...attributes}
         {...listeners}
         // onClick={toggleEditMode}
-        className="flex bg-white p-2.5 h-[100px] min-h-[100px] items-start border-1 border-hoverBg text-left rounded-lg cursor-grab relative task"
+        className="flex bg-white p-2.5 h-[100px] min-h-[100px] items-start border-1 border-hoverBg text-left rounded-lg cursor-grab relative issue"
         onMouseEnter={() => {
           setMouseIsOver(true);
         }}
@@ -103,7 +130,7 @@ export const IssueCard: React.FC<TaskCardProps> = ({
           onClick={() => setOpenModal(true)}
           className=" w-full overflow-y-auto overflow-x-hidden hover:cursor-pointer whitespace-pre-wrap"
         >
-          {task.content}
+          {issue.label}
         </div>
         {mouseIsOver && (
           <div className="flex flex-row gap-2 items-center absolute right-4 top-1/2 -translate-y-1/2 ">
@@ -114,7 +141,7 @@ export const IssueCard: React.FC<TaskCardProps> = ({
             />
             <CircleButton
               onClick={() => {
-                deleteTask(task.id);
+                deleteIssue(issue._id);
               }}
               className=" opacity-60 hover:opacity-100"
               icon={<FaTrash />}
@@ -124,25 +151,33 @@ export const IssueCard: React.FC<TaskCardProps> = ({
       </div>
       <Modal
         title={
-          <Breadcrumb>
-            <Breadcrumb.Item>
-              <span>Project {id}</span>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-              <span>Issue {task.id}</span>
-            </Breadcrumb.Item>
-          </Breadcrumb>
+          <Breadcrumb
+            items={[
+              {
+                title: <span>Project {id}</span>,
+              },
+              {
+                title: <span>Issue {issue._id}</span>,
+              },
+            ]}
+          />
         }
         centered
         open={openModal}
-        onOk={() => setOpenModal(false)}
-        onCancel={() => setOpenModal(false)}
+        destroyOnClose
+        footer={[
+          <Button key="cancel" onClick={() => setOpenModal(false)}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" form="detailForm" htmlType="submit">
+            Submit
+          </Button>,
+        ]}
         className="min-w-max"
+        onCancel={() => setOpenModal(false)}
         width="75vw"
-        okText="Save"
-        cancelText="Close"
       >
-        <IssueDetail issue={task} />
+        <IssueDetail id={issue._id} />
       </Modal>
     </>
   );

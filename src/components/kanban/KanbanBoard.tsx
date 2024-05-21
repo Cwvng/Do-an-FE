@@ -11,100 +11,45 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext } from '@dnd-kit/sortable';
 import { createPortal } from 'react-dom';
-import { Column, Id, Issue } from './type.tsx';
+import { Column, Id } from './type.tsx';
 import { FaPlus } from 'react-icons/fa';
 import { ColumnContainer } from './ColumnContainer.tsx';
 import { IssueCard } from './IssueCard.tsx';
-import { Button } from 'antd';
+import { Button, message } from 'antd';
+import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
+import { Status } from '../../constants';
+import { createNewIssue, deleteIssueById, updateIssueById } from '../../requests/issue.request.ts';
+import { useParams } from 'react-router-dom';
 
 const defaultCols: Column[] = [
   {
-    id: 'new',
+    id: Status.NEW,
     title: 'New ✨',
   },
   {
-    id: 'In progress',
+    id: Status.IN_PROGRESS,
     title: 'In progress 🔄',
   },
   {
-    id: 'done',
+    id: Status.WAITING_REVIEW,
+    title: 'Waiting review ⏳',
+  },
+  {
+    id: Status.DONE,
     title: 'Done ✔️',
   },
 ];
 
-const defaultTasks: Issue[] = [
-  {
-    id: '1',
-    columnId: 'new',
-    content: 'List admin APIs for dashboard',
-  },
-  {
-    id: '3',
-    columnId: 'In progress',
-    content: 'Conduct security testing',
-  },
-  {
-    id: '4',
-    columnId: 'In progress',
-    content: 'Analyze competitors',
-  },
-  {
-    id: '5',
-    columnId: 'done',
-    content: 'Create UI kit documentation',
-  },
-  {
-    id: '6',
-    columnId: 'done',
-    content: 'Dev meeting',
-  },
-  {
-    id: '7',
-    columnId: 'done',
-    content: 'Deliver dashboard prototype',
-  },
-  {
-    id: '8',
-    columnId: 'new',
-    content: 'Optimize application performance',
-  },
-  {
-    id: '9',
-    columnId: 'new',
-    content: 'Implement data validation',
-  },
-  {
-    id: '10',
-    columnId: 'new',
-    content: 'Design database schema',
-  },
-  {
-    id: '11',
-    columnId: 'new',
-    content: 'Integrate SSL web certificates into workflow',
-  },
-  {
-    id: '12',
-    columnId: 'In progress',
-    content: 'Implement error logging and monitoring',
-  },
-  {
-    id: '13',
-    columnId: 'In progress',
-    content: 'Design and implement responsive UI',
-  },
-];
-
-export const KanbanBoard: React.FC = () => {
+interface KanbanBoardProps {
+  data: Issue[];
+}
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data }) => {
   const [columns, setColumns] = useState<Column[]>(defaultCols);
-  const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
-
-  const [tasks, setTasks] = useState<Issue[]>(defaultTasks);
-
+  const [issues, setIssues] = useState<Issue[]>(data);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+  const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
 
-  const [activeTask, setActiveTask] = useState<Issue | null>(null);
-
+  const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -112,28 +57,194 @@ export const KanbanBoard: React.FC = () => {
       },
     }),
   );
+  const { id } = useParams();
+
+  const updateIssueDetail = async (issueId: string, body: UpdateIssueBody) => {
+    try {
+      await updateIssueById(issueId, body);
+    } finally {
+    }
+  };
+
+  //CRUD issue
+  const createIssue = async (columnId: Id) => {
+    try {
+      if (id) {
+        const body: Issue = {
+          status: columnId,
+          label: `Issue ${issues.length + 1}`,
+          project: id,
+        };
+        const res = await createNewIssue(body);
+
+        setIssues([...issues, res]);
+        message.success('Created an issue');
+      }
+    } finally {
+    }
+  };
+  const deleteIssue = async (id: Id) => {
+    try {
+      if (id) {
+        await deleteIssueById(id);
+        const newIssues = issues.filter((issue) => issue._id !== id);
+        setIssues(newIssues);
+        message.success('Deleted an issue');
+      }
+    } finally {
+    }
+  };
+  const updateIssue = async (id: Id, content: string) => {
+    try {
+      if (id) {
+        await updateIssueDetail(id, { label: content });
+        const newIssues = issues.map((issue) => {
+          if (issue._id !== id) return issue;
+          return { ...issue, label: content };
+        });
+
+        setIssues(newIssues);
+        // message.success('Updated an issue');
+      }
+    } finally {
+    }
+  };
+
+  //CRUD Column
+  const createNewColumn = () => {
+    const columnToAdd: Column = {
+      id: generateId().toString(),
+      title: `Column ${columns.length + 1}`,
+    };
+
+    setColumns([...columns, columnToAdd]);
+  };
+  const deleteColumn = (id: Id) => {
+    const filteredColumns = columns.filter((col) => col.id !== id);
+    setColumns(filteredColumns);
+
+    const newIssues = issues.filter((t) => t.status !== id);
+    setIssues(newIssues);
+  };
+  const updateColumn = (id: Id, title: string) => {
+    const newColumns = columns.map((col) => {
+      if (col.id !== id) return col;
+      return { ...col, title };
+    });
+
+    setColumns(newColumns);
+  };
+
+  //Drag handle
+  const onDragStart = (event: DragStartEvent) => {
+    if (event.active.data.current?.type === 'Column') {
+      setActiveColumn(event.active.data.current.column);
+      return;
+    }
+
+    if (event.active.data.current?.type === 'Issue') {
+      setActiveIssue(event.active.data.current.issue);
+      return;
+    }
+  };
+  const onDragEnd = (event: DragEndEvent) => {
+    setActiveColumn(null);
+    setActiveIssue(null);
+
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) {
+      const issue = issues.filter((issue) => issue._id === activeId)[0];
+      updateIssueDetail(activeId.toString(), { status: issue.status });
+      return;
+    }
+
+    const isActiveAColumn = active.data.current?.type === 'Column';
+    if (!isActiveAColumn) return;
+
+    setColumns((columns) => {
+      const activeColumnIndex = columns.findIndex((col) => col.id === activeId);
+
+      const overColumnIndex = columns.findIndex((col) => col.id === overId);
+
+      return arrayMove(columns, activeColumnIndex, overColumnIndex);
+    });
+  };
+  const onDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const isActiveAIssue = active.data.current?.type === 'Issue';
+    const isOverAIssue = over.data.current?.type === 'Issue';
+
+    if (!isActiveAIssue) return;
+
+    if (isActiveAIssue && isOverAIssue) {
+      setIssues((issues) => {
+        const activeIndex = issues.findIndex((t) => t._id === activeId);
+        const overIndex = issues.findIndex((t) => t._id === overId);
+
+        if (issues[activeIndex].status != issues[overIndex].status) {
+          issues[activeIndex].status = issues[overIndex].status;
+          return arrayMove(issues, activeIndex, overIndex - 1);
+        }
+
+        return arrayMove(issues, activeIndex, overIndex);
+      });
+    }
+
+    const isOverAColumn = over.data.current?.type === 'Column';
+
+    // Dropping a Issue over a column
+    if (isActiveAIssue && isOverAColumn) {
+      setIssues((issues) => {
+        const activeIndex = issues.findIndex((t) => t._id === activeId);
+
+        if (typeof overId === 'string') {
+          issues[activeIndex].status = overId;
+        }
+
+        return arrayMove(issues, activeIndex, activeIndex);
+      });
+    }
+  };
+  const generateId = () => {
+    return Math.floor(Math.random() * 10001);
+  };
 
   return (
-    <div className="flex w-full overflow-x-auto overflow-y-hidden mt-5">
+    <div className="flex w-full overflow-x-auto overflow-y-hidden mt-3">
       <DndContext
         sensors={sensors}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onDragOver={onDragOver}
       >
-        <div className="flex gap-4">
+        <div className="flex gap-4 pb-2">
           <div className="flex gap-4">
-            <SortableContext items={columnsId}>
+            <SortableContext
+              //@ts-ignore
+              items={columnsId}
+            >
               {columns.map((col) => (
                 <ColumnContainer
                   key={col.id}
                   column={col}
                   deleteColumn={deleteColumn}
                   updateColumn={updateColumn}
-                  createTask={createTask}
-                  deleteTask={deleteTask}
-                  updateTask={updateTask}
-                  tasks={tasks.filter((task) => task.columnId === col.id)}
+                  createIssue={createIssue}
+                  deleteIssue={deleteIssue}
+                  updateIssue={updateIssue}
+                  issues={issues.filter((issue) => issue.status === col.id)}
                 />
               ))}
             </SortableContext>
@@ -155,14 +266,14 @@ export const KanbanBoard: React.FC = () => {
                 column={activeColumn}
                 deleteColumn={deleteColumn}
                 updateColumn={updateColumn}
-                createTask={createTask}
-                deleteTask={deleteTask}
-                updateTask={updateTask}
-                tasks={tasks.filter((task) => task.columnId === activeColumn.id)}
+                createIssue={createIssue}
+                deleteIssue={deleteIssue}
+                updateIssue={updateIssue}
+                issues={issues.filter((issue) => issue.status === activeColumn.id)}
               />
             )}
-            {activeTask && (
-              <IssueCard task={activeTask} deleteTask={deleteTask} updateTask={updateTask} />
+            {activeIssue && (
+              <IssueCard issue={activeIssue} deleteIssue={deleteIssue} updateIssue={updateIssue} />
             )}
           </DragOverlay>,
           document.body,
@@ -170,141 +281,4 @@ export const KanbanBoard: React.FC = () => {
       </DndContext>
     </div>
   );
-
-  function createTask(columnId: Id) {
-    const newTask: Issue = {
-      id: generateId(),
-      columnId,
-      content: `Task ${tasks.length + 1}`,
-    };
-
-    setTasks([...tasks, newTask]);
-  }
-
-  function deleteTask(id: Id) {
-    const newTasks = tasks.filter((task) => task.id !== id);
-    setTasks(newTasks);
-  }
-
-  function updateTask(id: Id, content: string) {
-    const newTasks = tasks.map((task) => {
-      if (task.id !== id) return task;
-      return { ...task, content };
-    });
-
-    setTasks(newTasks);
-  }
-
-  function createNewColumn() {
-    const columnToAdd: Column = {
-      id: generateId(),
-      title: `Column ${columns.length + 1}`,
-    };
-
-    setColumns([...columns, columnToAdd]);
-  }
-
-  function deleteColumn(id: Id) {
-    const filteredColumns = columns.filter((col) => col.id !== id);
-    setColumns(filteredColumns);
-
-    const newTasks = tasks.filter((t) => t.columnId !== id);
-    setTasks(newTasks);
-  }
-
-  function updateColumn(id: Id, title: string) {
-    const newColumns = columns.map((col) => {
-      if (col.id !== id) return col;
-      return { ...col, title };
-    });
-
-    setColumns(newColumns);
-  }
-
-  function onDragStart(event: DragStartEvent) {
-    if (event.active.data.current?.type === 'Column') {
-      setActiveColumn(event.active.data.current.column);
-      return;
-    }
-
-    if (event.active.data.current?.type === 'Task') {
-      setActiveTask(event.active.data.current.task);
-      return;
-    }
-  }
-
-  function onDragEnd(event: DragEndEvent) {
-    setActiveColumn(null);
-    setActiveTask(null);
-
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    if (activeId === overId) return;
-
-    const isActiveAColumn = active.data.current?.type === 'Column';
-    if (!isActiveAColumn) return;
-
-    console.log('DRAG END');
-
-    setColumns((columns) => {
-      const activeColumnIndex = columns.findIndex((col) => col.id === activeId);
-
-      const overColumnIndex = columns.findIndex((col) => col.id === overId);
-
-      return arrayMove(columns, activeColumnIndex, overColumnIndex);
-    });
-  }
-
-  function onDragOver(event: DragOverEvent) {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    if (activeId === overId) return;
-
-    const isActiveATask = active.data.current?.type === 'Task';
-    const isOverATask = over.data.current?.type === 'Task';
-
-    if (!isActiveATask) return;
-
-    // Im dropping a Task over another Task
-    if (isActiveATask && isOverATask) {
-      setTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        const overIndex = tasks.findIndex((t) => t.id === overId);
-
-        if (tasks[activeIndex].columnId != tasks[overIndex].columnId) {
-          // Fix introduced after video recording
-          tasks[activeIndex].columnId = tasks[overIndex].columnId;
-          return arrayMove(tasks, activeIndex, overIndex - 1);
-        }
-
-        return arrayMove(tasks, activeIndex, overIndex);
-      });
-    }
-
-    const isOverAColumn = over.data.current?.type === 'Column';
-
-    // Dropping a Task over a column
-    if (isActiveATask && isOverAColumn) {
-      setTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-
-        tasks[activeIndex].columnId = overId;
-        console.log('DROPPING TASK OVER COLUMN', { activeIndex });
-        return arrayMove(tasks, activeIndex, activeIndex);
-      });
-    }
-  }
 };
-
-function generateId() {
-  /* Generate a random number between 0 and 10000 */
-  return Math.floor(Math.random() * 10001);
-}

@@ -1,8 +1,8 @@
-import { FullChatResponse } from '../../requests/types/chat.interface.ts';
+import { Message } from '../../requests/types/chat.interface.ts';
 
 export const isSameSenderMargin = (
-  messages: FullChatResponse[],
-  m: FullChatResponse,
+  messages: Message[],
+  m: Message,
   i: number,
   userId: string | undefined,
 ) => {
@@ -23,8 +23,8 @@ export const isSameSenderMargin = (
 };
 
 export const isSameSender = (
-  messages: FullChatResponse[],
-  m: FullChatResponse,
+  messages: Message[],
+  m: Message,
   i: number,
   userId: string | undefined,
 ) => {
@@ -35,11 +35,7 @@ export const isSameSender = (
   );
 };
 
-export const isLastMessage = (
-  messages: FullChatResponse[],
-  i: number,
-  userId: string | undefined,
-) => {
+export const isLastMessage = (messages: Message[], i: number, userId: string | undefined) => {
   return (
     i === messages.length - 1 &&
     messages[messages.length - 1].sender._id !== userId &&
@@ -47,10 +43,10 @@ export const isLastMessage = (
   );
 };
 
-export const isSameUser = (messages: FullChatResponse[], m: FullChatResponse, i: number) => {
+export const isSameUser = (messages: Message[], m: Message, i: number) => {
   return i > 0 && messages[i - 1].sender._id === m.sender._id;
 };
-export const isUserMessage = (m: FullChatResponse, userId: string | undefined) => {
+export const isUserMessage = (m: Message, userId: string | undefined) => {
   return m.sender._id === userId;
 };
 // export const getSender = (loggedUser, users) => {
@@ -70,7 +66,7 @@ export const isTodayMessage = (date: string) => {
         minute: '2-digit',
       });
 };
-export const isFirstMessageOfDay = (messages: FullChatResponse[], m: FullChatResponse) => {
+export const isFirstMessageOfDay = (messages: Message[], m: Message) => {
   const getDayKey = (dateStr: string) => new Date(dateStr).setHours(0, 0, 0, 0);
   let earliestMessagesByDay: any = {};
 

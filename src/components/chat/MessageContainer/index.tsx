@@ -1,5 +1,5 @@
 import React from 'react';
-import { FullChatResponse } from '../../../requests/types/chat.interface.ts';
+import { Message } from '../../../requests/types/chat.interface.ts';
 import ScrollableFeed from 'react-scrollable-feed';
 import {
   isFirstMessageOfDay,
@@ -16,7 +16,7 @@ import { AppState } from '../../../redux/store';
 import { getTime } from '../../../utils/message.util.tsx';
 
 interface MessageContainerProps {
-  messages: FullChatResponse[];
+  messages: Message[];
 }
 export const MessageContainer: React.FC<MessageContainerProps> = ({ messages }) => {
   const user = useSelector((state: AppState) => state.user).userInfo;
