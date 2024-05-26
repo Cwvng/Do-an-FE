@@ -1,29 +1,13 @@
 import { Table, Tag, theme } from 'antd';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Priority, Status } from '../../constants';
-import { useParams } from 'react-router-dom';
-import { getIssueList } from '../../requests/issue.request.ts';
 import { Issue } from '../../requests/types/issue.interface.ts';
-import { Loading } from '../../components/loading/Loading.tsx';
 
-export const PMProjectList: React.FC = () => {
+interface PMProjectListProps {
+  issueList: Issue[];
+}
+export const PMProjectList: React.FC<PMProjectListProps> = ({ issueList }) => {
   const { token } = theme.useToken();
-  const { id } = useParams();
-
-  const [issueList, setIssueList] = React.useState<Issue[]>();
-  const [loading, setLoading] = React.useState(false);
-  const getIssueListByProjectId = async () => {
-    try {
-      if (id) {
-        setLoading(true);
-        const res = await getIssueList({ projectId: id });
-        setIssueList(res);
-        console.log(issueList);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getDueDateColor = (date: string) => {
     const today = new Date();
@@ -54,11 +38,6 @@ export const PMProjectList: React.FC = () => {
         return token.colorWarning;
     }
   };
-  useEffect(() => {
-    getIssueListByProjectId();
-  }, []);
-
-  if (loading) return <Loading />;
 
   return (
     <Table
@@ -108,7 +87,7 @@ export const PMProjectList: React.FC = () => {
           key: 'assignee',
           render: (assignee) => (
             <>
-              {assignee.firstname} {assignee.lastname}
+              {assignee?.firstname} {assignee?.lastname}
             </>
           ),
         },

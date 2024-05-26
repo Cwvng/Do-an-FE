@@ -24,6 +24,8 @@ import { getAllOtherUsers } from '../../requests/user.request.ts';
 import { updateProjectById } from '../../requests/project.request.ts';
 import { PMDashBoard } from './PMDashBoard.tsx';
 import { PMProjectList } from './PMIssueList.tsx';
+import { getIssueList } from '../../requests/issue.request.ts';
+import { Issue } from '../../requests/types/issue.interface.ts';
 
 export const ProjectDetail: React.FC = () => {
   const { id } = useParams();
@@ -36,6 +38,7 @@ export const ProjectDetail: React.FC = () => {
   const [form] = useForm();
 
   const [addModal, setAddModal] = React.useState(false);
+  const [issueList, setIssueList] = React.useState<Issue[]>();
   const [options, setOptions] = React.useState<SelectProps['options']>([]);
   const [query, setQuery] = React.useState<string>();
 
@@ -60,6 +63,17 @@ export const ProjectDetail: React.FC = () => {
     }
   };
 
+  const getIssueListByProjectId = async () => {
+    try {
+      if (id) {
+        const res = await getIssueList({ projectId: id });
+        setIssueList(res);
+        console.log(issueList);
+      }
+    } finally {
+    }
+  };
+
   const addNewMember: FormProps['onFinish'] = async (values) => {
     try {
       if (id) {
@@ -80,6 +94,7 @@ export const ProjectDetail: React.FC = () => {
   useEffect(() => {
     if (id) dispatch(getProjectDetail(id));
     getUserList();
+    getIssueListByProjectId();
   }, []);
 
   if (!project) return;
@@ -100,7 +115,7 @@ export const ProjectDetail: React.FC = () => {
         ]}
       ></Breadcrumb>
       <h2 className="mt-5 text-secondary">
-        {!isProjectManager() && `Assigned issues ${project?.issues.length}`}
+        {!isProjectManager() && `Assigned issues (${project?.issues.length})`}
       </h2>
       <div className="flex flex-row items-center max-w-100 gap-5 mt-5">
         {!isProjectManager() && (
@@ -138,14 +153,14 @@ export const ProjectDetail: React.FC = () => {
                 {
                   key: '2',
                   label: `Issues (${project?.issues.length})`,
-                  children: <PMProjectList />,
+                  children: <PMProjectList issueList={issueList!} />,
                 },
               ]}
             />
           </>
         )
       ) : (
-        <div>{project?.issues && <KanbanBoard data={project.issues} />}</div>
+        <div>{issueList && <KanbanBoard data={issueList} />}</div>
       )}
       <Modal
         title={<span className="text-xl font-bold text-primary">Add new member</span>}
