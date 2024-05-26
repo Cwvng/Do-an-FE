@@ -1,4 +1,5 @@
 import { Doughnut } from 'react-chartjs-2';
+import 'chart.js/auto';
 import React, { useEffect } from 'react';
 import { Project } from '../../requests/types/project.interface.ts';
 import { Issue } from '../../requests/types/issue.interface.ts';
