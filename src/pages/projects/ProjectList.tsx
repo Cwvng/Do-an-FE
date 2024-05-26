@@ -1,25 +1,85 @@
 import React, { useEffect, useState } from 'react';
-import { Avatar, Button, Card, Divider, Input, theme } from 'antd';
-import { getAllProject } from '../../requests/project.request.ts';
+import {
+  Avatar,
+  Breadcrumb,
+  Button,
+  Form,
+  FormProps,
+  Input,
+  message,
+  Modal,
+  Select,
+  SelectProps,
+  Space,
+  Table,
+  theme,
+} from 'antd';
+import { createProject, getAllProject } from '../../requests/project.request.ts';
 import { Project } from '../../requests/types/project.interface.ts';
-import { useNavigate } from 'react-router-dom';
-import { Doughnut } from 'react-chartjs-2';
-import { Issue } from '../../requests/types/issue.interface.ts';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loading } from '../../components/loading/Loading.tsx';
 import { FaPlus, FaSearch } from 'react-icons/fa';
+import { useForm } from 'antd/es/form/Form';
+import { getAllOtherUsers } from '../../requests/user.request.ts';
+import queryString from 'query-string';
+import { User } from '../../requests/types/chat.interface.ts';
 
 export const ProjectList: React.FC = () => {
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const [openModal, setOpenModal] = React.useState(false);
+  const [options, setOptions] = React.useState<SelectProps['options']>([]);
 
   const navigate = useNavigate();
   const { token } = theme.useToken();
+  const [form] = useForm();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const getProjectList = async () => {
     try {
       setLoading(true);
-      const res = await getAllProject();
+      const name = searchParams.get('name');
+      const res = await getAllProject({ name });
       setProjectList(res);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getUserList = async () => {
+    try {
+      const data = await getAllOtherUsers();
+      const userList: SelectProps['options'] = [];
+      data.forEach((item) => {
+        userList.push({
+          value: item._id,
+          label: item.firstname + ' ' + item.lastname,
+          emoji: item.profilePic,
+          desc: item.email,
+        });
+      });
+      setOptions(userList);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const filterOption = (input: string, option?: { label: string; value: string }) =>
+    (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
+
+  const handleNavigateQuery = () => {
+    const qs = queryString.stringify({ name: searchParams.get('name') });
+    navigate({ search: '?' + qs });
+    getProjectList();
+  };
+
+  const createNewProject: FormProps['onFinish'] = async (values) => {
+    try {
+      setLoading(true);
+      await createProject(values);
+      message.success('Created new project');
+      setOpenModal(false);
+      getProjectList();
     } finally {
       setLoading(false);
     }
@@ -27,149 +87,151 @@ export const ProjectList: React.FC = () => {
 
   useEffect(() => {
     getProjectList();
+    getUserList();
   }, []);
-
-  const calculateIssueStatistics = (issues: Issue[]) => {
-    const statusCount = {
-      new: 0,
-      in_progress: 0,
-      waiting_review: 0,
-      feedback: 0,
-      done: 0,
-      others: 0,
-    };
-    issues.forEach((issue) => {
-      switch (issue.status) {
-        case 'done':
-          statusCount.done++;
-          break;
-        case 'in progress':
-          statusCount.in_progress++;
-          break;
-        case 'waiting review':
-          statusCount.waiting_review++;
-          break;
-        case 'feedback':
-          statusCount.feedback++;
-          break;
-        case 'new':
-          statusCount.new++;
-          break;
-        default:
-          statusCount.others++;
-          break;
-      }
-    });
-    return Object.values(statusCount);
-  };
 
   if (loading) return <Loading />;
   return (
     <div className="h-full flex flex-col bg-white p-5">
-      <span className="text-secondary font-bold text-xl">Your project ({projectList.length})</span>
-      <Divider className="mt-3" />
+      <Breadcrumb
+        items={[
+          {
+            title: (
+              <span className="cursor-pointer text-gray-400" onClick={() => navigate('/projects')}>
+                Project
+              </span>
+            ),
+          },
+        ]}
+      ></Breadcrumb>
+      <h2 className="mt-5 text-secondary">Your project ({projectList.length})</h2>
       <div>
-        <Input className="w-1/3" size="large" suffix={<FaSearch className="text-primary" />} />
+        <Input
+          className="w-1/3"
+          size="large"
+          value={searchParams.get('name')!}
+          onChange={(e) => setSearchParams({ name: e.target.value })}
+          suffix={<FaSearch onClick={handleNavigateQuery} className="text-primary" />}
+          onPressEnter={handleNavigateQuery}
+        />
         <Button
           shape="circle"
           className="ml-3"
           title="Create new project"
           type="primary"
+          onClick={() => setOpenModal(true)}
           icon={<FaPlus />}
         />
       </div>
-      <div className="flex overflow-x-auto gap-5 p-1 mt-3">
-        {projectList?.map((project, index) => {
-          const issueData = calculateIssueStatistics(project.issues);
+      <Table
+        className="mt-3"
+        dataSource={projectList}
+        pagination={{ position: ['bottomCenter'] }}
+        columns={[
+          {
+            title: 'Name',
+            dataIndex: 'name',
+            key: 'name',
+            render: (name, record) => <Link to={`/projects/${record._id}`}>{name}</Link>,
+          },
+          {
+            title: 'Project manager',
+            dataIndex: 'projectManager',
+            key: 'projectManager',
+            render: (data) => (
+              <>
+                {data.firstname} {data.lastname}
+              </>
+            ),
+          },
+          {
+            title: 'Contact',
+            dataIndex: 'projectManager',
+            key: 'contact',
+            render: (data) => <>{data.email}</>,
+          },
+          {
+            title: 'Members',
+            dataIndex: 'members',
+            key: 'subject',
+            render: (members) => (
+              <Avatar.Group
+                maxCount={3}
+                maxStyle={{ color: token.colorError, backgroundColor: token.colorErrorBg }}
+              >
+                {members.map((member: User, index: number) => (
+                  <Avatar key={index} src={member.profilePic} />
+                ))}
+              </Avatar.Group>
+            ),
+          },
 
-          return (
-            <Card
-              key={index}
-              className="border-1 w-[500px] border-border shadow-[0_3px_10px_rgb(0,0,0,0.2)] hover:cursor-pointer"
-              title={
-                <div className="text-white flex items-center justify-between">
-                  {project.name} ({new Date(project.createdAt).getFullYear()})
-                  <Avatar.Group
-                    maxCount={3}
-                    maxStyle={{ color: token.colorError, backgroundColor: token.colorErrorBg }}
-                  >
-                    {project.members.map((member, index) => (
-                      <Avatar key={index} src={member.profilePic} />
-                    ))}
-                  </Avatar.Group>
-                </div>
-              }
-              onClick={() => navigate(`/projects/${project._id}`)}
-            >
-              <div className="flex flex-col items-center">
-                <div>
-                  {project.issues.length > 0 && (
-                    <Doughnut
-                      data={{
-                        labels: [
-                          'New',
-                          'In progress',
-                          'Waiting review',
-                          'Feedback',
-                          'Done',
-                          'Others',
-                        ],
-                        datasets: [
-                          {
-                            data: issueData,
-                            backgroundColor: [
-                              token.colorInfoTextHover,
-                              token.colorPrimary,
-                              token.yellow4,
-                              token.red4,
-                              token.green4,
-                              token.colorWarning,
-                            ],
-                            borderColor: [
-                              token.colorInfoTextHover,
-                              token.colorPrimary,
-                              token.yellow4,
-                              token.red4,
-                              token.green4,
-                              token.colorWarning,
-                            ],
-                            borderWidth: 1,
-                          },
-                        ],
-                      }}
-                      options={{
-                        responsive: true,
-                        plugins: {
-                          legend: {
-                            display: true,
-                            position: 'right',
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                </div>
-                <div>
-                  <div className="text-xs">
-                    Project manager{' '}
-                    <span className="text-secondary">
-                      {project.projectManager.firstname} {project.projectManager.lastname} (
-                      {project.projectManager.email})
-                    </span>
+          {
+            title: 'Updated at',
+            dataIndex: 'updatedAt',
+            key: 'updatedAt',
+            render: (updatedAt) => (
+              <>
+                {new Date(updatedAt).toDateString()},{' '}
+                {new Date(updatedAt).toLocaleTimeString('vi-VN')}
+              </>
+            ),
+          },
+        ]}
+      />
+
+      <Modal
+        title={<span className="text-xl font-bold text-primary">Create new project</span>}
+        centered
+        open={openModal}
+        onCancel={() => setOpenModal(false)}
+        okText="Create"
+        confirmLoading={loading}
+        onOk={form.submit}
+      >
+        <Form layout="vertical" form={form} requiredMark={false} onFinish={createNewProject}>
+          <Form.Item
+            name="name"
+            label={<span className="font-medium">Project name</span>}
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <Input size="large" />
+          </Form.Item>
+          <Form.Item
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+            name="members"
+            label={<span className="font-medium">Members</span>}
+          >
+            <Select
+              className="w-full"
+              showSearch
+              mode="multiple"
+              size="large"
+              optionFilterProp="children"
+              filterOption={filterOption}
+              // @ts-ignore
+              options={options}
+              optionRender={(option) => (
+                <Space>
+                  <Avatar shape="square" src={option.data.emoji} alt="avatar" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">{option.data.label}</span>
+                    <span className="text-sm">{option.data.desc}</span>
                   </div>
-                  <div className="text-xs">
-                    Last update at{' '}
-                    <span className="text-secondary">
-                      {new Date(project.updatedAt).toDateString()},{' '}
-                      {new Date(project.updatedAt).toLocaleTimeString('vi-VN')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                </Space>
+              )}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
