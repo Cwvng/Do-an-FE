@@ -11,3 +11,10 @@ export interface Project {
   updatedAt: string;
 }
 export type UpdateProjectBody = Partial<Project>;
+export interface CreateProjectBody {
+  name: string;
+  members: User[];
+}
+export interface GetAllProjectQuery {
+  name: string | null;
+}

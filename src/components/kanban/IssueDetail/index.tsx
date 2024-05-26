@@ -10,7 +10,6 @@ import {
   SelectProps,
   Space,
   Tabs,
-  TabsProps,
   Upload,
   UploadFile,
   UploadProps,
@@ -18,7 +17,7 @@ import {
 import { FaLink } from 'react-icons/fa';
 import { FaShareNodes } from 'react-icons/fa6';
 import TextArea from 'antd/es/input/TextArea';
-import { ActivityCard } from './ActivityCard.tsx';
+import { ChangesHistory } from './ChangesHistory.tsx';
 import { Issue } from '../../../requests/types/issue.interface.ts';
 import { getIssueDetailById, updateIssueById } from '../../../requests/issue.request.ts';
 import { Status } from '../../../constants';
@@ -31,27 +30,6 @@ import toast from 'react-hot-toast';
 import { AppState, useDispatch, useSelector } from '../../../redux/store';
 import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
 
-const items: TabsProps['items'] = [
-  {
-    key: '1',
-    label: 'All',
-    children: (
-      <>
-        <ActivityCard />
-      </>
-    ),
-  },
-  {
-    key: '2',
-    label: 'Comment',
-    children: 'Content of Tab Pane 2',
-  },
-  {
-    key: '3',
-    label: 'History',
-    children: 'Content of Tab Pane 3',
-  },
-];
 interface IssueDetailProps {
   id: Id;
 }
@@ -225,7 +203,25 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id }) => {
         </Form.Item>
 
         <h4 className="m-0 mt-3 text-secondary">Activity</h4>
-        <Tabs className="my-0" items={items} />
+        <Tabs
+          className="h-[150px] w-full overflow-auto"
+          items={[
+            {
+              key: '1',
+              label: 'Changes history',
+              children: (
+                <div>
+                  <ChangesHistory history={issue.history} />
+                </div>
+              ),
+            },
+            {
+              key: '2',
+              label: 'Comment',
+              children: 'Content of Tab Pane 2',
+            },
+          ]}
+        />
       </div>
 
       <div className="basis-1/3 h-full">

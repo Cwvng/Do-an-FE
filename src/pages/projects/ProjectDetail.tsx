@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import {
   Avatar,
   Breadcrumb,
-  Button,
   Form,
   FormProps,
   Input,
@@ -11,13 +10,11 @@ import {
   Select,
   SelectProps,
   Space,
-  Table,
-  Tag,
+  Tabs,
   theme,
 } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaSearch } from 'react-icons/fa';
-import { MdPersonAdd } from 'react-icons/md';
 import { KanbanBoard } from '../../components/kanban/KanbanBoard.tsx';
 import { Loading } from '../../components/loading/Loading.tsx';
 import { AppState, useDispatch, useSelector } from '../../redux/store';
@@ -25,7 +22,8 @@ import { getProjectDetail } from '../../redux/slices/user.slice.ts';
 import { useForm } from 'antd/es/form/Form';
 import { getAllOtherUsers } from '../../requests/user.request.ts';
 import { updateProjectById } from '../../requests/project.request.ts';
-import { Priority, Status } from '../../constants';
+import { PMDashBoard } from './PMDashBoard.tsx';
+import { PMProjectList } from './PMIssueList.tsx';
 
 export const ProjectDetail: React.FC = () => {
   const { id } = useParams();
@@ -43,36 +41,6 @@ export const ProjectDetail: React.FC = () => {
 
   const filterOption = (input: string, option?: { label: string; value: string }) =>
     (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
-  const getStatusTagColor = (status: string): string => {
-    switch (status) {
-      case Status.DONE:
-        return token.colorInfoTextHover;
-      case Status.IN_PROGRESS:
-        return token.colorPrimary;
-      case Status.WAITING_REVIEW:
-        return token.orange4;
-      case Status.FEEDBACK:
-        return token.red4;
-      case Status.NEW:
-        return token.green4;
-      case Priority.LOW:
-        return token.yellow4;
-      case Priority.MEDIUM:
-        return token.red4;
-      case Priority.HIGH:
-        return token.green4;
-      case Priority.URGENT:
-        return token.green4;
-      default:
-        return token.colorWarning;
-    }
-  };
-
-  const getDueDateColor = (date: string) => {
-    const today = new Date();
-    const dueDate = new Date(date);
-    return today > dueDate ? 'text-red-500' : '';
-  };
 
   const getUserList = async () => {
     try {
@@ -106,7 +74,7 @@ export const ProjectDetail: React.FC = () => {
   };
 
   const isProjectManager = () => {
-    return project?.projectManager === user?._id;
+    return project?.projectManager._id === user?._id;
   };
 
   useEffect(() => {
@@ -114,7 +82,6 @@ export const ProjectDetail: React.FC = () => {
     getUserList();
   }, []);
 
-  if (loading) return <Loading />;
   return (
     <div className="bg-white h-full p-5">
       <Breadcrumb
@@ -132,98 +99,50 @@ export const ProjectDetail: React.FC = () => {
         ]}
       ></Breadcrumb>
       <h2 className="mt-5 text-secondary">
-        {isProjectManager() ? `Issues` : 'Assigned issues'} ({project?.issues.length})
+        {!isProjectManager() && `Assigned issues ${project?.issues.length}`}
       </h2>
       <div className="flex flex-row items-center max-w-100 gap-5 mt-5">
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          size="large"
-          suffix={<FaSearch className="text-primary" />}
-        />
-        <Avatar.Group
-          maxCount={5}
-          maxStyle={{ color: token.colorError, backgroundColor: token.colorErrorBg }}
-        >
-          {project?.members?.map((member) => <Avatar key={member._id} src={member.profilePic} />)}
-        </Avatar.Group>
-        {isProjectManager() && (
-          <Button
-            title="Add new members"
-            type="primary"
-            shape="circle"
-            icon={<MdPersonAdd size="19" />}
-            onClick={() => setAddModal(true)}
-          />
+        {!isProjectManager() && (
+          <>
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              size="large"
+              suffix={<FaSearch className="text-primary" />}
+            />
+            <Avatar.Group
+              maxCount={5}
+              maxStyle={{ color: token.colorError, backgroundColor: token.colorErrorBg }}
+            >
+              {project?.members?.map((member) => (
+                <Avatar key={member._id} src={member.profilePic} />
+              ))}
+            </Avatar.Group>
+          </>
         )}
       </div>
       {isProjectManager() ? (
-        <Table
-          className="mt-3"
-          dataSource={project?.issues}
-          columns={[
-            {
-              title: 'Id',
-              dataIndex: '_id',
-              key: 'id',
-            },
-            {
-              title: 'Label',
-              dataIndex: 'label',
-              key: 'Label',
-            },
-            {
-              title: 'Subject',
-              dataIndex: 'subject',
-              key: 'subject',
-            },
-            {
-              title: 'Status',
-              dataIndex: 'status',
-              key: 'status',
-              render: (status) => {
-                const color = getStatusTagColor(status);
-                return (
-                  <Tag color={color} key={status}>
-                    {status?.toUpperCase()}
-                  </Tag>
-                );
-              },
-            },
-            {
-              title: 'Priority',
-              dataIndex: 'priority',
-              key: 'priority',
-              render: (priority) => {
-                const color = getStatusTagColor(priority);
-                return (
-                  <Tag color={color} key={priority}>
-                    {priority?.toUpperCase()}
-                  </Tag>
-                );
-              },
-            },
-            {
-              title: 'Assignee',
-              dataIndex: 'assignee',
-              key: 'assignee',
-            },
-            {
-              title: 'Due date',
-              dataIndex: 'dueDate',
-              key: 'dueDate',
-              render: (date) => (
-                <span className={getDueDateColor(date)} key={date}>
-                  {new Date(date).toLocaleDateString('vi-VN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: 'numeric',
-                  })}
-                </span>
-              ),
-            },
-          ]}
-        />
+        loading ? (
+          <Loading />
+        ) : (
+          <>
+            <Tabs
+              defaultActiveKey="1"
+              items={[
+                {
+                  key: '1',
+                  label: 'Dashboard',
+                  children: <PMDashBoard project={project} />,
+                },
+                {
+                  key: '2',
+                  label: `Issues (${project?.issues.length})`,
+                  children: <PMProjectList project={project} />,
+                },
+              ]}
+            />
+          </>
+        )
       ) : (
         <div>{project?.issues && <KanbanBoard data={project.issues} />}</div>
       )}

@@ -44,7 +44,7 @@ export const Login: React.FC = () => {
 
   return (
     <>
-      <h2>Welcome to MyDoAn 🎉</h2>
+      <h2>Welcome to HUST Workspace 🎉</h2>
       <Button
         className="ant-btn"
         size="large"

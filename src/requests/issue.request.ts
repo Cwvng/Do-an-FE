@@ -1,5 +1,5 @@
 import { api, apiAttachment } from '../utils/api.util.ts';
-import { Issue } from './types/issue.interface.ts';
+import { GetIssueListQuery, Issue } from './types/issue.interface.ts';
 
 export const getIssueDetailById = async (id: string) => {
   const { data } = await api.get<Issue>(`/issue/${id}`);
@@ -15,5 +15,10 @@ export const createNewIssue = async (body: Issue) => {
 };
 export const deleteIssueById = async (id: string) => {
   const { data } = await api.delete<Issue>(`/issue/${id}`);
+  return data;
+};
+
+export const getIssueList = async (params: GetIssueListQuery) => {
+  const { data } = await api.get<Issue[]>('/issue', { params });
   return data;
 };

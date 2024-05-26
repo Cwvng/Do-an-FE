@@ -6,8 +6,7 @@ import { Error404 } from '../components/errors/Error404.tsx';
 import { Error403 } from '../components/errors/Error403.tsx';
 import { AuthLayout } from '../layout/auth/AuthLayout.tsx';
 import { AppLayout } from '../layout/app/AppLayout.tsx';
-import { Dashboard } from './dashboard';
-import { ProjectDetail } from './projects';
+import { ProjectDetail } from './projects/ProjectDetail.tsx';
 import { getAccessToken } from '../utils/storage.util.ts';
 import { Messages } from './messages';
 import { ProjectList } from './projects/ProjectList.tsx';
@@ -56,7 +55,7 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Navigate to="/projects" replace />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/projects" element={<ProjectList />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />

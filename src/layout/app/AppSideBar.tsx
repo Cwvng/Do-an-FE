@@ -1,6 +1,5 @@
 import { Layout, Menu } from 'antd';
 import { ItemType, SubMenuType } from 'antd/es/menu/hooks/useItems';
-import { GoHomeFill } from 'react-icons/go';
 import React, { useEffect, useState } from 'react';
 import { SelectInfo } from 'rc-menu/lib/interface';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -41,11 +40,6 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   };
 
   const menuItems: ItemType[] = [
-    {
-      key: '/',
-      label: <span className="text-bold">Dashboard</span>,
-      icon: <GoHomeFill />,
-    },
     {
       key: '/projects',
       label: <span className="text-bold">Projects</span>,
