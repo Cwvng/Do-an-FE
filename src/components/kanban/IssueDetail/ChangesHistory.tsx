@@ -3,17 +3,17 @@ import { Avatar } from 'antd';
 import { IssueHistory } from '../../../requests/types/issue.interface';
 
 interface ChangesHistoryProps {
-  history: IssueHistory[];
+  history: IssueHistory[] | undefined;
 }
 
 export const ChangesHistory: React.FC<ChangesHistoryProps> = ({ history }) => {
-  const sortedHistory = history.sort(
+  const sortedHistory = history?.sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
   );
 
   return (
     <div className="h-full">
-      {sortedHistory.map((item, index) => (
+      {sortedHistory?.map((item, index) => (
         <div key={index} className="flex  gap-2 items-center mb-2">
           <Avatar
             shape="square"

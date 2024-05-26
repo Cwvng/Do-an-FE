@@ -13,7 +13,7 @@ export interface Issue {
   project: string;
   dueDate?: string;
   images?: string[];
-  history: IssueHistory[];
+  history?: IssueHistory[];
   createdAt?: string;
   updatedAt?: string;
 }

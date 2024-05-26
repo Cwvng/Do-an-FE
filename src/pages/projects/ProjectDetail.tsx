@@ -82,6 +82,7 @@ export const ProjectDetail: React.FC = () => {
     getUserList();
   }, []);
 
+  if (!project) return;
   return (
     <div className="bg-white h-full p-5">
       <Breadcrumb
@@ -137,7 +138,7 @@ export const ProjectDetail: React.FC = () => {
                 {
                   key: '2',
                   label: `Issues (${project?.issues.length})`,
-                  children: <PMProjectList project={project} />,
+                  children: <PMProjectList />,
                 },
               ]}
             />
