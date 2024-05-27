@@ -10,7 +10,7 @@ import { IssueDetail } from './IssueDetail';
 import { useParams } from 'react-router-dom';
 import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
 import { UniqueIdentifier } from '@dnd-kit/core';
-import { LoadingOutlined } from '@ant-design/icons';
+import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons';
 
 interface IssueCardProps {
   issue: Issue;
@@ -25,11 +25,13 @@ export const IssueCard: React.FC<IssueCardProps> = ({
 }: IssueCardProps) => {
   const [mouseIsOver, setMouseIsOver] = useState(false);
   const [editMode, setEditMode] = useState(true);
+  const [isEdit, setIsEdit] = React.useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { id } = useParams();
   const [form] = Form.useForm();
+  const [issueForm] = Form.useForm();
 
   const submitForm: FormProps<UpdateIssueBody>['onFinish'] = async (values) => {
     try {
@@ -141,7 +143,17 @@ export const IssueCard: React.FC<IssueCardProps> = ({
             />
             <CircleButton
               onClick={() => {
-                deleteIssue(issue._id);
+                Modal.confirm({
+                  centered: true,
+                  title: 'Do you want to delete these items?',
+                  icon: <ExclamationCircleFilled />,
+                  onOk() {
+                    deleteIssue(issue._id);
+                  },
+                  okText: 'Yes',
+                  cancelText: 'No',
+                  okButtonProps: { className: 'bg-primary' },
+                });
               }}
               className=" opacity-60 hover:opacity-100"
               icon={<FaTrash />}
@@ -165,19 +177,54 @@ export const IssueCard: React.FC<IssueCardProps> = ({
         centered
         open={openModal}
         destroyOnClose
-        footer={[
-          <Button key="cancel" onClick={() => setOpenModal(false)}>
-            Cancel
-          </Button>,
-          <Button key="submit" type="primary" form="detailForm" htmlType="submit">
-            Submit
-          </Button>,
-        ]}
+        footer={
+          isEdit
+            ? [
+                <Button
+                  key="cancel"
+                  onClick={() => {
+                    setOpenModal(false);
+                    setIsEdit(false);
+                  }}
+                >
+                  Cancel
+                </Button>,
+                <Button
+                  key="submit"
+                  type="primary"
+                  onClick={() => {
+                    issueForm.submit();
+                    setIsEdit(false);
+                  }}
+                >
+                  Save
+                </Button>,
+              ]
+            : [
+                <Button
+                  key="cancel"
+                  onClick={() => {
+                    setOpenModal(false);
+                    setIsEdit(false);
+                  }}
+                >
+                  Cancel
+                </Button>,
+                <Button type="primary" key="edit" onClick={() => setIsEdit(true)}>
+                  Edit
+                </Button>,
+              ]
+        }
         className="min-w-max"
-        onCancel={() => setOpenModal(false)}
+        onCancel={() => {
+          setOpenModal(false);
+          setIsEdit(false);
+        }}
         width="75vw"
       >
-        <IssueDetail id={issue._id} />
+        <Form form={issueForm}>
+          <IssueDetail form={issueForm} isEdit={isEdit} id={issue._id} />
+        </Form>
       </Modal>
     </>
   );

@@ -163,7 +163,7 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
         confirmLoading={submitLoading}
         onOk={form.submit}
       >
-        <Form layout="vertical" form={form} onFinish={createChat}>
+        <Form layout="vertical" form={form} requiredMark={false} onFinish={createChat}>
           <Form.Item
             rules={[
               {
