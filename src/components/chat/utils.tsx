@@ -35,12 +35,19 @@ export const isSameSender = (
   );
 };
 
-export const isLastMessage = (messages: Message[], i: number, userId: string | undefined) => {
+export const isLastNotUserMessage = (
+  messages: Message[],
+  i: number,
+  userId: string | undefined,
+) => {
   return (
     i === messages.length - 1 &&
     messages[messages.length - 1].sender._id !== userId &&
     messages[messages.length - 1].sender._id
   );
+};
+export const checkMessageIsSent = (messages: Message[], i: number, userId: string | undefined) => {
+  return i === messages.length - 1 && messages[messages.length - 1].sender._id === userId;
 };
 
 export const isSameUser = (messages: Message[], m: Message, i: number) => {

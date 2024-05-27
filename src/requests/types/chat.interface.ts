@@ -35,4 +35,5 @@ export interface Message {
   readBy: [];
   createdAt: string;
   updatedAt: string;
+  isUpdated: boolean;
 }

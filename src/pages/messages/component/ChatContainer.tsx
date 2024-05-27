@@ -169,14 +169,19 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
             icon={<IoImageOutline size="20" />}
             onClick={toggleAttachment}
           />
-          <Dropdown menu={{ items }} placement="bottomLeft" arrow={{ pointAtCenter: true }}>
+          <Dropdown
+            trigger={['click']}
+            menu={{ items }}
+            placement="bottomRight"
+            arrow={{ pointAtCenter: true }}
+          >
             <CircleButton type="primary" icon={<FaEllipsisVertical size="20" />} />
           </Dropdown>
         </div>
       </div>
       <div className="bg-lightBg flex flex-col h-full overflow-y-hidden justify-between p-5">
         <div className="h-full overflow-y-hidden">
-          <MessageContainer messages={chatData} />
+          <MessageContainer messages={chatData} updateMessageList={getSelectedChatData} />
         </div>
         <div className="mt-5">
           <Form className="" form={form} onFinish={sendMessage}>

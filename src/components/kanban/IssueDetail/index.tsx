@@ -2,14 +2,19 @@ import React, { useEffect } from 'react';
 import {
   Button,
   Col,
+  DatePicker,
   Form,
+  FormInstance,
   FormProps,
   Image,
+  Input,
   Row,
   Select,
   SelectProps,
   Space,
   Tabs,
+  Tag,
+  theme,
   Upload,
   UploadFile,
   UploadProps,
@@ -18,31 +23,32 @@ import { FaLink } from 'react-icons/fa';
 import { FaShareNodes } from 'react-icons/fa6';
 import TextArea from 'antd/es/input/TextArea';
 import { ChangesHistory } from './ChangesHistory.tsx';
-import { Issue } from '../../../requests/types/issue.interface.ts';
+import { Issue, UpdateIssueBody } from '../../../requests/types/issue.interface.ts';
 import { getIssueDetailById, updateIssueById } from '../../../requests/issue.request.ts';
-import { Status } from '../../../constants';
+import { Priority, Status } from '../../../constants';
 import { Id } from '../type.tsx';
 import { PlusOutlined } from '@ant-design/icons';
 import SkeletonInput from 'antd/es/skeleton/Input';
 import SkeletonAvatar from 'antd/es/skeleton/Avatar';
-import { useForm } from 'antd/es/form/Form';
 import toast from 'react-hot-toast';
 import { AppState, useDispatch, useSelector } from '../../../redux/store';
 import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
-
+import moment from 'moment';
+import { toCapitalize } from '../../../utils/project.util.ts';
 interface IssueDetailProps {
   id: Id;
+  isEdit: boolean;
+  form: FormInstance<UpdateIssueBody>;
 }
-export const IssueDetail: React.FC<IssueDetailProps> = ({ id }) => {
+export const IssueDetail: React.FC<IssueDetailProps> = ({ id, isEdit, form }) => {
   const [issue, setIssue] = React.useState<Issue>();
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const [previewImage, setPreviewImage] = React.useState('');
   const [loading, setLoading] = React.useState(false);
-  const [editMode, setEditMode] = React.useState(false);
   const [fileList, setFileList] = React.useState<UploadFile[]>();
   const [options, setOptions] = React.useState<any[]>();
 
-  const [form] = useForm();
+  const { token } = theme.useToken();
   const dispatch = useDispatch();
   const project = useSelector((app: AppState) => app.user.selectedProject);
 
@@ -78,6 +84,30 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id }) => {
     setFileList(newFileList);
     console.log(fileList);
   };
+  const getStatusTagColor = (status: string): string => {
+    switch (status) {
+      case Status.DONE:
+        return token.colorInfoTextHover;
+      case Status.IN_PROGRESS:
+        return token.colorPrimary;
+      case Status.WAITING_REVIEW:
+        return token.orange4;
+      case Status.FEEDBACK:
+        return token.red4;
+      case Status.NEW:
+        return token.green4;
+      case Priority.LOW:
+        return token.yellow4;
+      case Priority.MEDIUM:
+        return token.red4;
+      case Priority.HIGH:
+        return token.green4;
+      case Priority.URGENT:
+        return token.green4;
+      default:
+        return token.colorWarning;
+    }
+  };
   const handlePreview = async (file: UploadFile) => {
     setPreviewImage(file.url || (file.preview as string));
     setPreviewOpen(true);
@@ -86,6 +116,7 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id }) => {
   const submitForm: FormProps['onFinish'] = async (values) => {
     try {
       if (id) {
+        setLoading(true);
         const formData = new FormData();
         if (values.images && values.images.length > 0)
           values.images.forEach((image: any) => {
@@ -94,6 +125,9 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id }) => {
         if (values.description) formData.append('description', values.description);
         if (values.status) formData.append('status', values.status);
         if (values.assignee) formData.append('assignee', values.assignee);
+        if (values.priority) formData.append('priority', values.priority);
+        if (values.subject) formData.append('subject', values.subject);
+        if (values.dueDate) formData.append('dueDate', values.dueDate);
 
         await toast.promise(updateIssueById(id, formData), {
           loading: 'Saving...',
@@ -104,6 +138,7 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id }) => {
       }
       if (issue?.project) dispatch(getProjectDetail(issue?.project));
     } finally {
+      setLoading(false);
     }
   };
   const getUserList = () => {
@@ -198,9 +233,13 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id }) => {
           />
         )}
         <h4 className="mt-3 mb-0 text-secondary">Description</h4>
-        <Form.Item name="description" initialValue={issue?.description}>
-          <TextArea autoSize />
-        </Form.Item>
+        {isEdit ? (
+          <Form.Item name="description" initialValue={issue?.description}>
+            <TextArea autoSize />
+          </Form.Item>
+        ) : (
+          <span>{issue?.description}</span>
+        )}
 
         <h4 className="m-0 mt-3 text-secondary">Activity</h4>
         <Tabs
@@ -225,35 +264,40 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id }) => {
       </div>
 
       <div className="basis-1/3 h-full">
-        <Form.Item initialValue={issue?.status} name="status">
-          <Select
-            size="large"
-            value={issue?.status}
-            className="w-30 min-w-max text-white"
-            options={[
-              { value: Status.NEW, label: 'New' },
-              { value: Status.IN_PROGRESS, label: 'In progress' },
-              { value: Status.WAITING_REVIEW, label: 'Waiting review' },
-              { value: Status.TESTING, label: 'Testing' },
-              { value: Status.FEEDBACK, label: 'Feedback' },
-              { value: Status.DONE, label: 'Done' },
-            ]}
-          />
-        </Form.Item>
+        {isEdit ? (
+          <Form.Item initialValue={issue?.status} name="status">
+            <Select
+              size="large"
+              value={issue?.status}
+              className="w-30 min-w-max text-white"
+              options={[
+                { value: Status.NEW, label: 'New' },
+                { value: Status.IN_PROGRESS, label: 'In progress' },
+                { value: Status.WAITING_REVIEW, label: 'Waiting review' },
+                { value: Status.TESTING, label: 'Testing' },
+                { value: Status.FEEDBACK, label: 'Feedback' },
+                { value: Status.DONE, label: 'Done' },
+              ]}
+            />
+          </Form.Item>
+        ) : (
+          <Tag className="text-base" color={getStatusTagColor(issue?.status!)} key={issue?.status}>
+            {toCapitalize(issue?.status!)}
+          </Tag>
+        )}
         <div className=" mt-3 border-1 border-border h-full w-full text-nowrap">
           <div className="border-b-1 border-border px-5 py-3 font-bold text-secondary">Detail</div>
-          <div className="flex flex-col p-5 gap-3 " onClick={() => setEditMode(true)}>
+          <div className="flex flex-col p-5 w-full mr-8 gap-3">
             <Row>
               <Col span={10} className="text-secondary mt-2 ">
                 Assignee
               </Col>
               <Col span={14}>
-                {editMode ? (
-                  <Form.Item name="assignee" initialValue={issue?.assignee?._id}>
+                {isEdit ? (
+                  <Form.Item name="assignee" className="m-0" initialValue={issue?.assignee?._id}>
                     <Select
                       className="w-full"
                       showSearch
-                      size="large"
                       optionFilterProp="children"
                       filterOption={filterOption}
                       // @ts-ignore
@@ -279,33 +323,61 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id }) => {
                 )}
               </Col>
             </Row>
-            <Row>
+            <Row className="flex items-center">
               <Col span={10} className="text-secondary">
                 Due date
               </Col>
               <Col span={14}>
                 {loading ? (
                   <SkeletonInput size="small" active />
+                ) : isEdit ? (
+                  <Form.Item className="m-0" name="dueDate" initialValue={moment(issue?.dueDate)}>
+                    <DatePicker className="w-full" format="YYYY/MM/DD" />
+                  </Form.Item>
                 ) : (
-                  // @ts-ignore
-                  new Date(issue?.dueDate).toLocaleString('vi-VN')
+                  <span>{moment(issue?.dueDate).calendar()}</span>
                 )}
               </Col>
             </Row>
-            <Row>
+            <Row className="flex items-center">
               <Col span={10} className="text-secondary">
                 Subject
               </Col>
               <Col span={14}>
-                {loading ? <SkeletonInput size="small" active /> : issue?.subject}
+                {loading ? (
+                  <SkeletonInput size="small" active />
+                ) : isEdit ? (
+                  <Form.Item className="m-0" name="subject" initialValue={issue?.subject}>
+                    <Input />
+                  </Form.Item>
+                ) : (
+                  issue?.subject
+                )}
               </Col>
             </Row>
-            <Row>
+            <Row className="flex items-center">
               <Col span={10} className="text-secondary">
                 Priority
               </Col>
               <Col span={14}>
-                {loading ? <SkeletonInput size="small" active /> : issue?.priority}
+                {loading ? (
+                  <SkeletonInput size="small" active />
+                ) : isEdit ? (
+                  <Form.Item className="m-0" initialValue={issue?.priority} name="priority">
+                    <Select
+                      value={issue?.priority}
+                      className="w-full text-white"
+                      options={[
+                        { value: Priority.LOW, label: 'Low' },
+                        { value: Priority.MEDIUM, label: 'Medium' },
+                        { value: Priority.HIGH, label: 'High' },
+                        { value: Priority.URGENT, label: 'Urgent' },
+                      ]}
+                    />
+                  </Form.Item>
+                ) : (
+                  issue?.priority
+                )}
               </Col>
             </Row>
             <Row>
