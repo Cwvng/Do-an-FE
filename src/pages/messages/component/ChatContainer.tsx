@@ -1,5 +1,18 @@
 import React, { useEffect } from 'react';
-import { Avatar, Dropdown, Form, FormProps, Input, MenuProps, Modal, theme } from 'antd';
+import {
+  Avatar,
+  Dropdown,
+  Form,
+  FormProps,
+  Image,
+  Input,
+  MenuProps,
+  Modal,
+  Spin,
+  theme,
+  Upload,
+  UploadFile,
+} from 'antd';
 import { IoMdSend } from 'react-icons/io';
 import { Message } from '../../../requests/types/chat.interface.ts';
 import { accessChat, deleteChat } from '../../../requests/chat.request.ts';
@@ -12,22 +25,24 @@ import { AppState, useDispatch, useSelector } from '../../../redux/store';
 import { FaSearch } from 'react-icons/fa';
 import { CircleButton } from '../../../components/common/button/CircleButton.tsx';
 import { IoImageOutline } from 'react-icons/io5';
-import { FaEllipsisVertical } from 'react-icons/fa6';
+import { FaEllipsisVertical, FaImage } from 'react-icons/fa6';
 import { Loading } from '../../../components/loading/Loading.tsx';
 import { getChatList } from '../../../redux/slices/user.slice.ts';
-import { ExclamationCircleFilled } from '@ant-design/icons';
+import { ExclamationCircleFilled, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 
 interface ChatContainerProps {
   toggleAttachment: () => void;
 }
 
-type FieldType = {
-  content: string;
-};
 export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }) => {
   const [chatData, setChatData] = React.useState<Message[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [openModal, setOpenModal] = React.useState(false);
+  const [previewImage, setPreviewImage] = React.useState('');
+  const [previewOpen, setPreviewOpen] = React.useState(false);
+  const [fileList, setFileList] = React.useState<UploadFile[]>();
+  const [sendMessageLoading, setSendMessageLoading] = React.useState(false);
+  const [openUpload, setOpenUpload] = React.useState(false);
 
   const { token } = theme.useToken();
   const { socket, onlineUsers } = useSocketContext();
@@ -47,20 +62,26 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
       console.log('done');
     }
   };
-  const sendMessage: FormProps<FieldType>['onFinish'] = async (values) => {
+  const sendMessage: FormProps<SendMessagesBody>['onFinish'] = async (values) => {
     try {
       if (selectedChat && values.content !== '') {
-        const body: SendMessagesBody = {
-          content: values.content.trim(),
-          chatId: selectedChat._id,
-        };
-        const res = await sendNewMessage(body);
+        setSendMessageLoading(true);
+        const formData = new FormData();
+        if (values.images && values.images.length > 0)
+          values.images.forEach((image: any) => {
+            formData.append('images', image.originFileObj);
+          });
+        if (values.content) formData.append('content', values.content);
+        if (selectedChat._id) formData.append('chatId', selectedChat._id);
+        const res = await sendNewMessage(formData);
         setChatData([...chatData, res]);
+
+        setOpenUpload(false);
         dispatch(getChatList());
         form.resetFields();
       }
     } finally {
-      console.log('sent');
+      setSendMessageLoading(false);
     }
   };
 
@@ -184,7 +205,62 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
           <MessageContainer messages={chatData} updateMessageList={getSelectedChatData} />
         </div>
         <div className="mt-5">
-          <Form className="" form={form} onFinish={sendMessage}>
+          <Form form={form} onFinish={sendMessage}>
+            {openUpload && (
+              <Form.Item
+                className="mt-5"
+                name="images"
+                getValueFromEvent={(e) => {
+                  if (Array.isArray(e)) {
+                    return e;
+                  }
+                  return e && e.fileList;
+                }}
+              >
+                <Upload
+                  listType="picture-card"
+                  fileList={fileList}
+                  beforeUpload={(file) => {
+                    console.log(file);
+                  }}
+                  onPreview={async (file: UploadFile) => {
+                    setPreviewImage(file.url || (file.preview as string));
+                    setPreviewOpen(true);
+                  }}
+                  customRequest={async (options) => {
+                    const { onSuccess, onError, file } = options;
+
+                    try {
+                      //@ts-ignore
+                      onSuccess(file);
+                    } catch (error) {
+                      //@ts-ignore
+                      onError(error);
+                    }
+                  }}
+                  onChange={({ fileList: newFileList }) => {
+                    setFileList(newFileList);
+                    console.log(fileList);
+                  }}
+                  onRemove={(file) => {
+                    console.log('remove', file);
+                  }}
+                >
+                  <PlusOutlined className="text-primary text-xl" />
+                </Upload>
+              </Form.Item>
+            )}
+            {previewImage && (
+              <Image
+                wrapperStyle={{ display: 'none' }}
+                preview={{
+                  visible: previewOpen,
+                  onVisibleChange: (visible) => setPreviewOpen(visible),
+                  afterOpenChange: (visible) => !visible && setPreviewImage(''),
+                }}
+                src={previewImage}
+              />
+            )}
             <Form.Item
               name="content"
               rules={[
@@ -197,11 +273,21 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
             >
               <Input
                 className="p-3"
-                suffix={
-                  <IoMdSend
-                    onClick={form.submit}
+                prefix={
+                  <FaImage
+                    onClick={() => setOpenUpload(!openUpload)}
                     className="text-primary text-xl hover:cursor-pointer"
                   />
+                }
+                suffix={
+                  sendMessageLoading ? (
+                    <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+                  ) : (
+                    <IoMdSend
+                      onClick={form.submit}
+                      className="text-primary text-xl hover:cursor-pointer"
+                    />
+                  )
                 }
               />
             </Form.Item>

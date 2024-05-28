@@ -33,6 +33,7 @@ export interface Message {
   content: string;
   chat: Chat;
   readBy: [];
+  images: string[];
   createdAt: string;
   updatedAt: string;
   isUpdated: boolean;
