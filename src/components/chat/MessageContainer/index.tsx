@@ -11,7 +11,7 @@ import {
   isUserMessage,
 } from '../utils.tsx';
 import { useSelector } from 'react-redux';
-import { Avatar, Divider, Dropdown, Input, message, theme, Tooltip } from 'antd';
+import { Avatar, Divider, Dropdown, Image, Input, message, theme, Tooltip } from 'antd';
 import { AppState } from '../../../redux/store';
 import { getTime } from '../../../utils/message.util.tsx';
 import { deleteMessage, updateMessage } from '../../../requests/message.request.ts';
@@ -74,7 +74,7 @@ export const MessageContainer: React.FC<MessageContainerProps> = ({
                   marginLeft: isSameSenderMargin(messages, m, i, user?._id),
                   marginTop: isSameUser(messages, m, i) ? 3 : 10,
 
-                  maxWidth: '75%',
+                  maxWidth: '50%',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
@@ -142,7 +142,18 @@ export const MessageContainer: React.FC<MessageContainerProps> = ({
                           onPressEnter={updateSelectedMessage}
                         />
                       ) : (
-                        m.content
+                        <div>
+                          <div>{m.content}</div>
+                          {m.images &&
+                            m.images.map((img, index) => (
+                              <Image
+                                className="object-contain	w-full"
+                                key={index}
+                                src={img}
+                                alt="image message"
+                              />
+                            ))}
+                        </div>
                       )}
                     </div>
                   </Dropdown>
