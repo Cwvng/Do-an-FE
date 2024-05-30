@@ -22,8 +22,8 @@ import { getProjectDetail } from '../../redux/slices/user.slice.ts';
 import { useForm } from 'antd/es/form/Form';
 import { getAllOtherUsers } from '../../requests/user.request.ts';
 import { updateProjectById } from '../../requests/project.request.ts';
-import { PMDashBoard } from './PMDashBoard.tsx';
-import { PMProjectList } from './PMIssueList.tsx';
+import { PMDashBoard } from './project-manager/PMDashBoard.tsx';
+import { PMProjectList } from './project-manager/PMIssueList.tsx';
 import { getIssueList } from '../../requests/issue.request.ts';
 import { Issue } from '../../requests/types/issue.interface.ts';
 
@@ -39,6 +39,7 @@ export const ProjectDetail: React.FC = () => {
 
   const [addModal, setAddModal] = React.useState(false);
   const [issueList, setIssueList] = React.useState<Issue[]>();
+  const [issueLoading, setIssueLoading] = React.useState(false);
   const [options, setOptions] = React.useState<SelectProps['options']>([]);
   const [query, setQuery] = React.useState<string>();
 
@@ -66,11 +67,12 @@ export const ProjectDetail: React.FC = () => {
   const getIssueListByProjectId = async () => {
     try {
       if (id) {
+        setIssueLoading(true);
         const res = await getIssueList({ projectId: id });
         setIssueList(res);
-        console.log(issueList);
       }
     } finally {
+      setIssueLoading(false);
     }
   };
 
@@ -153,7 +155,9 @@ export const ProjectDetail: React.FC = () => {
                 {
                   key: '2',
                   label: `Issues (${project?.issues.length})`,
-                  children: <PMProjectList issueList={issueList!} />,
+                  children: (
+                    <PMProjectList issueList={issueList!} onActionEnd={getIssueListByProjectId} />
+                  ),
                 },
               ]}
             />

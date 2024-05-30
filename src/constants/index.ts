@@ -12,3 +12,8 @@ export enum Priority {
   HIGH = 'high',
   URGENT = 'urgent',
 }
+export enum Message {
+  CREATED = 'Created successfully',
+  DELETED = 'Deleted successfully',
+  UPDATED = 'Updated successfully',
+}

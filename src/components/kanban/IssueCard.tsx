@@ -3,14 +3,14 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FaCheck, FaTrash } from 'react-icons/fa';
 import { Id } from './type.tsx';
-import { Breadcrumb, Button, Form, FormProps, Input, Modal, Spin } from 'antd';
+import { Form, FormProps, Input, Modal, Spin, Tag } from 'antd';
 import { CircleButton } from '../common/button/CircleButton.tsx';
 import { MdEdit } from 'react-icons/md';
-import { IssueDetail } from './IssueDetail';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons';
+import { getStatusTagColor, toCapitalize } from '../../utils/project.util.ts';
 
 interface IssueCardProps {
   issue: Issue;
@@ -25,13 +25,11 @@ export const IssueCard: React.FC<IssueCardProps> = ({
 }: IssueCardProps) => {
   const [mouseIsOver, setMouseIsOver] = useState(false);
   const [editMode, setEditMode] = useState(true);
-  const [isEdit, setIsEdit] = React.useState(false);
-  const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { id } = useParams();
   const [form] = Form.useForm();
-  const [issueForm] = Form.useForm();
+  const navigate = useNavigate();
 
   const submitForm: FormProps<UpdateIssueBody>['onFinish'] = async (values) => {
     try {
@@ -128,11 +126,18 @@ export const IssueCard: React.FC<IssueCardProps> = ({
           setMouseIsOver(false);
         }}
       >
-        <div
-          onClick={() => setOpenModal(true)}
-          className=" w-full overflow-y-auto overflow-x-hidden hover:cursor-pointer whitespace-pre-wrap"
-        >
-          {issue.label}
+        <div className="flex flex-col gap-2">
+          <div
+            onClick={() => navigate(`/projects/${id}/issue/${issue._id}`)}
+            className=" w-full overflow-y-auto overflow-x-hidden hover:cursor-pointer whitespace-pre-wrap"
+          >
+            {issue.label}
+          </div>
+          <div>
+            <Tag color={getStatusTagColor(issue.priority!)} key={issue.priority}>
+              {toCapitalize(issue.priority!)}
+            </Tag>
+          </div>
         </div>
         {mouseIsOver && (
           <div className="flex flex-row gap-2 items-center absolute right-4 top-1/2 -translate-y-1/2 ">
@@ -161,71 +166,6 @@ export const IssueCard: React.FC<IssueCardProps> = ({
           </div>
         )}
       </div>
-      <Modal
-        title={
-          <Breadcrumb
-            items={[
-              {
-                title: <span>Project {id}</span>,
-              },
-              {
-                title: <span>Issue {issue._id}</span>,
-              },
-            ]}
-          />
-        }
-        centered
-        open={openModal}
-        destroyOnClose
-        footer={
-          isEdit
-            ? [
-                <Button
-                  key="cancel"
-                  onClick={() => {
-                    setOpenModal(false);
-                    setIsEdit(false);
-                  }}
-                >
-                  Cancel
-                </Button>,
-                <Button
-                  key="submit"
-                  type="primary"
-                  onClick={() => {
-                    issueForm.submit();
-                    setIsEdit(false);
-                  }}
-                >
-                  Save
-                </Button>,
-              ]
-            : [
-                <Button
-                  key="cancel"
-                  onClick={() => {
-                    setOpenModal(false);
-                    setIsEdit(false);
-                  }}
-                >
-                  Cancel
-                </Button>,
-                <Button type="primary" key="edit" onClick={() => setIsEdit(true)}>
-                  Edit
-                </Button>,
-              ]
-        }
-        className="min-w-max"
-        onCancel={() => {
-          setOpenModal(false);
-          setIsEdit(false);
-        }}
-        width="75vw"
-      >
-        <Form form={issueForm}>
-          <IssueDetail form={issueForm} isEdit={isEdit} id={issue._id} />
-        </Form>
-      </Modal>
     </>
   );
 };

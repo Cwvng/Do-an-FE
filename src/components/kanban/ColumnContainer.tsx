@@ -53,7 +53,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
       <div
         ref={setNodeRef}
         style={style}
-        className="bg-secondary w-[200px]h-full max-h-[500px] rounded-md flex flex-col"
+        className="bg-secondary w-[200px] h-full max-h-[500px] rounded-md flex flex-col"
       ></div>
     );
   }
@@ -62,7 +62,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-lightBg w-[250px] h-[500px] max-h-[500px] rounded-md flex flex-col text-secondary px-2 shadow-[0_3px_10px_rgb(0,0,0,0.2)]"
+      className="bg-lightBg w-[200px] h-[500px] max-h-[500px] rounded-md flex flex-col text-secondary px-2 shadow-[0_3px_10px_rgb(0,0,0,0.2)]"
     >
       {/* Column title */}
       <div
