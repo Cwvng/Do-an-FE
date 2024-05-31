@@ -13,6 +13,7 @@ import { ProjectList } from './projects/ProjectList.tsx';
 import { VerifyEmail } from './auth/VerifyEmail.tsx';
 import { SendEmailReset } from './auth/SendEmailReset.tsx';
 import { ResetPassword } from './auth/ResetPassword.tsx';
+import { IssueDetail } from '../components/kanban/IssueDetail';
 
 interface ProtectedRouteProps {
   children: any;
@@ -59,6 +60,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/messages" element={<Messages />} />
         <Route path="/projects" element={<ProjectList />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
+        <Route path="/projects/:id/issue/:issueId" element={<IssueDetail />} />
       </Route>
     </Routes>
   );

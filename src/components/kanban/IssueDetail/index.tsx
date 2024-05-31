@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import {
+  Breadcrumb,
   Button,
   Col,
   DatePicker,
   Form,
-  FormInstance,
   FormProps,
   Image,
   Input,
@@ -14,7 +14,6 @@ import {
   Space,
   Tabs,
   Tag,
-  theme,
   Upload,
   UploadFile,
   UploadProps,
@@ -23,10 +22,9 @@ import { FaLink } from 'react-icons/fa';
 import { FaShareNodes } from 'react-icons/fa6';
 import TextArea from 'antd/es/input/TextArea';
 import { ChangesHistory } from './ChangesHistory.tsx';
-import { Issue, UpdateIssueBody } from '../../../requests/types/issue.interface.ts';
+import { Issue } from '../../../requests/types/issue.interface.ts';
 import { getIssueDetailById, updateIssueById } from '../../../requests/issue.request.ts';
 import { Priority, Status } from '../../../constants';
-import { Id } from '../type.tsx';
 import { PlusOutlined } from '@ant-design/icons';
 import SkeletonInput from 'antd/es/skeleton/Input';
 import SkeletonAvatar from 'antd/es/skeleton/Avatar';
@@ -34,33 +32,36 @@ import toast from 'react-hot-toast';
 import { AppState, useDispatch, useSelector } from '../../../redux/store';
 import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
 import moment from 'moment';
-import { toCapitalize } from '../../../utils/project.util.ts';
-interface IssueDetailProps {
-  id: Id;
-  isEdit: boolean;
-  form: FormInstance<UpdateIssueBody>;
-}
-export const IssueDetail: React.FC<IssueDetailProps> = ({ id, isEdit, form }) => {
+import { getStatusTagColor, toCapitalize } from '../../../utils/project.util.ts';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from 'antd/es/form/Form';
+import { Loading } from '../../loading/Loading.tsx';
+
+export const IssueDetail: React.FC = () => {
   const [issue, setIssue] = React.useState<Issue>();
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const [previewImage, setPreviewImage] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  const [detailLoading, setDetailLoading] = React.useState(false);
   const [fileList, setFileList] = React.useState<UploadFile[]>();
   const [options, setOptions] = React.useState<any[]>();
+  const [isEdit, setIsEdit] = React.useState(false);
 
-  const { token } = theme.useToken();
+  const { issueId } = useParams();
+  const navigate = useNavigate();
+  const [form] = useForm();
   const dispatch = useDispatch();
   const project = useSelector((app: AppState) => app.user.selectedProject);
 
   const getIssueDetail = async () => {
     try {
-      if (id) {
-        setLoading(true);
-        const res = await getIssueDetailById(id);
+      if (issueId) {
+        setDetailLoading(true);
+        const res = await getIssueDetailById(issueId);
         setIssue(res);
       }
     } finally {
-      setLoading(false);
+      setDetailLoading(false);
     }
   };
 
@@ -84,30 +85,6 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id, isEdit, form }) =>
     setFileList(newFileList);
     console.log(fileList);
   };
-  const getStatusTagColor = (status: string): string => {
-    switch (status) {
-      case Status.DONE:
-        return token.colorInfoTextHover;
-      case Status.IN_PROGRESS:
-        return token.colorPrimary;
-      case Status.WAITING_REVIEW:
-        return token.orange4;
-      case Status.FEEDBACK:
-        return token.red4;
-      case Status.NEW:
-        return token.green4;
-      case Priority.LOW:
-        return token.yellow4;
-      case Priority.MEDIUM:
-        return token.red4;
-      case Priority.HIGH:
-        return token.green4;
-      case Priority.URGENT:
-        return token.green4;
-      default:
-        return token.colorWarning;
-    }
-  };
   const handlePreview = async (file: UploadFile) => {
     setPreviewImage(file.url || (file.preview as string));
     setPreviewOpen(true);
@@ -115,7 +92,7 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id, isEdit, form }) =>
 
   const submitForm: FormProps['onFinish'] = async (values) => {
     try {
-      if (id) {
+      if (issueId) {
         setLoading(true);
         const formData = new FormData();
         if (values.images && values.images.length > 0)
@@ -129,7 +106,7 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id, isEdit, form }) =>
         if (values.subject) formData.append('subject', values.subject);
         if (values.dueDate) formData.append('dueDate', values.dueDate);
 
-        await toast.promise(updateIssueById(id, formData), {
+        await toast.promise(updateIssueById(issueId, formData), {
           loading: 'Saving...',
           success: <span>Issue updated!</span>,
           error: <span>Could not save.</span>,
@@ -176,230 +153,294 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ id, isEdit, form }) =>
     setFileList(files);
   }, [issue?.images]);
 
+  if (detailLoading) return <Loading />;
   if (!issue) return;
   return (
-    <Form
-      id="detailForm"
-      form={form}
-      onFinish={submitForm}
-      className="max-h-full overflow-auto flex flex-row gap-20 "
-    >
-      <div className="basis-2/3 h-full">
-        <h2 className="text-secondary">
-          {loading ? <SkeletonInput className="w-2/3" size="small" active /> : issue?.label}
-        </h2>
-        {/*Upload file*/}
-        <div className="flex gap-1">
-          <Button icon={<FaShareNodes />} type="primary">
-            Add a child issue
-          </Button>
-          <Button icon={<FaLink />} type="primary">
-            Link issue
-          </Button>
-        </div>
-        <Form.Item
-          className="mt-5"
-          name="images"
-          getValueFromEvent={(e) => {
-            if (Array.isArray(e)) {
-              return e;
-            }
-            return e && e.fileList;
-          }}
-        >
-          <Upload
-            listType="picture-card"
-            fileList={fileList}
-            beforeUpload={(file) => {
-              console.log(file);
-            }}
-            onPreview={handlePreview}
-            customRequest={uploadImage}
-            onChange={handleChange}
-            onRemove={handleRemove}
-          >
-            <PlusOutlined className="text-primary text-xl" />
-          </Upload>
-        </Form.Item>
-        {previewImage && (
-          <Image
-            wrapperStyle={{ display: 'none' }}
-            preview={{
-              visible: previewOpen,
-              onVisibleChange: (visible) => setPreviewOpen(visible),
-              afterOpenChange: (visible) => !visible && setPreviewImage(''),
-            }}
-            src={previewImage}
-          />
-        )}
-        <h4 className="mt-3 mb-0 text-secondary">Description</h4>
-        {isEdit ? (
-          <Form.Item name="description" initialValue={issue?.description}>
-            <TextArea autoSize />
-          </Form.Item>
-        ) : (
-          <span>{issue?.description}</span>
-        )}
+    <div className="bg-white h-full flex flex-col p-5">
+      <Breadcrumb
+        items={[
+          {
+            title: (
+              <span className="cursor-pointer" onClick={() => navigate('/projects')}>
+                Project
+              </span>
+            ),
+          },
+          {
+            title: (
+              <span
+                className="cursor-pointer"
+                onClick={() => navigate(`/projects/${project?._id}`)}
+              >
+                {project?.name}
+              </span>
+            ),
+          },
+          {
+            title: <span>{issue.label}</span>,
+          },
+        ]}
+      ></Breadcrumb>
+      <Form
+        id="detailForm"
+        form={form}
+        onFinish={submitForm}
+        className="flex-1 overflow-auto flex flex-row gap-5"
+      >
+        <div className="basis-2/3 h-full overflow-auto">
+          <div className="flex flex-col">
+            <h2 className="text-secondary">
+              {loading ? <SkeletonInput className="w-2/3" size="small" active /> : issue?.label}
+            </h2>
+            {/*Upload file*/}
+            <div className="flex gap-1">
+              <Button icon={<FaShareNodes />} type="primary">
+                Add a child issue
+              </Button>
+              <Button icon={<FaLink />} type="primary">
+                Link issue
+              </Button>
+            </div>
+            <Form.Item
+              className="mt-5"
+              name="images"
+              getValueFromEvent={(e) => {
+                if (Array.isArray(e)) {
+                  return e;
+                }
+                return e && e.fileList;
+              }}
+            >
+              <Upload
+                listType="picture-card"
+                fileList={fileList}
+                disabled={!isEdit}
+                beforeUpload={(file) => {
+                  console.log(file);
+                }}
+                onPreview={handlePreview}
+                customRequest={uploadImage}
+                onChange={handleChange}
+                onRemove={handleRemove}
+              >
+                <PlusOutlined className="text-primary text-xl" />
+              </Upload>
+            </Form.Item>
+            {previewImage && (
+              <Image
+                wrapperStyle={{ display: 'none' }}
+                preview={{
+                  visible: previewOpen,
+                  onVisibleChange: (visible) => setPreviewOpen(visible),
+                  afterOpenChange: (visible) => !visible && setPreviewImage(''),
+                }}
+                src={previewImage}
+              />
+            )}
+            <h4 className="mt-3 mb-0 text-secondary">Description</h4>
+            {isEdit ? (
+              <Form.Item name="description" initialValue={issue?.description}>
+                <TextArea autoSize />
+              </Form.Item>
+            ) : (
+              <span>{issue?.description}</span>
+            )}
 
-        <h4 className="m-0 mt-3 text-secondary">Activity</h4>
-        <Tabs
-          className="h-[150px] w-full overflow-auto"
-          items={[
-            {
-              key: '1',
-              label: 'Changes history',
-              children: (
-                <div>
-                  <ChangesHistory history={issue.history} />
-                </div>
-              ),
-            },
-            {
-              key: '2',
-              label: 'Comment',
-              children: 'Content of Tab Pane 2',
-            },
-          ]}
-        />
-      </div>
-
-      <div className="basis-1/3 h-full">
-        {isEdit ? (
-          <Form.Item initialValue={issue?.status} name="status">
-            <Select
-              size="large"
-              value={issue?.status}
-              className="w-30 min-w-max text-white"
-              options={[
-                { value: Status.NEW, label: 'New' },
-                { value: Status.IN_PROGRESS, label: 'In progress' },
-                { value: Status.WAITING_REVIEW, label: 'Waiting review' },
-                { value: Status.TESTING, label: 'Testing' },
-                { value: Status.FEEDBACK, label: 'Feedback' },
-                { value: Status.DONE, label: 'Done' },
+            <h4 className="m-0 mt-5 text-secondary">Activity</h4>
+            <Tabs
+              className="m-0"
+              items={[
+                {
+                  key: '1',
+                  label: 'Changes history',
+                  children: (
+                    <div>
+                      <ChangesHistory history={issue.history} />
+                    </div>
+                  ),
+                },
+                {
+                  key: '2',
+                  label: 'Comment',
+                  children: 'Content of Tab Pane 2',
+                },
               ]}
             />
-          </Form.Item>
-        ) : (
-          <Tag className="text-base" color={getStatusTagColor(issue?.status!)} key={issue?.status}>
-            {toCapitalize(issue?.status!)}
-          </Tag>
-        )}
-        <div className=" mt-3 border-1 border-border h-full w-full text-nowrap">
-          <div className="border-b-1 border-border px-5 py-3 font-bold text-secondary">Detail</div>
-          <div className="flex flex-col p-5 w-full mr-8 gap-3">
-            <Row>
-              <Col span={10} className="text-secondary mt-2 ">
-                Assignee
-              </Col>
-              <Col span={14}>
-                {isEdit ? (
-                  <Form.Item name="assignee" className="m-0" initialValue={issue?.assignee?._id}>
-                    <Select
-                      className="w-full"
-                      showSearch
-                      optionFilterProp="children"
-                      filterOption={filterOption}
-                      // @ts-ignore
-                      options={options}
-                      optionRender={(option) => (
-                        <Space>
-                          <img src={option.data.emoji} className="w-10" alt="avatar" />
-                          <div className="flex flex-col">
-                            <span className="font-medium">{option.data.label}</span>
-                            <span className="text-sm">{option.data.desc}</span>
-                          </div>
-                        </Space>
-                      )}
-                    />
-                  </Form.Item>
-                ) : (
-                  <Space>
-                    <img src={issue?.assignee?.profilePic} className="w-7" alt="avatar" />
-                    <div className="flex flex-col">
-                      {issue?.assignee?.firstname} {issue?.assignee?.lastname}
-                    </div>
-                  </Space>
-                )}
-              </Col>
-            </Row>
-            <Row className="flex items-center">
-              <Col span={10} className="text-secondary">
-                Due date
-              </Col>
-              <Col span={14}>
-                {loading ? (
-                  <SkeletonInput size="small" active />
-                ) : isEdit ? (
-                  <Form.Item className="m-0" name="dueDate" initialValue={moment(issue?.dueDate)}>
-                    <DatePicker className="w-full" format="YYYY/MM/DD" />
-                  </Form.Item>
-                ) : (
-                  <span>{moment(issue?.dueDate).calendar()}</span>
-                )}
-              </Col>
-            </Row>
-            <Row className="flex items-center">
-              <Col span={10} className="text-secondary">
-                Subject
-              </Col>
-              <Col span={14}>
-                {loading ? (
-                  <SkeletonInput size="small" active />
-                ) : isEdit ? (
-                  <Form.Item className="m-0" name="subject" initialValue={issue?.subject}>
-                    <Input />
-                  </Form.Item>
-                ) : (
-                  issue?.subject
-                )}
-              </Col>
-            </Row>
-            <Row className="flex items-center">
-              <Col span={10} className="text-secondary">
-                Priority
-              </Col>
-              <Col span={14}>
-                {loading ? (
-                  <SkeletonInput size="small" active />
-                ) : isEdit ? (
-                  <Form.Item className="m-0" initialValue={issue?.priority} name="priority">
-                    <Select
-                      value={issue?.priority}
-                      className="w-full text-white"
-                      options={[
-                        { value: Priority.LOW, label: 'Low' },
-                        { value: Priority.MEDIUM, label: 'Medium' },
-                        { value: Priority.HIGH, label: 'High' },
-                        { value: Priority.URGENT, label: 'Urgent' },
-                      ]}
-                    />
-                  </Form.Item>
-                ) : (
-                  issue?.priority
-                )}
-              </Col>
-            </Row>
-            <Row>
-              <Col span={10} className="text-secondary">
-                Create by
-              </Col>
-              <Col span={14}>
-                {loading ? (
-                  <SkeletonAvatar active />
-                ) : (
-                  <Space>
-                    <img src={issue?.creator?.profilePic} className="w-7" alt="avatar" />
-                    <div className="flex flex-col">
-                      {issue?.creator?.firstname} {issue?.creator?.lastname}
-                    </div>
-                  </Space>
-                )}
-              </Col>
-            </Row>
           </div>
         </div>
-      </div>
-    </Form>
+
+        <div className="basis-1/3 h-full flex flex-col justify-between">
+          <div>
+            {isEdit ? (
+              <Form.Item initialValue={issue?.status} name="status">
+                <Select
+                  size="large"
+                  value={issue?.status}
+                  className="w-30 min-w-max text-white"
+                  options={[
+                    { value: Status.NEW, label: 'New' },
+                    { value: Status.IN_PROGRESS, label: 'In progress' },
+                    { value: Status.WAITING_REVIEW, label: 'Waiting review' },
+                    { value: Status.TESTING, label: 'Testing' },
+                    { value: Status.FEEDBACK, label: 'Feedback' },
+                    { value: Status.DONE, label: 'Done' },
+                  ]}
+                />
+              </Form.Item>
+            ) : (
+              <Tag
+                className="text-base"
+                color={getStatusTagColor(issue?.status!)}
+                key={issue?.status}
+              >
+                {toCapitalize(issue?.status!)}
+              </Tag>
+            )}
+            <div className=" mt-3 border-1 border-border h-full w-full text-nowrap rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
+              <div className="border-b-1 border-border px-5 py-3 font-bold text-secondary">
+                Detail
+              </div>
+              <div className="flex flex-col p-5 w-full mr-8 gap-3">
+                <Row>
+                  <Col span={10} className="text-secondary mt-2 ">
+                    Assignee
+                  </Col>
+                  <Col span={14}>
+                    {isEdit ? (
+                      <Form.Item
+                        name="assignee"
+                        className="m-0"
+                        initialValue={issue?.assignee?._id}
+                      >
+                        <Select
+                          className="w-full"
+                          showSearch
+                          optionFilterProp="children"
+                          filterOption={filterOption}
+                          // @ts-ignore
+                          options={options}
+                          optionRender={(option) => (
+                            <Space>
+                              <img src={option.data.emoji} className="w-10" alt="avatar" />
+                              <div className="flex flex-col">
+                                <span className="font-medium">{option.data.label}</span>
+                                <span className="text-sm">{option.data.desc}</span>
+                              </div>
+                            </Space>
+                          )}
+                        />
+                      </Form.Item>
+                    ) : (
+                      <Space>
+                        <img src={issue?.assignee?.profilePic} className="w-7" alt="avatar" />
+                        <div className="flex flex-col">
+                          {issue?.assignee?.firstname} {issue?.assignee?.lastname}
+                        </div>
+                      </Space>
+                    )}
+                  </Col>
+                </Row>
+                <Row className="flex items-center">
+                  <Col span={10} className="text-secondary">
+                    Due date
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonInput size="small" active />
+                    ) : isEdit ? (
+                      <Form.Item
+                        className="m-0"
+                        name="dueDate"
+                        initialValue={moment(issue?.dueDate)}
+                      >
+                        <DatePicker className="w-full" format="YYYY/MM/DD" />
+                      </Form.Item>
+                    ) : (
+                      <span>{moment(issue?.dueDate).calendar()}</span>
+                    )}
+                  </Col>
+                </Row>
+                <Row className="flex items-center">
+                  <Col span={10} className="text-secondary">
+                    Subject
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonInput size="small" active />
+                    ) : isEdit ? (
+                      <Form.Item className="m-0" name="subject" initialValue={issue?.subject}>
+                        <Input />
+                      </Form.Item>
+                    ) : (
+                      issue?.subject
+                    )}
+                  </Col>
+                </Row>
+                <Row className="flex items-center">
+                  <Col span={10} className="text-secondary">
+                    Priority
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonInput size="small" active />
+                    ) : isEdit ? (
+                      <Form.Item className="m-0" initialValue={issue?.priority} name="priority">
+                        <Select
+                          value={issue?.priority}
+                          className="w-full text-white"
+                          options={[
+                            { value: Priority.LOW, label: 'Low' },
+                            { value: Priority.MEDIUM, label: 'Medium' },
+                            { value: Priority.HIGH, label: 'High' },
+                            { value: Priority.URGENT, label: 'Urgent' },
+                          ]}
+                        />
+                      </Form.Item>
+                    ) : (
+                      issue?.priority
+                    )}
+                  </Col>
+                </Row>
+                <Row>
+                  <Col span={10} className="text-secondary">
+                    Create by
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonAvatar active />
+                    ) : (
+                      <Space>
+                        <img src={issue?.creator?.profilePic} className="w-7" alt="avatar" />
+                        <div className="flex flex-col">
+                          {issue?.creator?.firstname} {issue?.creator?.lastname}
+                        </div>
+                      </Space>
+                    )}
+                  </Col>
+                </Row>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-1">
+            <Button onClick={() => navigate(-1)}>Cancel</Button>
+            {isEdit ? (
+              <Button
+                type="primary"
+                onClick={() => {
+                  form.submit();
+                  setIsEdit(false);
+                }}
+              >
+                Save
+              </Button>
+            ) : (
+              <Button type="primary" onClick={() => setIsEdit(true)}>
+                Edit
+              </Button>
+            )}
+          </div>
+        </div>
+      </Form>
+    </div>
   );
 };

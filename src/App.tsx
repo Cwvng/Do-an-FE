@@ -2,7 +2,7 @@ import './assets/styles/index.scss';
 import { ConfigProvider } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useEffect } from 'react';
-import { AppRoutes } from './pages';
+import { AppRoutes } from './pages/Router.tsx';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { getAccessToken } from './utils/storage.util.ts';
 import { getUserInfo } from './redux/slices/user.slice.ts';

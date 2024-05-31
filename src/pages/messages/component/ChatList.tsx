@@ -109,12 +109,7 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
             />
           </Tooltip>
         </h1>
-        <Input
-          size="large"
-          placeholder="Enter name ..."
-          suffix={<FaSearch className="text-primary" />}
-          aria-label="Search for a chat"
-        />
+        <Input size="large" suffix={<FaSearch className="text-primary" />} />
         <Divider />
         <div
           className="mb-3 flex items-center justify-between hover:cursor-pointer hover:bg-hoverBg p-1"

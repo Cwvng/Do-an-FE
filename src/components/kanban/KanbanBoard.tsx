@@ -20,6 +20,7 @@ import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts'
 import { Status } from '../../constants';
 import { createNewIssue, deleteIssueById, updateIssueById } from '../../requests/issue.request.ts';
 import { useParams } from 'react-router-dom';
+import { Loading } from '../loading/Loading.tsx';
 
 const defaultCols: Column[] = [
   {
@@ -35,6 +36,10 @@ const defaultCols: Column[] = [
     title: 'Waiting review ⏳',
   },
   {
+    id: Status.FEEDBACK,
+    title: 'Feedback 🧐',
+  },
+  {
     id: Status.DONE,
     title: 'Done ✔️',
   },
@@ -42,8 +47,9 @@ const defaultCols: Column[] = [
 
 interface KanbanBoardProps {
   data: Issue[];
+  loading: boolean;
 }
-export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data }) => {
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
   const [columns, setColumns] = useState<Column[]>(defaultCols);
   const [issues, setIssues] = useState<Issue[]>(data);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
@@ -220,6 +226,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data }) => {
   const generateId = () => {
     return Math.floor(Math.random() * 10001);
   };
+
+  if (loading) return <Loading />;
 
   return (
     <div className="flex w-full overflow-x-auto overflow-y-hidden mt-3">

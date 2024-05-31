@@ -1,8 +1,8 @@
 import { Doughnut } from 'react-chartjs-2';
 import 'chart.js/auto';
 import React, { useEffect } from 'react';
-import { Project } from '../../requests/types/project.interface.ts';
-import { Issue } from '../../requests/types/issue.interface.ts';
+import { Project } from '../../../requests/types/project.interface.ts';
+import { Issue } from '../../../requests/types/issue.interface.ts';
 import {
   Avatar,
   Col,
@@ -19,11 +19,11 @@ import {
   theme,
 } from 'antd';
 import { FaEdit } from 'react-icons/fa';
-import { getAllOtherUsers } from '../../requests/user.request.ts';
+import { getAllOtherUsers } from '../../../requests/user.request.ts';
 import { useForm } from 'antd/es/form/Form';
-import { updateProjectById } from '../../requests/project.request.ts';
-import { AppState, dispatch, useSelector } from '../../redux/store';
-import { getProjectDetail } from '../../redux/slices/user.slice.ts';
+import { updateProjectById } from '../../../requests/project.request.ts';
+import { AppState, dispatch, useSelector } from '../../../redux/store';
+import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
 import { useParams } from 'react-router-dom';
 
 interface PMDashBoardProps {

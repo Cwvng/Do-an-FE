@@ -3,6 +3,7 @@ import {
   Avatar,
   Breadcrumb,
   Button,
+  Dropdown,
   Form,
   FormProps,
   Input,
@@ -12,17 +13,21 @@ import {
   SelectProps,
   Space,
   Table,
+  Tag,
   theme,
 } from 'antd';
-import { createProject, getAllProject } from '../../requests/project.request.ts';
+import { createProject, deleteProject, getAllProject } from '../../requests/project.request.ts';
 import { Project } from '../../requests/types/project.interface.ts';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Loading } from '../../components/loading/Loading.tsx';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import { FaEllipsisV, FaPlus, FaSearch } from 'react-icons/fa';
 import { useForm } from 'antd/es/form/Form';
 import { getAllOtherUsers } from '../../requests/user.request.ts';
 import queryString from 'query-string';
 import { User } from '../../requests/types/chat.interface.ts';
+import { ExclamationCircleFilled } from '@ant-design/icons';
+import { Message } from '../../constants';
+import { createGroupChat } from '../../requests/chat.request.ts';
+import { useSelector } from '../../redux/store';
 
 export const ProjectList: React.FC = () => {
   const [projectList, setProjectList] = useState<Project[]>([]);
@@ -34,6 +39,7 @@ export const ProjectList: React.FC = () => {
   const { token } = theme.useToken();
   const [form] = useForm();
   const [searchParams, setSearchParams] = useSearchParams();
+  const user = useSelector((app) => app.user);
 
   const getProjectList = async () => {
     try {
@@ -77,11 +83,21 @@ export const ProjectList: React.FC = () => {
     try {
       setLoading(true);
       await createProject(values);
-      message.success('Created new project');
+      await createGroupChat({ name: values.name, users: values.members });
+      message.success(Message.CREATED);
       setOpenModal(false);
       getProjectList();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteSelectedProject = async (projectId: string) => {
+    try {
+      await deleteProject(projectId);
+      message.success(Message.DELETED);
+      await getProjectList();
+    } finally {
     }
   };
 
@@ -90,7 +106,6 @@ export const ProjectList: React.FC = () => {
     getUserList();
   }, []);
 
-  if (loading) return <Loading />;
   return (
     <div className="h-full flex flex-col bg-white p-5">
       <Breadcrumb
@@ -126,6 +141,7 @@ export const ProjectList: React.FC = () => {
       <Table
         className="mt-3"
         dataSource={projectList}
+        loading={loading}
         pagination={{ position: ['bottomCenter'] }}
         columns={[
           {
@@ -133,6 +149,38 @@ export const ProjectList: React.FC = () => {
             dataIndex: 'name',
             key: 'name',
             render: (name, record) => <Link to={`/projects/${record._id}`}>{name}</Link>,
+          },
+          {
+            title: 'Role',
+            dataIndex: 'projectManager',
+            key: 'projectManager',
+
+            render: (projectManager) => (
+              <>
+                {projectManager._id === user.userInfo?._id ? (
+                  <Tag color="blue">PM</Tag>
+                ) : (
+                  <Tag color="yellow">Dev</Tag>
+                )}
+              </>
+            ),
+          },
+          {
+            title: 'Created at',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            sorter: {
+              compare: (a: any, b: any) => a.createdAt.localeCompare(b.createdAt),
+              multiple: 1,
+            },
+            render: (updatedAt) => <>{new Date(updatedAt).toDateString()}</>,
+          },
+          {
+            title: 'Total issues',
+            dataIndex: 'issues',
+            key: 'issues',
+            align: 'center',
+            render: (issues) => <>{issues.length}</>,
           },
           {
             title: 'Project manager',
@@ -167,7 +215,7 @@ export const ProjectList: React.FC = () => {
           },
 
           {
-            title: 'Updated at',
+            title: 'Last updated at',
             dataIndex: 'updatedAt',
             key: 'updatedAt',
             render: (updatedAt) => (
@@ -175,6 +223,47 @@ export const ProjectList: React.FC = () => {
                 {new Date(updatedAt).toDateString()},{' '}
                 {new Date(updatedAt).toLocaleTimeString('vi-VN')}
               </>
+            ),
+          },
+          {
+            title: 'Actions',
+            key: 'actions',
+            dataIndex: 'job_id',
+            width: '50px',
+            align: 'center',
+            render: (_, record) => (
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      label: <span>Detail</span>,
+                      key: 'detail',
+                      onClick: () => navigate(`/projects/${record._id}`),
+                    },
+                    {
+                      label: <span className="text-red-500">Delete</span>,
+                      key: 'delete',
+                      onClick: () => {
+                        Modal.confirm({
+                          centered: true,
+                          title: 'Do you want to delete these items?',
+                          icon: <ExclamationCircleFilled />,
+                          onOk() {
+                            deleteSelectedProject(record._id);
+                          },
+                          okText: 'Yes',
+                          cancelText: 'No',
+                          okButtonProps: { className: 'bg-primary' },
+                        });
+                      },
+                    },
+                  ],
+                }}
+                placement="bottomRight"
+                arrow
+              >
+                <FaEllipsisV style={{ cursor: 'pointer' }} />
+              </Dropdown>
             ),
           },
         ]}

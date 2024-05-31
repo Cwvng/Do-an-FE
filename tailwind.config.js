@@ -18,7 +18,7 @@ module.exports = {
       },
       backgroundImage: {
         'auth-bg':
-          "url('https://birchtree.me/content/images/size/w2000/2020/08/DB0B3B0A-1888-41AB-B044-AB24A90229CE..jpeg')",
+          "url('https://afamilycdn.com/150157425591193600/2022/10/26/136a0619-1-16666879720032525688-1666747929769-16667479299621005987667.jpg')",
         'msg-bg':
           "url('https://is.zobj.net/image-server/v1/images?r=DBZ_detbClA07Z8Dbb5a5Dn-kprwa3QsD6L3yV647tKbM3FMKXwA_dk-FhrwHGnhyAU5iKZ2PLIEHPo010UFSGhilP10BKL5p2StZr3UJ5sybIENj5rcPmIn3ish9xxmbMKZ7NDwSfK0wQkgxbJ4vo1vtU3Rz14ac4HSAuXYnbEApbPaaVcjz-ZuDoRtYPd0ZH6NcJNVPq37vyin3hpPEfh22hdEx4AMa9oFaA",
       },
