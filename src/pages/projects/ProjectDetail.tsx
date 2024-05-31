@@ -164,7 +164,7 @@ export const ProjectDetail: React.FC = () => {
           </>
         )
       ) : (
-        <div>{issueList && <KanbanBoard data={issueList} />}</div>
+        <div>{issueList && <KanbanBoard data={issueList} loading={issueLoading} />}</div>
       )}
       <Modal
         title={<span className="text-xl font-bold text-primary">Add new member</span>}
