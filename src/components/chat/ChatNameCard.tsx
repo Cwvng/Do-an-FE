@@ -1,11 +1,11 @@
 import React from 'react';
-import { Chat } from '../../../requests/types/chat.interface.ts';
+import { Chat } from '../../requests/types/chat.interface.ts';
 import { Avatar, theme } from 'antd';
 import { useSelector } from 'react-redux';
-import { AppState } from '../../../redux/store';
-import { getReceiverUser } from '../../../utils/message.util.tsx';
-import { useSocketContext } from '../../../context/SocketContext.tsx';
-import { isTodayMessage } from '../utils.tsx';
+import { AppState } from '../../redux/store';
+import { getReceiverUser } from '../../utils/message.util.tsx';
+import { useSocketContext } from '../../context/SocketContext.tsx';
+import { isTodayMessage } from './utils.tsx';
 
 interface ChatNameCardProps {
   item: Chat;

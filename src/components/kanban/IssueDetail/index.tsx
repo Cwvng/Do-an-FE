@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import {
+  Avatar,
   Breadcrumb,
   Button,
   Col,
@@ -196,7 +197,7 @@ export const IssueDetail: React.FC = () => {
                   <Input />
                 </Form.Item>
               ) : (
-                issue?.label
+                <span className="break-words">{issue?.label}</span>
               )}
             </h2>
             {/*Upload file*/}
@@ -250,7 +251,7 @@ export const IssueDetail: React.FC = () => {
                 <TextArea autoSize />
               </Form.Item>
             ) : (
-              <span>{issue?.description}</span>
+              <span className="break-words pr-5">{issue?.description}</span>
             )}
 
             <h4 className="m-0 mt-5 text-secondary">Activity</h4>
@@ -327,7 +328,12 @@ export const IssueDetail: React.FC = () => {
                           options={options}
                           optionRender={(option) => (
                             <Space>
-                              <img src={option.data.emoji} className="w-10" alt="avatar" />
+                              <Avatar
+                                shape="square"
+                                src={option.data.emoji}
+                                className="w-10"
+                                alt="avatar"
+                              />
                               <div className="flex flex-col">
                                 <span className="font-medium">{option.data.label}</span>
                                 <span className="text-sm">{option.data.desc}</span>
@@ -338,7 +344,7 @@ export const IssueDetail: React.FC = () => {
                       </Form.Item>
                     ) : (
                       <Space>
-                        <img src={issue?.assignee?.profilePic} className="w-7" alt="avatar" />
+                        <Avatar src={issue?.assignee?.profilePic} alt="avatar" />
                         <div className="flex flex-col">
                           {issue?.assignee?.firstname} {issue?.assignee?.lastname}
                         </div>
@@ -378,7 +384,9 @@ export const IssueDetail: React.FC = () => {
                         <Input />
                       </Form.Item>
                     ) : (
-                      issue?.subject
+                      <span className={!issue.subject ? 'text-gray-300' : ''}>
+                        {issue?.subject || 'no subject'}
+                      </span>
                     )}
                   </Col>
                 </Row>
@@ -403,7 +411,9 @@ export const IssueDetail: React.FC = () => {
                         />
                       </Form.Item>
                     ) : (
-                      issue?.priority
+                      <Tag color={getStatusTagColor(issue.priority)}>
+                        {toCapitalize(issue?.priority!)}
+                      </Tag>
                     )}
                   </Col>
                 </Row>
@@ -416,7 +426,7 @@ export const IssueDetail: React.FC = () => {
                       <SkeletonAvatar active />
                     ) : (
                       <Space>
-                        <img src={issue?.creator?.profilePic} className="w-7" alt="avatar" />
+                        <Avatar src={issue?.creator?.profilePic} alt="avatar" />
                         <div className="flex flex-col">
                           {issue?.creator?.firstname} {issue?.creator?.lastname}
                         </div>
@@ -436,7 +446,7 @@ export const IssueDetail: React.FC = () => {
                 } else navigate(-1);
               }}
             >
-              Cancel
+              {isEdit ? 'Cancel' : 'Close'}
             </Button>
             {isEdit ? (
               <Button
