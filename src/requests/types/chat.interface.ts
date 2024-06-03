@@ -38,3 +38,6 @@ export interface Message {
   updatedAt: string;
   isUpdated: boolean;
 }
+export interface GetChatListQuery {
+  name: string;
+}

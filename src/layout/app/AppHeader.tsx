@@ -1,21 +1,41 @@
 import { Header } from 'antd/es/layout/layout';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Button, Divider, Dropdown, Form, FormProps, Input, message, Modal } from 'antd';
+import {
+  Avatar,
+  Button,
+  Divider,
+  Dropdown,
+  Form,
+  FormProps,
+  GetProp,
+  Input,
+  message,
+  Modal,
+  Upload,
+  UploadProps,
+} from 'antd';
 import { updateUser, userLogout } from '../../redux/slices/user.slice';
 import { removeAccessToken } from '../../utils/storage.util';
 import React from 'react';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
-import { IoIosMenu, IoMdSettings } from 'react-icons/io';
+import { IoIosMenu } from 'react-icons/io';
 import { IoNotifications } from 'react-icons/io5';
 import { AppState, useDispatch, useSelector } from '../../redux/store';
 import { CircleButton } from '../../components/common/button/CircleButton';
 import { useForm } from 'antd/es/form/Form';
 import { updateUserInfo } from '../../requests/user.request.ts';
+import { UploadOutlined } from '@ant-design/icons';
 
 interface AppHeaderProps {
   toggleSidebar: () => void;
 }
+type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
+const getBase64 = (img: FileType, callback: (url: string) => void) => {
+  const reader = new FileReader();
+  reader.addEventListener('load', () => callback(reader.result as string));
+  reader.readAsDataURL(img);
+};
 export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
   const dispatch = useDispatch();
   const user = useSelector((state: AppState) => state.user);
@@ -25,6 +45,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
   const [openProfile, setOpenProfile] = React.useState(false);
   const [isEdit, setIsEdit] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [imageUrl, setImageUrl] = React.useState<string | null>();
 
   const handleLogout = () => {
     removeAccessToken();
@@ -35,7 +56,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
   const updateUserProfile: FormProps['onFinish'] = async (values) => {
     try {
       setLoading(true);
-      const res = await updateUserInfo(values);
+      const formData = new FormData();
+      if (values.profilePic && values.profilePic.length > 0)
+        values.profilePic.forEach((image: any) => {
+          formData.append('profilePic', image.originFileObj);
+        });
+      if (values.firstname) formData.append('firstname', values.firstname);
+      if (values.lastname) formData.append('lastname', values.lastname);
+
+      const res = await updateUserInfo(formData);
       message.success('Updated successfully');
       dispatch(updateUser(res));
       setOpenProfile(false);
@@ -62,7 +91,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
           <CircleButton
             icon={<IoNotifications className="text-2xl text-gray-700" />}
           ></CircleButton>
-          <CircleButton icon={<IoMdSettings className="text-2xl text-gray-700" />}></CircleButton>
           <Dropdown
             menu={{
               items: [
@@ -92,35 +120,117 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
       <Modal
         title={<span className="text-xl font-bold text-secondary">Edit profile</span>}
         centered
+        closable={false}
+        className="w-1/3"
         open={openProfile}
-        onCancel={() => setOpenProfile(false)}
-        footer={[
-          <Button key="2" onClick={() => setOpenProfile(false)}>
-            Cancel
-          </Button>,
-          <Button
-            key="1"
-            type="primary"
-            loading={loading}
-            onClick={() => {
-              if (isEdit) {
-                form.submit();
-              } else {
-                setIsEdit(true);
-              }
-            }}
-          >
-            {isEdit ? 'Save' : 'Edit'}
-          </Button>,
-        ]}
+        footer={
+          isEdit
+            ? [
+                <Button
+                  key="close"
+                  onClick={() => {
+                    setIsEdit(false);
+                    setImageUrl(null);
+                    setOpenProfile(false);
+                  }}
+                >
+                  Close
+                </Button>,
+                <Button
+                  key="cancel"
+                  onClick={() => {
+                    setIsEdit(false);
+                  }}
+                >
+                  Cancel
+                </Button>,
+                <Button key="save" type="primary" loading={loading} onClick={() => form.submit()}>
+                  Save
+                </Button>,
+              ]
+            : [
+                <Button
+                  key="close"
+                  onClick={() => {
+                    setIsEdit(false);
+                    setImageUrl(null);
+                    setOpenProfile(false);
+                  }}
+                >
+                  Close
+                </Button>,
+                <Button key="edit" type="primary" loading={loading} onClick={() => setIsEdit(true)}>
+                  Edit
+                </Button>,
+              ]
+        }
       >
         <div>
           <Divider className="m-0" />
           <Form layout="vertical" className="p-5" form={form} onFinish={updateUserProfile}>
             <div>
-              <div className="flex flex-col items-center justify-center my-5">
-                <Avatar className="border-2" size={75} src={user.userInfo?.profilePic} />
-                <div className="font-semibold">{user.userInfo?.email}</div>
+              <div className="flex items-center my-5">
+                <div className="relative">
+                  <Avatar
+                    className={isEdit ? 'border-2 blur-[1px]' : 'border-2'}
+                    size={100}
+                    src={imageUrl || user.userInfo?.profilePic}
+                  />
+                  {isEdit && (
+                    <Form.Item
+                      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                      name="profilePic"
+                      getValueFromEvent={(e) => {
+                        if (Array.isArray(e)) {
+                          return e;
+                        }
+                        return e && e.fileList;
+                      }}
+                    >
+                      <Upload
+                        showUploadList={false}
+                        beforeUpload={(file) => {
+                          console.log(file);
+                        }}
+                        customRequest={async (options) => {
+                          const { onSuccess, onError, file } = options;
+
+                          try {
+                            //@ts-ignore
+                            onSuccess(file);
+                          } catch (error) {
+                            //@ts-ignore
+                            onError(error);
+                          }
+                        }}
+                        onChange={(info) => {
+                          if (info.file.status === 'uploading') {
+                            setLoading(true);
+                            return;
+                          }
+                          if (info.file.status === 'done') {
+                            getBase64(info.file.originFileObj as FileType, (url) => {
+                              setLoading(false);
+                              setImageUrl(url);
+                            });
+                          }
+                        }}
+                        onRemove={(file) => {
+                          console.log('remove', file);
+                        }}
+                      >
+                        <CircleButton title="Upload avatar" icon={<UploadOutlined />} />
+                      </Upload>
+                    </Form.Item>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2 ml-5">
+                  <div className="font-semibold text-primary text-xl">
+                    {user.userInfo?.firstname} {user.userInfo?.lastname}
+                  </div>
+                  <div className="font-semibold">{user.userInfo?.email}</div>
+                </div>
               </div>
               <Form.Item
                 label={<span className="font-medium">Firstname</span>}

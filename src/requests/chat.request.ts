@@ -1,8 +1,14 @@
 import { api } from '../utils/api.util.ts';
-import { Chat, CreateGroupChatBody, CreateNewChatBody, Message } from './types/chat.interface.ts';
+import {
+  Chat,
+  CreateGroupChatBody,
+  CreateNewChatBody,
+  GetChatListQuery,
+  Message,
+} from './types/chat.interface.ts';
 
-export const getAllChats = async () => {
-  const { data } = await api.get<Chat[]>('/chat');
+export const getAllChats = async (params?: GetChatListQuery) => {
+  const { data } = await api.get<Chat[]>('/chat', { params });
   return data;
 };
 export const createGroupChat = async (body: CreateGroupChatBody) => {

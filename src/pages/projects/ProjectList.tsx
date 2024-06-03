@@ -22,18 +22,16 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FaEllipsisV, FaPlus, FaSearch } from 'react-icons/fa';
 import { useForm } from 'antd/es/form/Form';
 import { getAllOtherUsers } from '../../requests/user.request.ts';
-import queryString from 'query-string';
 import { User } from '../../requests/types/chat.interface.ts';
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import { Message } from '../../constants';
 import { createGroupChat } from '../../requests/chat.request.ts';
 import { useSelector } from '../../redux/store';
-
 export const ProjectList: React.FC = () => {
   const [projectList, setProjectList] = useState<Project[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [openModal, setOpenModal] = React.useState(false);
-  const [options, setOptions] = React.useState<SelectProps['options']>([]);
+  const [loading, setLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [options, setOptions] = useState<SelectProps['options']>([]);
 
   const navigate = useNavigate();
   const { token } = theme.useToken();
@@ -41,15 +39,19 @@ export const ProjectList: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const user = useSelector((app) => app.user);
 
-  const getProjectList = async () => {
+  const getProjectList = async (name?: string) => {
     try {
       setLoading(true);
-      const name = searchParams.get('name');
-      const res = await getAllProject({ name });
+      const res = await getAllProject({ name: name! });
       setProjectList(res);
     } finally {
       setLoading(false);
     }
+  };
+
+  const debouncedGetProjectList = async (name: string) => {
+    setSearchParams({ name });
+    await getProjectList(name);
   };
 
   const getUserList = async () => {
@@ -73,10 +75,8 @@ export const ProjectList: React.FC = () => {
   const filterOption = (input: string, option?: { label: string; value: string }) =>
     (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
-  const handleNavigateQuery = () => {
-    const qs = queryString.stringify({ name: searchParams.get('name') });
-    navigate({ search: '?' + qs });
-    getProjectList();
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debouncedGetProjectList(e.target.value);
   };
 
   const createNewProject: FormProps['onFinish'] = async (values) => {
@@ -124,10 +124,9 @@ export const ProjectList: React.FC = () => {
         <Input
           className="w-1/3"
           size="large"
-          value={searchParams.get('name')!}
-          onChange={(e) => setSearchParams({ name: e.target.value })}
-          suffix={<FaSearch onClick={handleNavigateQuery} className="text-primary" />}
-          onPressEnter={handleNavigateQuery}
+          value={searchParams.get('name') || ''}
+          onChange={handleSearch}
+          suffix={<FaSearch className="text-primary" />}
         />
         <Button
           shape="circle"
@@ -142,7 +141,12 @@ export const ProjectList: React.FC = () => {
         className="mt-3"
         dataSource={projectList}
         loading={loading}
-        pagination={{ position: ['bottomCenter'] }}
+        pagination={{
+          position: ['bottomCenter'],
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          pageSizeOptions: ['5', '10', '30'],
+        }}
         columns={[
           {
             title: 'Name',

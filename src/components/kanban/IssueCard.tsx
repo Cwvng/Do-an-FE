@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { FaCheck, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaEllipsisV } from 'react-icons/fa';
 import { Id } from './type.tsx';
-import { Form, FormProps, Input, Modal, Spin, Tag } from 'antd';
+import { Avatar, Dropdown, Form, FormProps, Input, Modal, Spin, Tag, Tooltip } from 'antd';
 import { CircleButton } from '../common/button/CircleButton.tsx';
-import { MdEdit } from 'react-icons/md';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons';
 import { getStatusTagColor, toCapitalize } from '../../utils/project.util.ts';
+import { RiEditFill } from 'react-icons/ri';
 
 interface IssueCardProps {
   issue: Issue;
@@ -24,7 +24,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
   updateIssue,
 }: IssueCardProps) => {
   const [mouseIsOver, setMouseIsOver] = useState(false);
-  const [editMode, setEditMode] = useState(true);
+  const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { id } = useParams();
@@ -34,7 +34,6 @@ export const IssueCard: React.FC<IssueCardProps> = ({
   const submitForm: FormProps<UpdateIssueBody>['onFinish'] = async (values) => {
     try {
       setLoading(true);
-      console.log('submit', values);
       if (values.label) updateIssue(issue._id, values.label.trim());
     } finally {
       setLoading(false);
@@ -126,45 +125,77 @@ export const IssueCard: React.FC<IssueCardProps> = ({
           setMouseIsOver(false);
         }}
       >
-        <div className="flex flex-col gap-2">
-          <div
-            onClick={() => navigate(`/projects/${id}/issue/${issue._id}`)}
-            className=" w-full overflow-y-auto overflow-x-hidden hover:cursor-pointer whitespace-pre-wrap"
-          >
-            {issue.label}
+        <div className="flex w-full flex-col gap-2">
+          <div className=" w-full flex items-center gap-1 overflow-y-auto overflow-x-hidden hover:cursor-pointer whitespace-pre-wrap">
+            <span onClick={() => navigate(`/projects/${id}/issue/${issue._id}`)}>
+              {issue.label}
+            </span>
+            <RiEditFill
+              className="text-primary opacity-0 hover:opacity-100"
+              onClick={() => setEditMode(true)}
+            />
+            {mouseIsOver && (
+              <div className="flex flex-row gap-2 items-center absolute right-4 top-1-translate-y-1 ">
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        label: <span>Detail</span>,
+                        key: 'detail',
+                      },
+                      {
+                        label: <span className="text-red-500">Delete</span>,
+                        key: 'delete',
+                        onClick: () => {
+                          Modal.confirm({
+                            centered: true,
+                            title: 'Do you want to delete these items?',
+                            icon: <ExclamationCircleFilled />,
+                            onOk() {
+                              deleteIssue(issue._id);
+                            },
+                            okText: 'Yes',
+                            cancelText: 'No',
+                            okButtonProps: { className: 'bg-primary' },
+                          });
+                        },
+                      },
+                    ],
+                  }}
+                  placement="bottomRight"
+                  arrow
+                >
+                  <FaEllipsisV style={{ cursor: 'pointer' }} />
+                </Dropdown>
+              </div>
+            )}
           </div>
-          <div>
-            <Tag color={getStatusTagColor(issue.priority!)} key={issue.priority}>
-              {toCapitalize(issue.priority!)}
-            </Tag>
+          <div className="mt-2 flex flex-row items-center justify-between">
+            <div>
+              <Tag color={getStatusTagColor(issue.priority!)} key={issue.priority}>
+                {toCapitalize(issue.priority!)}
+              </Tag>
+              {issue.remainingDays && +issue.remainingDays < 7 && (
+                <Tag
+                  color={
+                    (+issue.remainingDays > 0 && +issue.remainingDays < 5) ||
+                    +issue.remainingDays <= 0
+                      ? 'red'
+                      : 'lime'
+                  }
+                  key={issue._id}
+                >
+                  {+issue.remainingDays === 0 && 'Today'}
+                  {+issue.remainingDays > 0 && issue.remainingDays + ' days'}
+                  {+issue.remainingDays < 0 && 'Overdue'}
+                </Tag>
+              )}
+            </div>
+            <Tooltip key={issue._id} placement="right" color="fff" title={issue.assignee?.email}>
+              <Avatar src={issue.assignee?.profilePic} />
+            </Tooltip>
           </div>
         </div>
-        {mouseIsOver && (
-          <div className="flex flex-row gap-2 items-center absolute right-4 top-1/2 -translate-y-1/2 ">
-            <CircleButton
-              onClick={() => setEditMode(true)}
-              className=" opacity-60 hover:opacity-100"
-              icon={<MdEdit size={20} />}
-            />
-            <CircleButton
-              onClick={() => {
-                Modal.confirm({
-                  centered: true,
-                  title: 'Do you want to delete these items?',
-                  icon: <ExclamationCircleFilled />,
-                  onOk() {
-                    deleteIssue(issue._id);
-                  },
-                  okText: 'Yes',
-                  cancelText: 'No',
-                  okButtonProps: { className: 'bg-primary' },
-                });
-              }}
-              className=" opacity-60 hover:opacity-100"
-              icon={<FaTrash />}
-            />
-          </div>
-        )}
       </div>
     </>
   );

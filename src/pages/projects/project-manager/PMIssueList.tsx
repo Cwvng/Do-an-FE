@@ -1,51 +1,169 @@
-import { Dropdown, Input, message, Modal, Table, Tag } from 'antd';
-import React from 'react';
+import {
+  Avatar,
+  Col,
+  DatePicker,
+  Dropdown,
+  Form,
+  FormProps,
+  Image,
+  Input,
+  message,
+  Modal,
+  Row,
+  Select,
+  SelectProps,
+  Space,
+  Table,
+  Tag,
+  Upload,
+  UploadFile,
+} from 'antd';
+import React, { useEffect, useState } from 'react';
 import { Message, Priority, Status } from '../../../constants';
 import { Issue } from '../../../requests/types/issue.interface.ts';
-import { ExclamationCircleFilled } from '@ant-design/icons';
+import { ExclamationCircleFilled, PlusOutlined } from '@ant-design/icons';
 import { FaEllipsisV, FaPlus, FaSearch } from 'react-icons/fa';
-import { deleteIssueById } from '../../../requests/issue.request.ts';
+import { createNewIssue, deleteIssueById, getIssueList } from '../../../requests/issue.request.ts';
 import { CircleButton } from '../../../components/common/button/CircleButton.tsx';
 import { getStatusTagColor, toCapitalize } from '../../../utils/project.util.ts';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useForm } from 'antd/es/form/Form';
+import { getAllOtherUsers } from '../../../requests/user.request.ts';
+import TextArea from 'antd/es/input/TextArea';
 
-interface PMProjectListProps {
-  issueList: Issue[];
-  onActionEnd: any;
-}
-export const PMProjectList: React.FC<PMProjectListProps> = ({ issueList, onActionEnd }) => {
-  const [loading, setLoading] = React.useState(false);
+export const PMIssueList: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [issueList, setIssueList] = useState<Issue[]>();
+  const [openAddIssue, setOpenAddIssue] = React.useState(false);
+  const [options, setOptions] = useState<SelectProps['options']>([]);
+  const [fileList, setFileList] = React.useState<UploadFile[]>();
+  const [previewOpen, setPreviewOpen] = React.useState(false);
+  const [previewImage, setPreviewImage] = React.useState('');
+  const [createLoading, setCreateLoading] = React.useState(false);
 
+  const [form] = useForm();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const getUserList = async () => {
+    try {
+      const data = await getAllOtherUsers();
+      const userList: SelectProps['options'] = [];
+      data.forEach((item) => {
+        userList.push({
+          value: item._id,
+          label: item.firstname + ' ' + item.lastname,
+          emoji: item.profilePic,
+          desc: item.email,
+        });
+      });
+      setOptions(userList);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const getDueDateColor = (date: string) => {
     const today = new Date();
     const dueDate = new Date(date);
     return today > dueDate ? 'text-red-500' : '';
   };
+
+  const getIssueListByProjectId = async () => {
+    try {
+      if (id) {
+        setLoading(true);
+        const label = searchParams.get('label') || '';
+        const res = await getIssueList({ projectId: id, label });
+        setIssueList(res);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const deleteIssue = async (id: string) => {
     try {
       setLoading(true);
       await deleteIssueById(id);
-      await onActionEnd();
+      await getIssueListByProjectId();
       message.success(Message.DELETED);
     } finally {
       setLoading(false);
     }
   };
 
+  const createIssue: FormProps['onFinish'] = async (values) => {
+    try {
+      setCreateLoading(true);
+      if (id) {
+        const formData = new FormData();
+        if (values.images && values.images.length > 0)
+          values.images.forEach((image: any) => {
+            formData.append('images', image.originFileObj);
+          });
+        formData.append('status', Status.NEW);
+        formData.append('project', id);
+        if (values.description) formData.append('description', values.description);
+        if (values.assignee) formData.append('assignee', values.assignee);
+        if (values.priority) formData.append('priority', values.priority);
+        if (values.dueDate) formData.append('dueDate', values.dueDate);
+        if (values.label) formData.append('label', values.label);
+        await createNewIssue(formData);
+        await getIssueListByProjectId();
+
+        message.success('Created an issue');
+        setOpenAddIssue(false);
+        form.resetFields();
+      }
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getIssueListByProjectId();
+  }, [searchParams]);
+  useEffect(() => {
+    getUserList();
+  }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchParams({ label: e.target.value });
+  };
+
+  const handleSearchEnter = () => {
+    getIssueListByProjectId();
+  };
+
   return (
     <>
       <div className="flex justify-between items-center">
-        <Input size="large" className="w-1/4" suffix={<FaSearch className="text-primary" />} />
-        <CircleButton title="Create new issue" type="primary" icon={<FaPlus />} />
+        <Input
+          size="large"
+          className="w-1/4"
+          value={searchParams.get('label') || ''}
+          onChange={handleSearchChange}
+          suffix={<FaSearch className="text-primary" onClick={handleSearchEnter} />}
+          onPressEnter={handleSearchEnter}
+        />
+        <CircleButton
+          title="Create new issue"
+          type="primary"
+          onClick={() => setOpenAddIssue(true)}
+          icon={<FaPlus />}
+        />
       </div>
       <Table
         className="mt-3"
         dataSource={issueList}
         loading={loading}
-        pagination={{ position: ['bottomCenter'] }}
+        pagination={{
+          position: ['bottomCenter'],
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          pageSizeOptions: ['5', '10', '30'],
+        }}
         columns={[
           {
             title: 'Label',
@@ -65,37 +183,9 @@ export const PMProjectList: React.FC<PMProjectListProps> = ({ issueList, onActio
             dataIndex: 'status',
             key: 'status',
             align: 'center',
-            filters: [
-              {
-                text: 'New',
-                value: Status.NEW,
-              },
-              {
-                text: 'In progress',
-                value: Status.IN_PROGRESS,
-              },
-              {
-                text: 'Waiting review',
-                value: Status.WAITING_REVIEW,
-              },
-              {
-                text: 'Feedback',
-                value: Status.FEEDBACK,
-              },
-              {
-                text: 'Testing',
-                value: Status.TESTING,
-              },
-              {
-                text: 'Done',
-                value: Status.DONE,
-              },
-            ],
+            filters: Object.values(Status).map((status) => ({ text: status, value: status })),
             onFilter: (value, record) => record.status.indexOf(value) === 0,
-            sorter: {
-              compare: (a: any, b: any) => a.status.localeCompare(b.status),
-              multiple: 1,
-            },
+            sorter: (a: any, b: any) => a.status.localeCompare(b.status),
             render: (status) => {
               const color = getStatusTagColor(status);
               return (
@@ -110,29 +200,12 @@ export const PMProjectList: React.FC<PMProjectListProps> = ({ issueList, onActio
             dataIndex: 'priority',
             key: 'priority',
             align: 'center',
-            filters: [
-              {
-                text: 'Low',
-                value: Priority.LOW,
-              },
-              {
-                text: 'Medium',
-                value: Priority.MEDIUM,
-              },
-              {
-                text: 'High',
-                value: Priority.HIGH,
-              },
-              {
-                text: 'Urgent',
-                value: Priority.URGENT,
-              },
-            ],
+            filters: Object.values(Priority).map((priority) => ({
+              text: priority,
+              value: priority,
+            })),
             onFilter: (value, record) => record.priority.indexOf(value) === 0,
-            sorter: {
-              compare: (a: any, b: any) => a.priority.localeCompare(b.priority),
-              multiple: 1,
-            },
+            sorter: (a, b) => a.priority.localeCompare(b.priority),
             render: (priority) => {
               const color = getStatusTagColor(priority);
               return (
@@ -209,6 +282,136 @@ export const PMProjectList: React.FC<PMProjectListProps> = ({ issueList, onActio
           },
         ]}
       />
+      <Modal
+        title={<span className="text-xl font-bold text-secondary">Create new issue</span>}
+        centered
+        open={openAddIssue}
+        onCancel={() => {
+          form.resetFields();
+          setOpenAddIssue(false);
+        }}
+        okText="Submit"
+        confirmLoading={createLoading}
+        onOk={form.submit}
+      >
+        <Form layout="vertical" requiredMark={false} form={form} onFinish={createIssue}>
+          <Row className="flex justify-between">
+            <Col span={11}>
+              <Form.Item name="label" label={<span className="font-medium">Label</span>}>
+                <Input size="large" />
+              </Form.Item>
+            </Col>
+            <Col span={11}>
+              <Form.Item name="assignee" label={<span className="font-medium">Assignee</span>}>
+                <Select
+                  className="w-full"
+                  showSearch
+                  size="large"
+                  optionFilterProp="children"
+                  filterOption={(input: string, option?: { label: string; value: string }) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  // @ts-ignore
+                  options={options}
+                  optionRender={(option) => (
+                    <Space>
+                      <Avatar shape="square" src={option.data.emoji} alt="avatar" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{option.data.label}</span>
+                        <span className="text-sm">{option.data.desc}</span>
+                      </div>
+                    </Space>
+                  )}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row className="flex justify-between">
+            <Col span={11}>
+              <Form.Item name="priority" label={<span className="font-medium">Priority</span>}>
+                <Select
+                  size="large"
+                  className="w-full text-white"
+                  options={[
+                    { value: Priority.LOW, label: 'Low' },
+                    { value: Priority.MEDIUM, label: 'Medium' },
+                    { value: Priority.HIGH, label: 'High' },
+                    { value: Priority.URGENT, label: 'Urgent' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={11}>
+              <Form.Item name="dueDate" label={<span className="font-medium">Due date</span>}>
+                <DatePicker size="large" className="w-full" format="YYYY/MM/DD" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            className="mt-5"
+            name="images"
+            getValueFromEvent={(e) => {
+              if (Array.isArray(e)) {
+                return e;
+              }
+              return e && e.fileList;
+            }}
+          >
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              beforeUpload={(file) => {
+                console.log(file);
+              }}
+              onPreview={async (file: UploadFile) => {
+                setPreviewImage(file.url || (file.preview as string));
+                setPreviewOpen(true);
+              }}
+              customRequest={async (options) => {
+                const { onSuccess, onError, file } = options;
+
+                try {
+                  //@ts-ignore
+                  onSuccess(file);
+                } catch (error) {
+                  //@ts-ignore
+                  onError(error);
+                }
+              }}
+              onChange={({ fileList: newFileList }) => {
+                setFileList(newFileList);
+                console.log(fileList);
+              }}
+              onRemove={(file) => {
+                console.log('remove', file);
+              }}
+            >
+              <PlusOutlined className="text-primary text-xl" />
+            </Upload>
+          </Form.Item>
+          {previewImage && (
+            <Image
+              wrapperStyle={{ display: 'none' }}
+              preview={{
+                visible: previewOpen,
+                onVisibleChange: (visible) => setPreviewOpen(visible),
+                afterOpenChange: (visible) => !visible && setPreviewImage(''),
+              }}
+              src={previewImage}
+            />
+          )}
+          <Row>
+            <Col span={24}>
+              <Form.Item
+                name="description"
+                label={<span className="font-medium">Description</span>}
+              >
+                <TextArea size="large" autoSize />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
     </>
   );
 };

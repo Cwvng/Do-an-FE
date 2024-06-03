@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Divider,
   Form,
@@ -9,10 +9,10 @@ import {
   Select,
   SelectProps,
   Space,
+  Spin,
   Tooltip,
 } from 'antd';
 import { FaSearch } from 'react-icons/fa';
-import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import {
   Chat,
   CreateGroupChatBody,
@@ -29,18 +29,15 @@ interface ChatListProps {
   chatList: Chat[] | null;
 }
 const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
-  const [openPinnedList, setOpenPinnedList] = React.useState(false);
-  const [openChatList, setOpenChatList] = React.useState(true);
   const [openCreateChat, setOpenCreateChat] = React.useState(false);
   const [submitLoading, setSubmitLoading] = React.useState(false);
   const [options, setOptions] = React.useState<SelectProps['options']>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [form] = Form.useForm();
   const dispatch = useDispatch();
   const selectedChat = useSelector((app: AppState) => app.user.selectedChat);
-
-  const togglePinnedList = () => setOpenPinnedList((prevState) => !prevState);
-  const toggleChatList = () => setOpenChatList((prevState) => !prevState);
+  const isLoading = useSelector((app: AppState) => app.user.isLoading);
 
   const getUserList = async () => {
     try {
@@ -72,7 +69,7 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
           users: values.users,
         };
         await createGroupChat(body);
-        dispatch(getChatList());
+        dispatch(getChatList({ name: searchTerm }));
         message.success('Created a new group chat');
       } else {
         const body: CreateNewChatBody = {
@@ -81,7 +78,7 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
         const res = await createNewChat(body);
         const index = chatList?.findIndex((e) => e._id === res._id);
         if (index && index < 0) {
-          dispatch(getChatList());
+          dispatch(getChatList({ name: searchTerm }));
           message.success('Created new chat');
         } else {
           //access to chat
@@ -97,6 +94,11 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
   useEffect(() => {
     getUserList();
   }, []);
+
+  useEffect(() => {
+    dispatch(getChatList({ name: searchTerm }));
+  }, [searchTerm, dispatch]);
+
   return (
     <>
       <div className="flex flex-col h-full px-5">
@@ -109,36 +111,18 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
             />
           </Tooltip>
         </h1>
-        <Input size="large" suffix={<FaSearch className="text-primary" />} />
+        <Input
+          size="large"
+          suffix={<FaSearch className="text-primary" />}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
         <Divider />
-        <div
-          className="mb-3 flex items-center justify-between hover:cursor-pointer hover:bg-hoverBg p-1"
-          onClick={togglePinnedList}
-          aria-label="Toggle pinned list"
-        >
-          Pinned 📌
-          {openPinnedList ? (
-            <IoIosArrowDown aria-label="Collapse pinned list" />
-          ) : (
-            <IoIosArrowUp aria-label="Expand pinned list" />
-          )}
-        </div>
-        {/*{openPinnedList && Array.from({ length: 2 }, (_, index) => <Index item={item} key={index} />)}*/}
-        <div
-          className="mb-3 flex items-center justify-between hover:cursor-pointer hover:bg-hoverBg p-1"
-          onClick={toggleChatList}
-          aria-label="Toggle chat list"
-        >
-          All chat 💬
-          {openChatList ? (
-            <IoIosArrowDown aria-label="Collapse chat list" />
-          ) : (
-            <IoIosArrowUp aria-label="Expand chat list" />
-          )}
-        </div>
-        <div style={{ overflowY: 'scroll', overflowX: 'hidden' }}>
-          {openChatList &&
-            (chatList && chatList.length > 0 ? (
+        {isLoading ? (
+          <Spin />
+        ) : (
+          <div style={{ overflowY: 'scroll', overflowX: 'hidden' }}>
+            {chatList && chatList.length > 0 ? (
               chatList.map((item, index) => (
                 <div key={index} onClick={() => dispatch(setSelectedChat(item))}>
                   <ChatNameCard isSelected={selectedChat?._id === item._id} item={item} />
@@ -146,8 +130,9 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
               ))
             ) : (
               <span className="text-center text-sm text-border">No chat yet</span>
-            ))}
-        </div>
+            )}
+          </div>
+        )}
       </div>
       <Modal
         title={<span className="text-xl font-bold text-primary">Create new chat</span>}

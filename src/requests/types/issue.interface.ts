@@ -13,6 +13,7 @@ export interface Issue {
   project: string;
   dueDate?: string;
   images?: string[];
+  remainingDays?: string;
   history?: IssueHistory[];
   createdAt?: string;
   updatedAt?: string;
@@ -20,6 +21,9 @@ export interface Issue {
 export type UpdateIssueBody = Partial<Issue>;
 export interface GetIssueListQuery {
   projectId: string;
+  label?: string;
+  assignee?: string;
+  priority?: string;
 }
 export interface IssueHistory {
   field: string;
