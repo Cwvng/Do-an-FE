@@ -24,7 +24,7 @@ import { useForm } from 'antd/es/form/Form';
 import { updateProjectById } from '../../../requests/project.request.ts';
 import { AppState, dispatch, useSelector } from '../../../redux/store';
 import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 interface PMDashBoardProps {
   project: Project | null;
@@ -116,11 +116,10 @@ export const PMDashBoard: React.FC<PMDashBoardProps> = ({ project }) => {
 
   if (!project) return;
   return (
-    <div className="flex flex-row gap-10 p-5">
+    <div className="flex flex-row gap-10 h-ful">
       <div className="w-1/3 shadow-[0_3px_10px_rgb(0,0,0,0.2)] p-5 rounded-lg">
         <div className="flex items-center justify-between">
           <h2 className="m-0 text-secondary">General information</h2>
-
           <FaEdit
             className="text-primary text-xl hover:cursor-pointer"
             title="Edit"
@@ -189,10 +188,18 @@ export const PMDashBoard: React.FC<PMDashBoardProps> = ({ project }) => {
               </div>{' '}
             </Col>
           </Row>
+          <Row className="flex justify-between">
+            <Col span={12}>
+              <div>Group chat</div>
+            </Col>
+            <Col span={12}>
+              <Link to={`${import.meta.env.VITE_CLIENT}/messages`}>{project.name}</Link>
+            </Col>
+          </Row>
         </div>
       </div>
 
-      <div className="w-1/3 shadow-[0_3px_10px_rgb(0,0,0,0.2)] p-5 rounded-lg">
+      <div className="w-1/3  shadow-[0_3px_10px_rgb(0,0,0,0.2)] p-5 rounded-lg">
         <h2 className="m-0 text-secondary">Issues summary ({project?.issues.length})</h2>
         <Divider />
         <Doughnut

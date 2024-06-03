@@ -103,8 +103,13 @@ export const Signup: React.FC = () => {
               rules={[
                 {
                   required: true,
-                  pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/,
+                  message: 'Password is required',
                 },
+                {
+                  pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/,
+                  message: 'Password must contain at least a capitalize character and a number',
+                },
+                { min: 8, message: 'Password must be at least 8 characters.' },
               ]}
             >
               <Password size="large" />
@@ -117,14 +122,14 @@ export const Signup: React.FC = () => {
               rules={[
                 {
                   required: true,
-                  pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/,
+                  message: 'Please retype password',
                 },
                 {
                   validator: (_, value) => {
                     if (value === form.getFieldValue('password')) {
                       return Promise.resolve();
                     } else {
-                      return Promise.reject('Mật khẩu không trùng khớp');
+                      return Promise.reject('Password is not match');
                     }
                   },
                 },

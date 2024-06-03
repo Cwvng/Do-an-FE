@@ -5,6 +5,7 @@ import { setAccessToken } from '../../utils/storage.util.ts';
 import { AppDispatch } from '../store';
 import { getAllChats } from '../../requests/chat.request.ts';
 import { getProjectById } from '../../requests/project.request.ts';
+import { GetChatListQuery } from '../../requests/types/chat.interface.ts';
 
 const initialState: UserProfileState = {
   isAuthenticated: false,
@@ -23,7 +24,6 @@ export const userSlice = createSlice<UserProfileState, UserProfileReducers>({
       state.isAuthenticated = false;
       state.userInfo = null;
     },
-
     updateUser: (state, action) => {
       state.userInfo = action.payload;
     },
@@ -74,13 +74,15 @@ export const { logout, updateUser, setSelectedChat } = userSlice.actions;
 export const getUserInfo = createAsyncThunk<UserInfo>('/user', async () => {
   return getLoggedUserInfo();
 });
-export const getChatList = createAsyncThunk('/chat', async () => {
-  return getAllChats();
+
+export const getChatList = createAsyncThunk('/chat', async (params?: GetChatListQuery) => {
+  return getAllChats(params);
 });
 
 export const getProjectDetail = createAsyncThunk('/project', async (id: string) => {
   return await getProjectById(id);
 });
+
 export const userLogout = () => async (dispatch: AppDispatch) => {
   try {
     setAccessToken(null);

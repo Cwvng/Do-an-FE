@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -15,12 +15,17 @@ import { Column, Id } from './type.tsx';
 import { FaPlus } from 'react-icons/fa';
 import { ColumnContainer } from './ColumnContainer.tsx';
 import { IssueCard } from './IssueCard.tsx';
-import { Button, message } from 'antd';
+import { Button, Col, Input, message, Row, Select, SelectProps, Space } from 'antd';
 import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
-import { Status } from '../../constants';
-import { createNewIssue, deleteIssueById, updateIssueById } from '../../requests/issue.request.ts';
-import { useParams } from 'react-router-dom';
-import { Loading } from '../loading/Loading.tsx';
+import { Priority, Status } from '../../constants';
+import {
+  createNewIssue,
+  deleteIssueById,
+  getIssueList,
+  updateIssueById,
+} from '../../requests/issue.request.ts';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { AppState, useSelector } from '../../redux/store';
 
 const defaultCols: Column[] = [
   {
@@ -45,17 +50,18 @@ const defaultCols: Column[] = [
   },
 ];
 
-interface KanbanBoardProps {
-  data: Issue[];
-  loading: boolean;
-}
-export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
+export const KanbanBoard: React.FC = () => {
   const [columns, setColumns] = useState<Column[]>(defaultCols);
-  const [issues, setIssues] = useState<Issue[]>(data);
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [loading, setLoading] = useState(false);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
+  const [options, setOptions] = useState<SelectProps['options']>([]);
 
+  const project = useSelector((app: AppState) => app.user.selectedProject);
+  const [searchParams, setSearchParams] = useSearchParams();
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
+  const user = useSelector((app: AppState) => app.user.userInfo);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -72,7 +78,39 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
     }
   };
 
-  //CRUD issue
+  const getUserList = () => {
+    try {
+      const userList: SelectProps['options'] = [];
+      project?.members.forEach((item) => {
+        userList.push({
+          value: item._id,
+          label: item._id === user?._id ? '<<Me>>' : item.firstname + ' ' + item.lastname,
+          emoji: item.profilePic,
+          desc: item.email,
+        });
+      });
+      setOptions(userList);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // CRUD issue
+  const getIssueListByProjectId = async () => {
+    try {
+      if (id) {
+        setLoading(true);
+        const label = searchParams.get('label') || '';
+        const assignee = searchParams.getAll('assignee').join(',') || '';
+        const priority = searchParams.getAll('priority').join(',') || '';
+        const res = await getIssueList({ projectId: id, label, assignee, priority });
+        setIssues(res);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const createIssue = async (columnId: Id) => {
     try {
       if (id) {
@@ -89,6 +127,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
     } finally {
     }
   };
+
   const deleteIssue = async (id: Id) => {
     try {
       if (id) {
@@ -100,6 +139,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
     } finally {
     }
   };
+
   const updateIssue = async (id: Id, content: string) => {
     try {
       if (id) {
@@ -110,13 +150,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
         });
 
         setIssues(newIssues);
-        // message.success('Updated an issue');
       }
     } finally {
     }
   };
 
-  //CRUD Column
+  // CRUD Column
   const createNewColumn = () => {
     const columnToAdd: Column = {
       id: generateId().toString(),
@@ -125,6 +164,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
 
     setColumns([...columns, columnToAdd]);
   };
+
   const deleteColumn = (id: Id) => {
     const filteredColumns = columns.filter((col) => col.id !== id);
     setColumns(filteredColumns);
@@ -132,6 +172,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
     const newIssues = issues.filter((t) => t.status !== id);
     setIssues(newIssues);
   };
+
   const updateColumn = (id: Id, title: string) => {
     const newColumns = columns.map((col) => {
       if (col.id !== id) return col;
@@ -141,7 +182,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
     setColumns(newColumns);
   };
 
-  //Drag handle
+  // Drag handle
   const onDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === 'Column') {
       setActiveColumn(event.active.data.current.column);
@@ -153,6 +194,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
       return;
     }
   };
+
   const onDragEnd = (event: DragEndEvent) => {
     setActiveColumn(null);
     setActiveIssue(null);
@@ -180,6 +222,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
       return arrayMove(columns, activeColumnIndex, overColumnIndex);
     });
   };
+
   const onDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -199,7 +242,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
         const activeIndex = issues.findIndex((t) => t._id === activeId);
         const overIndex = issues.findIndex((t) => t._id === overId);
 
-        if (issues[activeIndex].status != issues[overIndex].status) {
+        if (issues[activeIndex].status !== issues[overIndex].status) {
           issues[activeIndex].status = issues[overIndex].status;
           return arrayMove(issues, activeIndex, overIndex - 1);
         }
@@ -210,7 +253,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
 
     const isOverAColumn = over.data.current?.type === 'Column';
 
-    // Dropping a Issue over a column
+    // Dropping an Issue over a column
     if (isActiveAIssue && isOverAColumn) {
       setIssues((issues) => {
         const activeIndex = issues.findIndex((t) => t._id === activeId);
@@ -223,70 +266,171 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ data, loading }) => {
       });
     }
   };
+
   const generateId = () => {
     return Math.floor(Math.random() * 10001);
   };
 
-  if (loading) return <Loading />;
+  useEffect(() => {
+    getIssueListByProjectId();
+    getUserList();
+  }, [searchParams]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchParams({ label: e.target.value });
+  };
+
+  const handleAssigneeChange = (values: string[]) => {
+    setSearchParams((prevParams) => {
+      prevParams.delete('assignee');
+      values.forEach((value) => prevParams.append('assignee', value));
+      return prevParams;
+    });
+  };
+
+  const handlePriorityChange = (values: string[]) => {
+    setSearchParams((prevParams) => {
+      prevParams.delete('priority');
+      values.forEach((value) => prevParams.append('priority', value));
+      return prevParams;
+    });
+  };
+
+  const handleSearchEnter = () => {
+    getIssueListByProjectId();
+  };
 
   return (
-    <div className="flex w-full overflow-x-auto overflow-y-hidden mt-3">
-      <DndContext
-        sensors={sensors}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        onDragOver={onDragOver}
-      >
-        <div className="flex gap-4 pb-2">
-          <div className="flex gap-4">
-            <SortableContext
-              //@ts-ignore
-              items={columnsId}
-            >
-              {columns.map((col) => (
+    <div className="flex flex-col">
+      <h2 className="mt-5 text-secondary">{`Assigned issues (${project?.issues.length})`}</h2>
+      <Row className="flex items-center justify-start gap-5">
+        <Col span={1} className="text-secondary">
+          Label
+        </Col>
+        <Col className="flex flex-row items-center gap-5 " span={4}>
+          <Input
+            value={searchParams.get('label') || ''}
+            onChange={handleSearchChange}
+            onPressEnter={handleSearchEnter}
+          />
+        </Col>
+
+        <Col span={1} className="text-secondary">
+          Assignee
+        </Col>
+        <Col span={4}>
+          <Select
+            className="w-full"
+            showSearch
+            optionFilterProp="children"
+            mode="multiple"
+            filterOption={(input: string, option?: { label: string; value: string }) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            onChange={handleAssigneeChange}
+            // @ts-ignore
+            options={options}
+            optionRender={(option) => (
+              <Space>
+                <div className="flex flex-col">
+                  <span>{option.data.label}</span>
+                </div>
+              </Space>
+            )}
+          />
+        </Col>
+        <Col span={1} className="text-secondary">
+          Priority
+        </Col>
+        <Col span={4}>
+          <Select
+            mode="multiple"
+            className="w-full"
+            options={[
+              { value: Priority.LOW, label: 'Low' },
+              { value: Priority.MEDIUM, label: 'Medium' },
+              { value: Priority.HIGH, label: 'High' },
+              { value: Priority.URGENT, label: 'Urgent' },
+            ]}
+            onChange={handlePriorityChange}
+          />
+        </Col>
+        {/*<Avatar.Group*/}
+        {/*  maxCount={5}*/}
+        {/*  maxStyle={{ color: token.colorError, backgroundColor: token.colorErrorBg }}*/}
+        {/*>*/}
+        {/*  {project?.members?.map((member) => (*/}
+        {/*    <Tooltip key={member._id} placement="top" color="fff" title={member.email}>*/}
+        {/*      <Avatar src={member.profilePic} />*/}
+        {/*    </Tooltip>*/}
+        {/*  ))}*/}
+        {/*</Avatar.Group>*/}
+      </Row>
+
+      <div className="flex flex-1 w-full overflow-x-auto overflow-y-hidden mt-3">
+        <DndContext
+          sensors={sensors}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragOver={onDragOver}
+        >
+          <div className="flex gap-4 pb-2">
+            <div className="flex gap-4">
+              <SortableContext
+                //@ts-ignore
+                items={columnsId}
+              >
+                {columns.map((col) => (
+                  <ColumnContainer
+                    key={col.id}
+                    column={col}
+                    deleteColumn={deleteColumn}
+                    updateColumn={updateColumn}
+                    createIssue={createIssue}
+                    deleteIssue={deleteIssue}
+                    updateIssue={updateIssue}
+                    issues={issues.filter((issue) => issue.status === col.id)}
+                    loading={loading}
+                  />
+                ))}
+              </SortableContext>
+            </div>
+            <Button
+              type="primary"
+              onClick={() => {
+                createNewColumn();
+              }}
+              className="bg-lightBg"
+              icon={<FaPlus className="text-secondary" />}
+            ></Button>
+          </div>
+
+          {createPortal(
+            <DragOverlay>
+              {activeColumn && (
                 <ColumnContainer
-                  key={col.id}
-                  column={col}
+                  column={activeColumn}
                   deleteColumn={deleteColumn}
                   updateColumn={updateColumn}
                   createIssue={createIssue}
                   deleteIssue={deleteIssue}
                   updateIssue={updateIssue}
-                  issues={issues.filter((issue) => issue.status === col.id)}
+                  issues={issues.filter((issue) => issue.status === activeColumn.id)}
+                  loading={loading}
                 />
-              ))}
-            </SortableContext>
-          </div>
-          <Button
-            type="primary"
-            onClick={() => {
-              createNewColumn();
-            }}
-            className="bg-lightBg"
-            icon={<FaPlus className="text-secondary" />}
-          ></Button>
-        </div>
-
-        {createPortal(
-          <DragOverlay>
-            {activeColumn && (
-              <ColumnContainer
-                column={activeColumn}
-                deleteColumn={deleteColumn}
-                updateColumn={updateColumn}
-                createIssue={createIssue}
-                deleteIssue={deleteIssue}
-                updateIssue={updateIssue}
-                issues={issues.filter((issue) => issue.status === activeColumn.id)}
-              />
-            )}
-            {activeIssue && (
-              <IssueCard issue={activeIssue} deleteIssue={deleteIssue} updateIssue={updateIssue} />
-            )}
-          </DragOverlay>,
-          document.body,
-        )}
-      </DndContext>
+              )}
+              {activeIssue && (
+                <IssueCard
+                  issue={activeIssue}
+                  deleteIssue={deleteIssue}
+                  updateIssue={updateIssue}
+                />
+              )}
+            </DragOverlay>,
+            document.body,
+          )}
+        </DndContext>
+      </div>
     </div>
   );
 };

@@ -18,8 +18,6 @@ import {
   UploadFile,
   UploadProps,
 } from 'antd';
-import { FaLink } from 'react-icons/fa';
-import { FaShareNodes } from 'react-icons/fa6';
 import TextArea from 'antd/es/input/TextArea';
 import { ChangesHistory } from './ChangesHistory.tsx';
 import { Issue } from '../../../requests/types/issue.interface.ts';
@@ -105,6 +103,7 @@ export const IssueDetail: React.FC = () => {
         if (values.priority) formData.append('priority', values.priority);
         if (values.subject) formData.append('subject', values.subject);
         if (values.dueDate) formData.append('dueDate', values.dueDate);
+        if (values.label) formData.append('label', values.label);
 
         await toast.promise(updateIssueById(issueId, formData), {
           loading: 'Saving...',
@@ -190,17 +189,25 @@ export const IssueDetail: React.FC = () => {
         <div className="basis-2/3 h-full overflow-auto">
           <div className="flex flex-col">
             <h2 className="text-secondary">
-              {loading ? <SkeletonInput className="w-2/3" size="small" active /> : issue?.label}
+              {loading ? (
+                <SkeletonInput className="w-2/3" size="small" active />
+              ) : isEdit ? (
+                <Form.Item className="m-0 w-1/3" name="label" initialValue={issue?.label}>
+                  <Input />
+                </Form.Item>
+              ) : (
+                issue?.label
+              )}
             </h2>
             {/*Upload file*/}
-            <div className="flex gap-1">
-              <Button icon={<FaShareNodes />} type="primary">
-                Add a child issue
-              </Button>
-              <Button icon={<FaLink />} type="primary">
-                Link issue
-              </Button>
-            </div>
+            {/*<div className="flex gap-1">*/}
+            {/*  <Button icon={<FaShareNodes />} type="primary">*/}
+            {/*    Add a child issue*/}
+            {/*  </Button>*/}
+            {/*  <Button icon={<FaLink />} type="primary">*/}
+            {/*    Link issue*/}
+            {/*  </Button>*/}
+            {/*</div>*/}
             <Form.Item
               className="mt-5"
               name="images"
@@ -272,9 +279,8 @@ export const IssueDetail: React.FC = () => {
         <div className="basis-1/3 h-full flex flex-col justify-between">
           <div>
             {isEdit ? (
-              <Form.Item initialValue={issue?.status} name="status">
+              <Form.Item className="m-0" initialValue={issue?.status} name="status">
                 <Select
-                  size="large"
                   value={issue?.status}
                   className="w-30 min-w-max text-white"
                   options={[
@@ -422,7 +428,16 @@ export const IssueDetail: React.FC = () => {
             </div>
           </div>
           <div className="flex justify-end gap-1">
-            <Button onClick={() => navigate(-1)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                if (isEdit) {
+                  form.resetFields();
+                  setIsEdit(false);
+                } else navigate(-1);
+              }}
+            >
+              Cancel
+            </Button>
             {isEdit ? (
               <Button
                 type="primary"
