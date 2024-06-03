@@ -29,6 +29,7 @@ import { FaEllipsisVertical, FaImage } from 'react-icons/fa6';
 import { Loading } from '../../../components/loading/Loading.tsx';
 import { getChatList } from '../../../redux/slices/user.slice.ts';
 import { ExclamationCircleFilled, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { useNotificationContext } from '../../../context/NotificationContext.tsx';
 
 interface ChatContainerProps {
   toggleAttachment: () => void;
@@ -46,6 +47,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
 
   const { token } = theme.useToken();
   const { socket, onlineUsers } = useSocketContext();
+  const { notification, setNotification } = useNotificationContext();
   const userId = useSelector((app: AppState) => app.user.userInfo?._id);
   const selectedChat = useSelector((app: AppState) => app.user.selectedChat);
   const receiver = getReceiverUser(selectedChat?.users, userId);
@@ -125,9 +127,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
   useEffect(() => {
     socket?.on('newMessage', (newMessage) => {
       newMessage.shouldShake = true;
-      // const sound = new Audio(notificationSound);
-      // sound.play();
       if (newMessage.chat._id === selectedChat?._id) setChatData([...chatData, newMessage]);
+      if (!notification.includes(newMessage)) setNotification([newMessage, ...notification]);
     });
 
     return () => socket?.off('newMessage');

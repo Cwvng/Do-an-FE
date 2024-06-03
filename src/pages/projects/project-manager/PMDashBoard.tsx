@@ -27,6 +27,7 @@ import { AppState, dispatch, useSelector } from '../../../redux/store';
 import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
 import { Link, useParams } from 'react-router-dom';
 import { Loading } from '../../../components/loading/Loading.tsx';
+import moment from 'moment/moment';
 
 interface PMDashBoardProps {
   project: Project | null;
@@ -179,7 +180,10 @@ export const PMDashBoard: React.FC<PMDashBoardProps> = ({ project }) => {
               <div>Created at</div>
             </Col>
             <Col span={12}>
-              <div className="text-secondary"> {new Date(project.updatedAt).toDateString()}</div>
+              <div className="text-secondary">
+                {' '}
+                {moment(project.createdAt).format('DD/MM/YYYY')}
+              </div>
             </Col>
           </Row>
           <Row className="flex justify-between">
@@ -187,10 +191,7 @@ export const PMDashBoard: React.FC<PMDashBoardProps> = ({ project }) => {
               <div>Last updated at </div>
             </Col>
             <Col span={12}>
-              <div className="text-secondary">
-                {new Date(project.updatedAt).toDateString()},
-                {new Date(project.updatedAt).toLocaleTimeString('vi-VN')}
-              </div>{' '}
+              <div className="text-secondary">{moment(project.updatedAt).format('DD/MM/YYYY')}</div>{' '}
             </Col>
           </Row>
           <Row className="flex justify-between">

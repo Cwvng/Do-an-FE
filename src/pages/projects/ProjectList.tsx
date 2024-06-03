@@ -27,6 +27,7 @@ import { ExclamationCircleFilled } from '@ant-design/icons';
 import { Message } from '../../constants';
 import { createGroupChat } from '../../requests/chat.request.ts';
 import { useSelector } from '../../redux/store';
+import moment from 'moment';
 export const ProjectList: React.FC = () => {
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -177,7 +178,7 @@ export const ProjectList: React.FC = () => {
               compare: (a: any, b: any) => a.createdAt.localeCompare(b.createdAt),
               multiple: 1,
             },
-            render: (updatedAt) => <>{new Date(updatedAt).toDateString()}</>,
+            render: (createdAt) => <>{moment(createdAt).format('DD/MM/YYYY')}</>,
           },
           {
             title: 'Total issues',
@@ -222,12 +223,7 @@ export const ProjectList: React.FC = () => {
             title: 'Last updated at',
             dataIndex: 'updatedAt',
             key: 'updatedAt',
-            render: (updatedAt) => (
-              <>
-                {new Date(updatedAt).toDateString()},{' '}
-                {new Date(updatedAt).toLocaleTimeString('vi-VN')}
-              </>
-            ),
+            render: (updatedAt) => <span> {moment(updatedAt).format('DD/MM/YYYY')}</span>,
           },
           {
             title: 'Actions',

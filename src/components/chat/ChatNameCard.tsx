@@ -34,7 +34,7 @@ export const ChatNameCard: React.FC<ChatNameCardProps> = ({ item, isSelected }) 
             </Avatar.Group>
           ) : (
             <>
-              <img
+              <Avatar
                 src={getReceiverUser(item.users, user.userInfo?._id)?.profilePic}
                 alt=""
                 className="rounded-8 object-contain w-full h-full"
