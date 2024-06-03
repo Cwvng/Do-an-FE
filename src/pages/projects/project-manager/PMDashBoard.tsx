@@ -17,6 +17,7 @@ import {
   SelectProps,
   Space,
   theme,
+  Tooltip,
 } from 'antd';
 import { FaEdit } from 'react-icons/fa';
 import { getAllOtherUsers } from '../../../requests/user.request.ts';
@@ -25,6 +26,7 @@ import { updateProjectById } from '../../../requests/project.request.ts';
 import { AppState, dispatch, useSelector } from '../../../redux/store';
 import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
 import { Link, useParams } from 'react-router-dom';
+import { Loading } from '../../../components/loading/Loading.tsx';
 
 interface PMDashBoardProps {
   project: Project | null;
@@ -115,6 +117,7 @@ export const PMDashBoard: React.FC<PMDashBoardProps> = ({ project }) => {
   }, []);
 
   if (!project) return;
+  if (loading) return <Loading />;
   return (
     <div className="flex flex-row gap-10 h-ful">
       <div className="w-1/3 shadow-[0_3px_10px_rgb(0,0,0,0.2)] p-5 rounded-lg">
@@ -142,11 +145,13 @@ export const PMDashBoard: React.FC<PMDashBoardProps> = ({ project }) => {
             </Col>
             <Col span={12}>
               <Avatar.Group
-                maxCount={3}
+                maxCount={5}
                 maxStyle={{ color: token.colorError, backgroundColor: token.colorErrorBg }}
               >
                 {project.members.map((member, index) => (
-                  <Avatar key={index} src={member.profilePic} />
+                  <Tooltip key={index} placement="top" color={'fff'} title={member.email}>
+                    <Avatar src={member.profilePic} />
+                  </Tooltip>
                 ))}
               </Avatar.Group>
             </Col>
@@ -171,7 +176,7 @@ export const PMDashBoard: React.FC<PMDashBoardProps> = ({ project }) => {
           </Row>
           <Row className="flex justify-between">
             <Col span={12}>
-              <div>Created </div>
+              <div>Created at</div>
             </Col>
             <Col span={12}>
               <div className="text-secondary"> {new Date(project.updatedAt).toDateString()}</div>
@@ -198,6 +203,14 @@ export const PMDashBoard: React.FC<PMDashBoardProps> = ({ project }) => {
           </Row>
         </div>
       </div>
+
+      {/*<div className="w-1/3 shadow-[0_3px_10px_rgb(0,0,0,0.2)] p-5 rounded-lg">*/}
+      {/*  <div className="flex items-center justify-between">*/}
+      {/*    <h2 className="m-0 text-secondary">Members</h2>*/}
+      {/*  </div>*/}
+      {/*  <Divider />*/}
+      {/*  <div className="mt-5 flex flex-col gap-3"></div>*/}
+      {/*</div>*/}
 
       <div className="w-1/3  shadow-[0_3px_10px_rgb(0,0,0,0.2)] p-5 rounded-lg">
         <h2 className="m-0 text-secondary">Issues summary ({project?.issues.length})</h2>

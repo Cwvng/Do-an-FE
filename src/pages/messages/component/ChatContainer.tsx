@@ -16,7 +16,7 @@ import {
 import { IoMdSend } from 'react-icons/io';
 import { Message } from '../../../requests/types/chat.interface.ts';
 import { accessChat, deleteChat } from '../../../requests/chat.request.ts';
-import { MessageContainer } from '../../../components/chat/MessageContainer';
+import { MessageContainer } from '../../../components/chat/MessageContainer.tsx';
 import { SendMessagesBody } from '../../../requests/types/message.interface.ts';
 import { sendNewMessage } from '../../../requests/message.request.ts';
 import { useSocketContext } from '../../../context/SocketContext.tsx';

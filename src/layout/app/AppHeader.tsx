@@ -237,14 +237,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
                 name="firstname"
                 initialValue={user.userInfo?.firstname}
               >
-                <Input disabled={!isEdit} />
+                <Input size="large" disabled={!isEdit} />
               </Form.Item>
               <Form.Item
                 label={<span className="font-medium">Lastname</span>}
                 name="lastname"
                 initialValue={user.userInfo?.lastname}
               >
-                <Input disabled={!isEdit} />
+                <Input size="large" disabled={!isEdit} />
               </Form.Item>
             </div>
           </Form>

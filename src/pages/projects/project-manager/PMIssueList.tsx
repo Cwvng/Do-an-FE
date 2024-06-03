@@ -30,6 +30,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useForm } from 'antd/es/form/Form';
 import { getAllOtherUsers } from '../../../requests/user.request.ts';
 import TextArea from 'antd/es/input/TextArea';
+import { AppState, useSelector } from '../../../redux/store';
 
 export const PMIssueList: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -43,6 +44,7 @@ export const PMIssueList: React.FC = () => {
 
   const [form] = useForm();
   const [searchParams, setSearchParams] = useSearchParams();
+  const user = useSelector((app: AppState) => app.user.userInfo);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -57,6 +59,12 @@ export const PMIssueList: React.FC = () => {
           emoji: item.profilePic,
           desc: item.email,
         });
+      });
+      userList.unshift({
+        value: user?._id,
+        label: '<<Me>>',
+        emoji: user?.profilePic,
+        desc: user?.email,
       });
       setOptions(userList);
     } catch (error) {
@@ -177,6 +185,8 @@ export const PMIssueList: React.FC = () => {
             title: 'Subject',
             dataIndex: 'subject',
             key: 'subject',
+            align: 'center',
+            render: (subject) => <span>{subject || '-'}</span>,
           },
           {
             title: 'Status',
@@ -290,7 +300,7 @@ export const PMIssueList: React.FC = () => {
           form.resetFields();
           setOpenAddIssue(false);
         }}
-        okText="Submit"
+        okText="Create"
         confirmLoading={createLoading}
         onOk={form.submit}
       >
@@ -356,6 +366,7 @@ export const PMIssueList: React.FC = () => {
               }
               return e && e.fileList;
             }}
+            label={<span className="font-medium">Images</span>}
           >
             <Upload
               listType="picture-card"
