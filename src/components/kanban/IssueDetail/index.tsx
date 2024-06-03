@@ -411,7 +411,7 @@ export const IssueDetail: React.FC = () => {
                         />
                       </Form.Item>
                     ) : (
-                      <Tag color={getStatusTagColor(issue.priority)}>
+                      <Tag color={getStatusTagColor(issue?.priority!)}>
                         {toCapitalize(issue?.priority!)}
                       </Tag>
                     )}
