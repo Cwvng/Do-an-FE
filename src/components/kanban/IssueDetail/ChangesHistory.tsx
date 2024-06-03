@@ -1,6 +1,9 @@
 import React from 'react';
-import { Avatar } from 'antd';
+import { Avatar, Tooltip } from 'antd';
 import { IssueHistory } from '../../../requests/types/issue.interface';
+import moment from 'moment/moment';
+import { toCapitalize } from '../../../utils/project.util.ts';
+import { Comment } from '@ant-design/compatible';
 
 interface ChangesHistoryProps {
   history: IssueHistory[] | undefined;
@@ -14,38 +17,50 @@ export const ChangesHistory: React.FC<ChangesHistoryProps> = ({ history }) => {
   return (
     <div className="h-full">
       {sortedHistory?.map((item, index) => (
-        <div key={index} className="flex  gap-2 items-center mb-2">
-          <Avatar
-            shape="square"
-            src={
-              item.updatedBy.profilePic ||
-              'https://i.pinimg.com/736x/b0/cd/e6/b0cde658985bd1a87b525592bf71da18.jpg'
+        <div key={index} className="flex gap-2 items-center mb-2">
+          <Comment
+            key={index}
+            author={
+              <a>
+                {item.updatedBy.firstname} {item.updatedBy.lastname}
+              </a>
+            }
+            avatar={<Avatar size="large" src={item.updatedBy.profilePic} alt="Profile Pic" />}
+            content={
+              <>
+                {item.field === 'images' && (
+                  <div>
+                    Updated <span className="text-secondary font-bold">Images</span> at{' '}
+                  </div>
+                )}
+                {item.field === 'dueDate' && (
+                  <div className="truncate">
+                    Changed <span className="text-secondary font-bold">Due date</span> from{' '}
+                    <span className="text-secondary font-bold">
+                      {moment(item.oldValue).format('DD/MM/YYYY')}
+                    </span>{' '}
+                    to{' '}
+                    <span className="text-secondary font-bold">
+                      {moment(item.newValue).format('DD/MM/YYYY')}
+                    </span>{' '}
+                  </div>
+                )}
+                {item.field !== 'dueDate' && item.field !== 'images' && (
+                  <div className="truncate">
+                    Changed{' '}
+                    <span className="text-secondary font-bold">{toCapitalize(item.field)}</span>{' '}
+                    from <span className="text-secondary font-bold">{item.oldValue}</span> to{' '}
+                    <span className="text-secondary font-bold">{item.newValue}</span>{' '}
+                  </div>
+                )}
+              </>
+            }
+            datetime={
+              <Tooltip title={moment(item.updatedAt).format('YYYY-MM-DD HH:mm:ss')}>
+                <span>{moment(item.updatedAt).fromNow()}</span>
+              </Tooltip>
             }
           />
-          <div className="flex flex-col">
-            <span className="text-secondary font-bold">
-              {item.updatedBy.firstname} {item.updatedBy.lastname}
-            </span>
-            {item.field === 'images' ? (
-              <div>
-                uploaded <span className="text-secondary font-bold">{item.field} </span>
-                at{' '}
-                <span className="text-secondary font-bold">
-                  {new Date(item.updatedAt).toLocaleString()}
-                </span>
-              </div>
-            ) : (
-              <div className="truncate">
-                updated <span className="text-secondary font-bold">{item.field} </span>
-                from <span className="text-secondary font-bold">{item.oldValue} </span>
-                to <span className="text-secondary font-bold">{item.newValue} </span>
-                at{' '}
-                <span className="text-secondary font-bold">
-                  {new Date(item.updatedAt).toLocaleString()}
-                </span>
-              </div>
-            )}
-          </div>
         </div>
       ))}
     </div>

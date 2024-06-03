@@ -17,6 +17,7 @@ export interface Issue {
   history?: IssueHistory[];
   createdAt?: string;
   updatedAt?: string;
+  comments?: IssueComment[];
 }
 export type UpdateIssueBody = Partial<Issue>;
 export interface GetIssueListQuery {
@@ -32,4 +33,13 @@ export interface IssueHistory {
   updatedBy: User;
   updatedAt: string;
   _id: string;
+}
+export interface IssueComment {
+  content: string;
+  sender: User;
+  createdAt: string;
+}
+export interface CreateIssueCommentBody {
+  content: string;
+  sender: string;
 }

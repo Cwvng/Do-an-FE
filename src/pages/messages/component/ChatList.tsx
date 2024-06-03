@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Avatar,
   Divider,
   Form,
   FormProps,
@@ -159,7 +160,7 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
               options={options}
               optionRender={(option) => (
                 <Space>
-                  <img src={option.data.emoji} className="w-10" alt="avatar" />
+                  <Avatar shape="square" src={option.data.emoji} alt="avatar" />
                   <div className="flex flex-col">
                     <span className="font-medium">{option.data.label}</span>
                     <span className="text-sm">{option.data.desc}</span>

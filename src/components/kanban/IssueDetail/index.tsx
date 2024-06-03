@@ -35,6 +35,7 @@ import { getStatusTagColor, toCapitalize } from '../../../utils/project.util.ts'
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'antd/es/form/Form';
 import { Loading } from '../../loading/Loading.tsx';
+import { CommentList } from './CommentList.tsx';
 
 export const IssueDetail: React.FC = () => {
   const [issue, setIssue] = React.useState<Issue>();
@@ -270,7 +271,7 @@ export const IssueDetail: React.FC = () => {
                 {
                   key: '2',
                   label: 'Comment',
-                  children: 'Content of Tab Pane 2',
+                  children: <CommentList />,
                 },
               ]}
             />

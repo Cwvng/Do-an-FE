@@ -2,6 +2,7 @@ import { Header } from 'antd/es/layout/layout';
 import { useNavigate } from 'react-router-dom';
 import {
   Avatar,
+  Badge,
   Button,
   Divider,
   Dropdown,
@@ -16,7 +17,7 @@ import {
 } from 'antd';
 import { updateUser, userLogout } from '../../redux/slices/user.slice';
 import { removeAccessToken } from '../../utils/storage.util';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
 import { IoIosMenu } from 'react-icons/io';
 import { IoNotifications } from 'react-icons/io5';
@@ -25,6 +26,8 @@ import { CircleButton } from '../../components/common/button/CircleButton';
 import { useForm } from 'antd/es/form/Form';
 import { updateUserInfo } from '../../requests/user.request.ts';
 import { UploadOutlined } from '@ant-design/icons';
+import { useNotificationContext } from '../../context/NotificationContext.tsx';
+import { useSocketContext } from '../../context/SocketContext.tsx';
 
 interface AppHeaderProps {
   toggleSidebar: () => void;
@@ -41,6 +44,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
   const user = useSelector((state: AppState) => state.user);
   const navigate = useNavigate();
   const [form] = useForm();
+  const { notification, setNotification } = useNotificationContext();
+  const { socket } = useSocketContext();
 
   const [openProfile, setOpenProfile] = React.useState(false);
   const [isEdit, setIsEdit] = React.useState(false);
@@ -73,6 +78,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
       setLoading(false);
     }
   };
+  //@ts-ignore
+  useEffect(() => {
+    socket?.on('newMessage', (newMessage) => {
+      newMessage.shouldShake = true;
+      if (!notification.includes(newMessage)) setNotification([newMessage, ...notification]);
+    });
+
+    return () => socket?.off('newMessage');
+  }, [socket, notification]);
 
   return (
     <>
@@ -88,9 +102,33 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
           </h2>
         </div>
         <div className="flex gap-3">
-          <CircleButton
-            icon={<IoNotifications className="text-2xl text-gray-700" />}
-          ></CircleButton>
+          <Badge count={notification.length} offset={[-5, 10]}>
+            <Dropdown
+              menu={{
+                items: notification.map((noti, index) => ({
+                  key: `notification-${index}`,
+                  label: (
+                    <div>
+                      ✉️ You have a new message from{' '}
+                      <span className="text-secondary font-bold">
+                        {noti.chat.users[0].firstname + ' ' + noti.chat.users[0].lastname}
+                      </span>
+                    </div>
+                  ),
+                  onClick: () => navigate('/messages'),
+                })),
+              }}
+              trigger={['click']}
+              placement="bottomRight"
+              arrow={{ pointAtCenter: true }}
+            >
+              <CircleButton
+                className="border-none shadow-none"
+                icon={<IoNotifications className="text-2xl text-gray-700" />}
+              ></CircleButton>
+            </Dropdown>
+          </Badge>
+
           <Dropdown
             menu={{
               items: [
