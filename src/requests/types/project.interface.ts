@@ -7,6 +7,7 @@ export interface Project {
   members: User[];
   issues: Issue[];
   projectManager: User;
+  activeSprint: ProjectSprint;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,3 +19,13 @@ export interface CreateProjectBody {
 export interface GetAllProjectQuery {
   name: string | null;
 }
+export interface ProjectSprint {
+  _id: string;
+  ordinary: string;
+  members: User[];
+  issues: Issue[];
+  startDate: string;
+  endDate: string;
+  sprintGoal: string;
+}
+export type CreateProjectSprintBody = Partial<ProjectSprint>;

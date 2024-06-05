@@ -30,6 +30,9 @@ export const userSlice = createSlice<UserProfileState, UserProfileReducers>({
     setSelectedChat: (state, action) => {
       state.selectedChat = action.payload;
     },
+    setSelectedProject: (state, action) => {
+      state.selectedProject = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -69,7 +72,7 @@ export const userSlice = createSlice<UserProfileState, UserProfileReducers>({
   },
 });
 
-export const { logout, updateUser, setSelectedChat } = userSlice.actions;
+export const { logout, setSelectedProject, updateUser, setSelectedChat } = userSlice.actions;
 
 export const getUserInfo = createAsyncThunk<UserInfo>('/user', async () => {
   return getLoggedUserInfo();

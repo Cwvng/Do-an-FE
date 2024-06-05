@@ -17,6 +17,8 @@ export interface Issue {
   history?: IssueHistory[];
   createdAt?: string;
   updatedAt?: string;
+  estimateTime?: number;
+  loggedTime?: number;
   comments?: IssueComment[];
 }
 export type UpdateIssueBody = Partial<Issue>;

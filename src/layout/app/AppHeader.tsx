@@ -12,10 +12,11 @@ import {
   Input,
   message,
   Modal,
+  Select,
   Upload,
   UploadProps,
 } from 'antd';
-import { updateUser, userLogout } from '../../redux/slices/user.slice';
+import { setSelectedProject, updateUser, userLogout } from '../../redux/slices/user.slice';
 import { removeAccessToken } from '../../utils/storage.util';
 import React, { useEffect } from 'react';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
@@ -27,7 +28,8 @@ import { useForm } from 'antd/es/form/Form';
 import { updateUserInfo } from '../../requests/user.request.ts';
 import { UploadOutlined } from '@ant-design/icons';
 import { useNotificationContext } from '../../context/NotificationContext.tsx';
-import { useSocketContext } from '../../context/SocketContext.tsx';
+import { getAllProject } from '../../requests/project.request.ts';
+import { Project } from '../../requests/types/project.interface.ts';
 
 interface AppHeaderProps {
   toggleSidebar: () => void;
@@ -44,13 +46,23 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
   const user = useSelector((state: AppState) => state.user);
   const navigate = useNavigate();
   const [form] = useForm();
-  const { notification, setNotification } = useNotificationContext();
-  const { socket } = useSocketContext();
+  const { notification } = useNotificationContext();
 
   const [openProfile, setOpenProfile] = React.useState(false);
   const [isEdit, setIsEdit] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [imageUrl, setImageUrl] = React.useState<string | null>();
+  const [projectList, setProjectList] = React.useState<Project[]>();
+
+  const getProjectList = async () => {
+    try {
+      setLoading(true);
+      const res = await getAllProject();
+      setProjectList(res);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     removeAccessToken();
@@ -78,15 +90,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
       setLoading(false);
     }
   };
-  //@ts-ignore
-  useEffect(() => {
-    socket?.on('newMessage', (newMessage) => {
-      newMessage.shouldShake = true;
-      if (!notification.includes(newMessage)) setNotification([newMessage, ...notification]);
-    });
 
-    return () => socket?.off('newMessage');
-  }, [socket, notification]);
+  useEffect(() => {
+    getProjectList();
+    if (projectList && projectList.length > 0) dispatch(setSelectedProject(projectList[0]));
+  }, []);
+
+  if (!projectList) return;
 
   return (
     <>
@@ -100,6 +110,36 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
           <h2 className="text-secondary hover:cursor-pointer" onClick={() => navigate('/')}>
             HUST Workspace
           </h2>
+          <div className="w-[120px]">
+            <Select
+              className="w-full"
+              showSearch
+              allowClear
+              defaultValue={projectList[0]._id}
+              optionFilterProp="children"
+              filterOption={(input: string, option?: { label: string; value: string }) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              onChange={(value) =>
+                dispatch(
+                  setSelectedProject(projectList?.filter((project) => project?._id === value)[0]!),
+                )
+              }
+              options={projectList?.map((project) => ({
+                value: project._id,
+                label: project.name,
+              }))}
+              dropdownRender={(menu) => (
+                <div>
+                  {menu}
+                  <Divider className="m-2" />
+                  <Button className="w-full" type="text" onClick={() => navigate('/projects')}>
+                    Project list
+                  </Button>
+                </div>
+              )}
+            />
+          </div>
         </div>
         <div className="flex gap-3">
           <Badge count={notification.length} offset={[-5, 10]}>

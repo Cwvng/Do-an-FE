@@ -117,7 +117,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
         {...attributes}
         {...listeners}
         // onClick={toggleEditMode}
-        className="flex bg-white p-2.5 h-[100px] min-h-[100px] items-start border-1 border-hoverBg text-left rounded-lg cursor-grab relative issue"
+        className="flex bg-white p-2.5 min-h-max items-start border-1 border-hoverBg text-left rounded-lg cursor-grab relative issue"
         onMouseEnter={() => {
           setMouseIsOver(true);
         }}
@@ -175,21 +175,6 @@ export const IssueCard: React.FC<IssueCardProps> = ({
               <Tag color={getStatusTagColor(issue.priority!)} key={issue.priority}>
                 {toCapitalize(issue.priority!)}
               </Tag>
-              {issue.remainingDays && +issue.remainingDays < 7 && (
-                <Tag
-                  color={
-                    (+issue.remainingDays > 0 && +issue.remainingDays < 5) ||
-                    +issue.remainingDays <= 0
-                      ? 'red'
-                      : 'lime'
-                  }
-                  key={issue._id}
-                >
-                  {+issue.remainingDays === 0 && 'Today'}
-                  {+issue.remainingDays > 0 && issue.remainingDays + ' days'}
-                  {+issue.remainingDays < 0 && 'Overdue'}
-                </Tag>
-              )}
             </div>
             <Tooltip key={issue._id} placement="right" color="fff" title={issue.assignee?.email}>
               <Avatar src={issue.assignee?.profilePic} />

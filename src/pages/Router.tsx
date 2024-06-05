@@ -14,6 +14,9 @@ import { VerifyEmail } from './auth/VerifyEmail.tsx';
 import { SendEmailReset } from './auth/SendEmailReset.tsx';
 import { ResetPassword } from './auth/ResetPassword.tsx';
 import { IssueDetail } from '../components/kanban/IssueDetail';
+import { AppState, useSelector } from '../redux/store';
+import { Backlog } from './backlog/Backlog.tsx';
+import { Report } from './report/Report.tsx';
 
 interface ProtectedRouteProps {
   children: any;
@@ -25,6 +28,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }: ProtectedRo
 };
 
 export const AppRoutes: React.FC = () => {
+  const project = useSelector((app: AppState) => app.user.selectedProject!);
   return (
     <Routes>
       {/* error pages */}
@@ -56,11 +60,14 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Navigate to="/projects" replace />} />
+        <Route path="/" element={<Navigate to={`/projects/${project?._id}/sprint`} replace />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/projects" element={<ProjectList />} />
-        <Route path="/projects/:id" element={<ProjectDetail />} />
+        <Route path="/projects/:id/sprint" element={<ProjectDetail />} />
         <Route path="/projects/:id/issue/:issueId" element={<IssueDetail />} />
+
+        <Route path="/projects/:id/backlog" element={<Backlog />} />
+        <Route path="/projects/:id/report" element={<Report />} />
       </Route>
     </Routes>
   );

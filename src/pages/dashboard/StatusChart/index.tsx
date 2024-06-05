@@ -1,9 +1,7 @@
 import { Doughnut } from 'react-chartjs-2';
 import React from 'react';
-import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import { theme } from 'antd';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
 export const StatusChart: React.FC = () => {
   const { token } = theme.useToken();
   const data = {

@@ -20,4 +20,5 @@ export type UserProfileReducers = {
   logout: UserProfileCaseReducer<undefined>;
   updateUser: UserProfileCaseReducer<UserInfo>;
   setSelectedChat: UserProfileCaseReducer<Chat>;
+  setSelectedProject: UserProfileCaseReducer<Project>;
 };

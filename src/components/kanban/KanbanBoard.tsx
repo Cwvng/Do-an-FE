@@ -15,9 +15,9 @@ import { Column, Id } from './type.tsx';
 import { FaPlus } from 'react-icons/fa';
 import { ColumnContainer } from './ColumnContainer.tsx';
 import { IssueCard } from './IssueCard.tsx';
-import { Button, Col, Input, message, Row, Select, SelectProps, Space } from 'antd';
+import { Button, message } from 'antd';
 import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
-import { Priority, Status } from '../../constants';
+import { Status } from '../../constants';
 import {
   createNewIssue,
   deleteIssueById,
@@ -25,43 +25,42 @@ import {
   updateIssueById,
 } from '../../requests/issue.request.ts';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { AppState, useSelector } from '../../redux/store';
 
-const defaultCols: Column[] = [
-  {
-    id: Status.NEW,
-    title: 'New ✨',
-  },
-  {
-    id: Status.IN_PROGRESS,
-    title: 'In progress 🔄',
-  },
-  {
-    id: Status.WAITING_REVIEW,
-    title: 'Waiting review ⏳',
-  },
-  {
-    id: Status.FEEDBACK,
-    title: 'Feedback 🧐',
-  },
-  {
-    id: Status.DONE,
-    title: 'Done ✔️',
-  },
-];
+interface KanbanBoardProps {
+  issueList: Issue[];
+}
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({ issueList }) => {
+  const defaultCols: Column[] = [
+    {
+      id: Status.NEW,
+      title: 'New',
+    },
+    {
+      id: Status.IN_PROGRESS,
+      title: 'In progress',
+    },
+    {
+      id: Status.WAITING_REVIEW,
+      title: 'Waiting review',
+    },
+    {
+      id: Status.FEEDBACK,
+      title: 'Feedback',
+    },
+    {
+      id: Status.DONE,
+      title: 'Done',
+    },
+  ];
 
-export const KanbanBoard: React.FC = () => {
   const [columns, setColumns] = useState<Column[]>(defaultCols);
-  const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(false);
+  const [issues, setIssues] = React.useState<Issue[]>(issueList);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
-  const [options, setOptions] = useState<SelectProps['options']>([]);
 
-  const project = useSelector((app: AppState) => app.user.selectedProject);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
-  const user = useSelector((app: AppState) => app.user.userInfo);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -75,23 +74,6 @@ export const KanbanBoard: React.FC = () => {
     try {
       await updateIssueById(issueId, body);
     } finally {
-    }
-  };
-
-  const getUserList = () => {
-    try {
-      const userList: SelectProps['options'] = [];
-      project?.members.forEach((item) => {
-        userList.push({
-          value: item._id,
-          label: item._id === user?._id ? '<<Me>>' : item.firstname + ' ' + item.lastname,
-          emoji: item.profilePic,
-          desc: item.email,
-        });
-      });
-      setOptions(userList);
-    } catch (error) {
-      console.log(error);
     }
   };
 
@@ -273,100 +255,10 @@ export const KanbanBoard: React.FC = () => {
 
   useEffect(() => {
     getIssueListByProjectId();
-    getUserList();
   }, [searchParams]);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchParams({ label: e.target.value });
-  };
-
-  const handleAssigneeChange = (values: string[]) => {
-    setSearchParams((prevParams) => {
-      prevParams.delete('assignee');
-      values.forEach((value) => prevParams.append('assignee', value));
-      return prevParams;
-    });
-  };
-
-  const handlePriorityChange = (values: string[]) => {
-    setSearchParams((prevParams) => {
-      prevParams.delete('priority');
-      values.forEach((value) => prevParams.append('priority', value));
-      return prevParams;
-    });
-  };
-
-  const handleSearchEnter = () => {
-    getIssueListByProjectId();
-  };
 
   return (
     <div className="flex flex-col">
-      <h2 className="mt-5 text-secondary">{`Assigned issues (${project?.issues.length})`}</h2>
-      <Row className="flex items-center justify-start gap-5">
-        <Col span={1} className="text-secondary">
-          Label
-        </Col>
-        <Col className="flex flex-row items-center gap-5 " span={4}>
-          <Input
-            value={searchParams.get('label') || ''}
-            onChange={handleSearchChange}
-            onPressEnter={handleSearchEnter}
-          />
-        </Col>
-
-        <Col span={1} className="text-secondary">
-          Assignee
-        </Col>
-        <Col span={4}>
-          <Select
-            className="w-full"
-            showSearch
-            optionFilterProp="children"
-            mode="multiple"
-            filterOption={(input: string, option?: { label: string; value: string }) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            onChange={handleAssigneeChange}
-            // @ts-ignore
-            options={options}
-            optionRender={(option) => (
-              <Space>
-                <div className="flex flex-col">
-                  <span>{option.data.label}</span>
-                </div>
-              </Space>
-            )}
-          />
-        </Col>
-        <Col span={1} className="text-secondary">
-          Priority
-        </Col>
-        <Col span={4}>
-          <Select
-            mode="multiple"
-            className="w-full"
-            options={[
-              { value: Priority.LOW, label: 'Low' },
-              { value: Priority.MEDIUM, label: 'Medium' },
-              { value: Priority.HIGH, label: 'High' },
-              { value: Priority.URGENT, label: 'Urgent' },
-            ]}
-            onChange={handlePriorityChange}
-          />
-        </Col>
-        {/*<Avatar.Group*/}
-        {/*  maxCount={5}*/}
-        {/*  maxStyle={{ color: token.colorError, backgroundColor: token.colorErrorBg }}*/}
-        {/*>*/}
-        {/*  {project?.members?.map((member) => (*/}
-        {/*    <Tooltip key={member._id} placement="top" color="fff" title={member.email}>*/}
-        {/*      <Avatar src={member.profilePic} />*/}
-        {/*    </Tooltip>*/}
-        {/*  ))}*/}
-        {/*</Avatar.Group>*/}
-      </Row>
-
       <div className="flex flex-1 w-full overflow-x-auto overflow-y-hidden mt-3">
         <DndContext
           sensors={sensors}
