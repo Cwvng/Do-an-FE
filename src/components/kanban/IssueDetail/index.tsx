@@ -9,12 +9,14 @@ import {
   FormProps,
   Image,
   Input,
+  Progress,
   Row,
   Select,
   SelectProps,
   Space,
   Tabs,
   Tag,
+  Tooltip,
   Upload,
   UploadFile,
   UploadProps,
@@ -36,6 +38,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'antd/es/form/Form';
 import { Loading } from '../../loading/Loading.tsx';
 import { CommentList } from './CommentList.tsx';
+import { LoggedTime } from './LoggedTime.tsx';
 
 export const IssueDetail: React.FC = () => {
   const [issue, setIssue] = React.useState<Issue>();
@@ -106,6 +109,7 @@ export const IssueDetail: React.FC = () => {
         if (values.subject) formData.append('subject', values.subject);
         if (values.dueDate) formData.append('dueDate', values.dueDate);
         if (values.label) formData.append('label', values.label);
+        if (values.estimateTime) formData.append('estimateTime', values.estimateTime);
 
         await toast.promise(updateIssueById(issueId, formData), {
           loading: 'Saving...',
@@ -171,7 +175,7 @@ export const IssueDetail: React.FC = () => {
             title: (
               <span
                 className="cursor-pointer"
-                onClick={() => navigate(`/projects/${project?._id}`)}
+                onClick={() => navigate(`/projects/${project?._id}/sprint`)}
               >
                 {project?.name}
               </span>
@@ -190,7 +194,7 @@ export const IssueDetail: React.FC = () => {
       >
         <div className="basis-2/3 h-full overflow-auto">
           <div className="flex flex-col">
-            <h2 className="text-secondary">
+            <h2 className="text-secondary m-0">
               {loading ? (
                 <SkeletonInput className="w-2/3" size="small" active />
               ) : isEdit ? (
@@ -201,6 +205,14 @@ export const IssueDetail: React.FC = () => {
                 <span className="break-words">{issue?.label}</span>
               )}
             </h2>
+            <h4 className="mt-3 mb-0 text-secondary">Description</h4>
+            {isEdit ? (
+              <Form.Item name="description" initialValue={issue?.description}>
+                <TextArea autoSize />
+              </Form.Item>
+            ) : (
+              <span className="break-words pr-5">{issue?.description}</span>
+            )}
             {/*Upload file*/}
             {/*<div className="flex gap-1">*/}
             {/*  <Button icon={<FaShareNodes />} type="primary">*/}
@@ -246,14 +258,6 @@ export const IssueDetail: React.FC = () => {
                 src={previewImage}
               />
             )}
-            <h4 className="mt-3 mb-0 text-secondary">Description</h4>
-            {isEdit ? (
-              <Form.Item name="description" initialValue={issue?.description}>
-                <TextArea autoSize />
-              </Form.Item>
-            ) : (
-              <span className="break-words pr-5">{issue?.description}</span>
-            )}
 
             <h4 className="m-0 mt-5 text-secondary">Activity</h4>
             <Tabs
@@ -272,6 +276,11 @@ export const IssueDetail: React.FC = () => {
                   key: '2',
                   label: 'Comment',
                   children: <CommentList />,
+                },
+                {
+                  key: '3',
+                  label: 'Logged time',
+                  children: <LoggedTime issue={issue} onFinish={getIssueDetail} />,
                 },
               ]}
             />
@@ -304,7 +313,7 @@ export const IssueDetail: React.FC = () => {
                 {toCapitalize(issue?.status!)}
               </Tag>
             )}
-            <div className=" mt-3 border-1 border-border h-full w-full text-nowrap rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
+            <div className="mt-3 border-1 border-border h-full w-full text-nowrap rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
               <div className="border-b-1 border-border px-5 py-3 font-bold text-secondary">
                 Detail
               </div>
@@ -388,6 +397,37 @@ export const IssueDetail: React.FC = () => {
                       <span className={!issue.subject ? 'text-gray-300' : ''}>
                         {issue?.subject || 'no subject'}
                       </span>
+                    )}
+                  </Col>
+                </Row>
+                <Row className="flex items-center">
+                  <Col span={10} className="text-secondary">
+                    Estimate time
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonInput size="small" active />
+                    ) : issue.estimateTime ? (
+                      <Progress
+                        className="w-2/3"
+                        percent={
+                          (Math.round((issue.loggedTime! / issue.estimateTime) * 100) / 100) * 100
+                        }
+                        format={() => (
+                          <Tooltip
+                            title={issue.estimateTime! - issue.loggedTime! + ' days remaining'}
+                            placement="bottom"
+                          >
+                            {issue.estimateTime! - issue.loggedTime!}d
+                          </Tooltip>
+                        )}
+                      />
+                    ) : isEdit ? (
+                      <Form.Item className="m-0" name="estimateTime">
+                        <Input min={0} type="number" addonAfter="hours" />
+                      </Form.Item>
+                    ) : (
+                      <span className="text-gray-300">no estimated time</span>
                     )}
                   </Col>
                 </Row>

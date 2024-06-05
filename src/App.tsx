@@ -10,7 +10,9 @@ import { AppState, useDispatch, useSelector } from './redux/store';
 import { SocketContextProvider } from './context/SocketContext.tsx';
 import { Toaster } from 'react-hot-toast';
 import { NotificationProvider } from './context/NotificationContext.tsx';
+import { Chart, registerables } from 'chart.js';
 
+Chart.register(...registerables);
 const App: React.FC = () => {
   const userProfile = useSelector((state: AppState) => state.user);
   const location = useLocation();
@@ -61,6 +63,7 @@ const App: React.FC = () => {
                   defaultBorderColor: '#628DB6',
                   defaultColor: '#628DB6',
                 },
+                Tooltip: {},
               },
               token: {
                 colorPrimary: '#628DB6',

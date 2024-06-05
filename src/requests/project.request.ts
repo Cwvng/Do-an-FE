@@ -1,13 +1,19 @@
 import { api } from '../utils/api.util.ts';
 import {
   CreateProjectBody,
+  CreateProjectSprintBody,
   GetAllProjectQuery,
   Project,
+  ProjectSprint,
   UpdateProjectBody,
 } from './types/project.interface.ts';
 
-export const getAllProject = async (params: GetAllProjectQuery) => {
+export const getAllProject = async (params?: GetAllProjectQuery) => {
   const { data } = await api.get<Project[]>(`/project`, { params });
+  return data;
+};
+export const getProjectBacklog = async (projectId: string) => {
+  const { data } = await api.get<ProjectSprint[]>(`/project/${projectId}/backlog`);
   return data;
 };
 
@@ -25,5 +31,9 @@ export const createProject = async (body: CreateProjectBody) => {
 };
 export const deleteProject = async (projectId: string) => {
   const { data } = await api.delete<Project>(`project/${projectId}`);
+  return data;
+};
+export const createProjectSprint = async (body: CreateProjectSprintBody) => {
+  const { data } = await api.post<ProjectSprint>('sprint', body);
   return data;
 };

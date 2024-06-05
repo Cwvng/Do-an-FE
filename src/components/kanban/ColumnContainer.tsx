@@ -7,7 +7,6 @@ import { IoClose } from 'react-icons/io5';
 import { IssueCard } from './IssueCard.tsx';
 import { FaPlus } from 'react-icons/fa';
 import { Issue } from '../../requests/types/issue.interface.ts';
-import { LoadingOutlined } from '@ant-design/icons';
 
 interface ColumnContainerProps {
   column: Column;
@@ -56,7 +55,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
       <div
         ref={setNodeRef}
         style={style}
-        className="bg-secondary w-[220px] h-full max-h-[500px] rounded-md flex flex-col"
+        className="bg-white border-dashed	border-1 border-secondary w-[220px] h-full max-h-[500px] rounded-md flex flex-col"
       ></div>
     );
   }
@@ -74,11 +73,10 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
         onClick={() => {
           setEditMode(true);
         }}
-        className=" text-md cursor-grab py-3 font-bold flex items-center justify-between"
+        className="text-md cursor-grab py-3 font-bold flex items-center justify-between"
       >
         <div className="flex gap-2">
-          {!editMode && column.title}
-          {editMode && (
+          {editMode ? (
             <Input
               className="bg-white focus:border-primary border rounded outline-none px-2"
               value={column.title}
@@ -92,6 +90,8 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
                 setEditMode(false);
               }}
             />
+          ) : (
+            column.title
           )}
         </div>
         <IoClose
@@ -102,7 +102,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
         />
       </div>
       {loading ? (
-        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+        <Spin />
       ) : (
         <>
           {/* Column issue container */}

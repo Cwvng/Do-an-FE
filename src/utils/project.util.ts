@@ -1,4 +1,5 @@
 import { Priority, Status } from '../constants';
+import moment from 'moment';
 
 export const toCapitalize = (string: string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -26,4 +27,19 @@ export const getStatusTagColor = (status: string): string => {
     default:
       return 'green';
   }
+};
+export const getRemainingDay = (date: string) => {
+  const endDate = moment(date);
+  const now = moment();
+
+  const diff = endDate.diff(now, 'days');
+  const diffDays = diff % 7;
+  const diffWeeks = Math.floor(diff / 7);
+  return diffWeeks + 'w ' + diffDays + 'd';
+};
+export const getRemainingDaysPercent = (date: string) => {
+  const endDate = moment(date);
+  const now = moment();
+  const diff = endDate.diff(now, 'days');
+  return 100 - Math.floor((diff / 14) * 100);
 };

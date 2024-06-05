@@ -3,8 +3,9 @@ import { ItemType, SubMenuType } from 'antd/es/menu/hooks/useItems';
 import React, { useEffect, useState } from 'react';
 import { SelectInfo } from 'rc-menu/lib/interface';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { IoChatbubbles } from 'react-icons/io5';
-import { BsFillKanbanFill } from 'react-icons/bs';
+import { IoChatbubbles, IoFileTrayStacked } from 'react-icons/io5';
+import { FaChartBar, FaCode } from 'react-icons/fa';
+import { AppState, useSelector } from '../../redux/store';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -15,6 +16,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const project = useSelector((app: AppState) => app.user.selectedProject!);
 
   useEffect(() => {
     for (const item of menuItems) {
@@ -33,24 +35,43 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         }
       }
     }
-  }, [location.pathname]);
+  }, [location.pathname, project]);
 
   const handleMenuSelect = ({ key }: SelectInfo) => {
     navigate(key);
   };
 
-  const menuItems: ItemType[] = [
-    {
-      key: '/projects',
-      label: <span className="text-bold">Projects</span>,
-      icon: <BsFillKanbanFill />,
-    },
-    {
-      key: '/messages',
-      label: <span className="text-bold">Messages</span>,
-      icon: <IoChatbubbles />,
-    },
-  ];
+  const menuItems: ItemType[] = project
+    ? [
+        {
+          key: `/projects/${project?._id}/sprint`,
+          label: <span className="text-bold">Active sprint</span>,
+          icon: <FaCode />,
+        },
+        {
+          key: `/projects/${project?._id}/backlog`,
+          label: <span className="text-bold">Backlog</span>,
+          icon: <IoFileTrayStacked />,
+        },
+        {
+          key: `/projects/${project?._id}/report`,
+          label: <span className="text-bold">Report</span>,
+          icon: <FaChartBar />,
+        },
+
+        {
+          key: '/messages',
+          label: <span className="text-bold">Messages</span>,
+          icon: <IoChatbubbles />,
+        },
+      ]
+    : [
+        {
+          key: '/messages',
+          label: <span className="text-bold">Messages</span>,
+          icon: <IoChatbubbles />,
+        },
+      ];
 
   return (
     <Layout.Sider
