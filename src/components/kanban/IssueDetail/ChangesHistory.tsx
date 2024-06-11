@@ -45,7 +45,9 @@ export const ChangesHistory: React.FC<ChangesHistoryProps> = ({ history }) => {
                     </span>{' '}
                   </div>
                 )}
-                {item.field !== 'dueDate' && item.field !== 'images' && (
+                {item.field === 'issue' && <div className="truncate">Create new issue</div>}
+                {item.field === 'comment' && <div className="truncate">Posted new comment</div>}
+                {!['dueDate', 'images', 'issue', 'comment'].includes(item.field) && (
                   <div className="truncate">
                     Changed{' '}
                     <span className="text-secondary font-bold">{toCapitalize(item.field)}</span>{' '}

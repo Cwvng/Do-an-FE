@@ -26,10 +26,7 @@ import {
 } from '../../requests/issue.request.ts';
 import { useParams, useSearchParams } from 'react-router-dom';
 
-interface KanbanBoardProps {
-  issueList: Issue[];
-}
-export const KanbanBoard: React.FC<KanbanBoardProps> = ({ issueList }) => {
+export const KanbanBoard: React.FC = () => {
   const defaultCols: Column[] = [
     {
       id: Status.NEW,
@@ -55,12 +52,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ issueList }) => {
 
   const [columns, setColumns] = useState<Column[]>(defaultCols);
   const [loading, setLoading] = useState(false);
-  const [issues, setIssues] = React.useState<Issue[]>(issueList);
+  const [issues, setIssues] = React.useState<Issue[]>([]);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
 
   const [searchParams] = useSearchParams();
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
+  const { sprintId } = useParams();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -68,7 +66,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ issueList }) => {
       },
     }),
   );
-  const { id } = useParams();
 
   const updateIssueDetail = async (issueId: string, body: UpdateIssueBody) => {
     try {
@@ -78,14 +75,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ issueList }) => {
   };
 
   // CRUD issue
-  const getIssueListByProjectId = async () => {
+  const getSprintIssueList = async () => {
     try {
-      if (id) {
+      if (sprintId) {
         setLoading(true);
         const label = searchParams.get('label') || '';
         const assignee = searchParams.getAll('assignee').join(',') || '';
         const priority = searchParams.getAll('priority').join(',') || '';
-        const res = await getIssueList({ projectId: id, label, assignee, priority });
+        const res = await getIssueList({
+          label,
+          assignee,
+          priority,
+          sprintId: sprintId,
+        });
         setIssues(res);
       }
     } finally {
@@ -95,11 +97,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ issueList }) => {
 
   const createIssue = async (columnId: Id) => {
     try {
-      if (id) {
-        const body: Issue = {
+      if (sprintId) {
+        const body = {
           status: columnId,
           label: `Issue ${issues.length + 1}`,
-          project: id,
+          sprintId: sprintId,
         };
         const res = await createNewIssue(body);
 
@@ -254,7 +256,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ issueList }) => {
   };
 
   useEffect(() => {
-    getIssueListByProjectId();
+    getSprintIssueList();
   }, [searchParams]);
 
   return (
@@ -267,7 +269,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ issueList }) => {
           onDragOver={onDragOver}
         >
           <div className="flex gap-4 pb-2">
-            <div className="flex gap-4">
+            <div className="flex gap-6">
               <SortableContext
                 //@ts-ignore
                 items={columnsId}

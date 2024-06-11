@@ -63,7 +63,7 @@ export const CommentList: React.FC = () => {
             <Comment
               key={index}
               author={<a>{comment.sender?.firstname + comment.sender?.lastname}</a>}
-              avatar={<Avatar size="large" src={comment.sender?.profilePic} alt="Han Solo" />}
+              avatar={<Avatar size="large" src={comment.sender?.profilePic} />}
               content={<p>{comment.content}</p>}
               datetime={
                 <Tooltip title={moment(comment.createdAt).format('YYYY-MM-DD HH:mm:ss')}>

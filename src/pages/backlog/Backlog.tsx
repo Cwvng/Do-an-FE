@@ -5,33 +5,40 @@ import {
   Button,
   Col,
   DatePicker,
+  Divider,
   Dropdown,
   Form,
   FormProps,
   Input,
+  message,
   Modal,
   Row,
   Select,
   SelectProps,
   Space,
+  Spin,
   Table,
   Tag,
   theme,
   Tooltip,
+  Upload,
+  UploadFile,
 } from 'antd';
-import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
+import { IoIosArrowDown, IoIosArrowUp, IoIosMore } from 'react-icons/io';
 import moment from 'moment/moment';
 import { FaEllipsisV, FaPlus, FaSearch } from 'react-icons/fa';
 import { AppState, useSelector } from '../../redux/store';
 import { Link, useNavigate } from 'react-router-dom';
-import { createProjectSprint, getProjectBacklog } from '../../requests/project.request.ts';
-import { ProjectSprint } from '../../requests/types/project.interface.ts';
-import { Loading } from '../../components/loading/Loading.tsx';
+import { getProjectBacklog } from '../../requests/project.request.ts';
 import TextArea from 'antd/es/input/TextArea';
 import { useForm } from 'antd/es/form/Form';
 import { Priority, Status } from '../../constants';
 import { getStatusTagColor, toCapitalize } from '../../utils/project.util.ts';
-import { ExclamationCircleFilled } from '@ant-design/icons';
+import { ExclamationCircleFilled, PlusOutlined } from '@ant-design/icons';
+import { createProjectSprint } from '../../requests/sprint.request.ts';
+import { ProjectSprint } from '../../requests/types/sprint.interface.ts';
+import { Id } from '../../components/kanban/type.tsx';
+import { createNewIssue, deleteIssueById } from '../../requests/issue.request.ts';
 
 export const Backlog: React.FC = () => {
   const project = useSelector((app: AppState) => app.user.selectedProject);
@@ -45,6 +52,9 @@ export const Backlog: React.FC = () => {
   const [createLoading, setCreateLoading] = React.useState(false);
   const [options, setOptions] = React.useState<any[]>();
   const [openSprintTabs, setOpenSprintTabs] = React.useState<string[]>([]);
+  const [openAddIssue, setOpenAddIssue] = React.useState(false);
+  const [fileList, setFileList] = React.useState<UploadFile[]>();
+  const [selectedSprint, setSelectedSprint] = React.useState<string>();
 
   const getProjectBacklogList = async () => {
     try {
@@ -64,7 +74,9 @@ export const Backlog: React.FC = () => {
       setCreateLoading(true);
       if (project?._id) {
         values.projectId = project._id;
+        values.isActive = !project.activeSprint;
         await createProjectSprint(values);
+        setOpenCreate(false);
         await getProjectBacklogList();
       }
     } finally {
@@ -88,6 +100,44 @@ export const Backlog: React.FC = () => {
       console.log(error);
     }
   };
+
+  const deleteIssue = async (id: Id) => {
+    try {
+      if (id) {
+        await deleteIssueById(id);
+        await getProjectBacklogList();
+        message.success('Deleted an issue');
+      }
+    } finally {
+    }
+  };
+
+  const createIssue: FormProps['onFinish'] = async (values) => {
+    try {
+      setCreateLoading(true);
+      const formData = new FormData();
+      if (values.images && values.images.length > 0)
+        values.images.forEach((image: any) => {
+          formData.append('images', image.originFileObj);
+        });
+      formData.append('status', Status.NEW);
+      if (values.description) formData.append('description', values.description);
+      if (values.assignee) formData.append('assignee', values.assignee);
+      if (values.priority) formData.append('priority', values.priority);
+      if (values.dueDate) formData.append('dueDate', values.dueDate);
+      if (values.label) formData.append('label', values.label);
+      if (values.estimateTime) formData.append('estimateTime', values.estimateTime);
+      if (selectedSprint) formData.append('sprintId', selectedSprint);
+      await createNewIssue(formData);
+      await getProjectBacklogList();
+
+      message.success('Created an issue');
+      setOpenAddIssue(false);
+      form.resetFields();
+    } finally {
+      setCreateLoading(false);
+    }
+  };
   const isSprintTabOpen = (sprintId: string) => {
     return openSprintTabs.includes(sprintId);
   };
@@ -96,9 +146,12 @@ export const Backlog: React.FC = () => {
     getProjectBacklogList();
     getUserList();
   }, []);
+  useEffect(() => {
+    getProjectBacklogList();
+    getUserList();
+  }, [project]);
 
   if (!project) return;
-  if (loading) return <Loading />;
 
   return (
     <div className="bg-white gap-3 flex flex-col p-5 h-full">
@@ -117,232 +170,321 @@ export const Backlog: React.FC = () => {
             },
 
             {
-              title: <span>Backlog</span>,
+              title: <span className="font-bold text-primary">Backlog</span>,
             },
           ]}
         />
       </Row>
-      {backlog?.length == 0 ? (
-        <div className="flex flex-col items-center gap-3 justify-center">
-          <img
-            alt=""
-            className="object-contain w-100"
-            src="https://i.pinimg.com/originals/23/8e/a6/238ea679ba9cecce8b3f8c4ebf9d151d.jpg"
-          />{' '}
-          <h2 className="text-secondary m-0">Your project has not started</h2>
-          <div>Create a sprint to start the project</div>
-          <Button onClick={() => setOpenCreate(true)} type="primary">
-            Create sprint
-          </Button>
-        </div>
+
+      {loading ? (
+        <Spin />
       ) : (
         <>
-          <Row className="flex flex-1 items-center justify-between">
-            <div>
-              <div className="text-secondary text-xl font-bold">{`${project?.name}`}</div>
+          {backlog?.length == 0 ? (
+            <div className="flex flex-col items-center gap-3 justify-center">
+              <img
+                alt=""
+                className="object-contain w-100"
+                src="https://i.pinimg.com/originals/23/8e/a6/238ea679ba9cecce8b3f8c4ebf9d151d.jpg"
+              />{' '}
+              <h2 className="text-secondary m-0">Your project has not started</h2>
+              <div>Create a sprint to start the project</div>
+              <Button onClick={() => setOpenCreate(true)} type="primary">
+                Create sprint
+              </Button>
             </div>
-            <div className="flex items-center gap-3">
-              <Tooltip placement="left" color={token.colorPrimary}>
-                <div className="flex items-center gap-1">
-                  Created
-                  <span>{moment(project?.createdAt).fromNow()}</span>
+          ) : (
+            <>
+              <Row className="flex flex-1 items-center justify-between">
+                <div className="text-secondary text-2xl m-0 font-bold">
+                  {`${project?.name}`} Backlog
                 </div>
-              </Tooltip>
-
-              <Button type="primary" icon={<FaEllipsisV />} />
-            </div>
-          </Row>
-          <Row className="w-1/2">
-            <Col span={8}>
-              <Input
-                // value={searchParams.get('label') || ''}
-                // onChange={handleSearchChange}
-                // onPressEnter={handleSearchEnter}
-                suffix={<FaSearch className="text-primary" />}
-              />
-            </Col>
-            <Col className="ml-3" span={10}>
-              {project?.members?.map((member) => (
-                <Tooltip key={member._id} placement="top" color="fff" title={member.email}>
-                  <Avatar src={member.profilePic} />
-                </Tooltip>
-              ))}
-            </Col>
-          </Row>
-
-          <div className="h-full overflow-auto">
-            {backlog &&
-              backlog?.map((item, index) => (
-                <div className="bg-hoverBg rounded-md p-2" key={index}>
-                  <div
-                    onClick={() => {
-                      if (!isSprintTabOpen(item._id))
-                        setOpenSprintTabs([...openSprintTabs, item._id]);
-                      else setOpenSprintTabs(openSprintTabs.filter((tab) => tab !== item._id));
-                    }}
-                    className="flex gap-2 w-full items-center text-secondary bg-lightBg p-2 hover:cursor-pointer text-md"
-                  >
-                    {isSprintTabOpen(item._id) ? <IoIosArrowDown /> : <IoIosArrowUp />}
-                    <div>
-                      {project.name} Sprint {item.ordinary}
+                <div className="flex items-center gap-3">
+                  <Tooltip placement="left" color={token.colorPrimary}>
+                    <div className="flex items-center gap-1">
+                      Created
+                      <span>{moment(project?.createdAt).fromNow()}</span>
                     </div>
-                  </div>
-                  {isSprintTabOpen(item._id) && (
-                    <>
-                      <Table
-                        className="mt-2"
-                        dataSource={item.issues}
-                        loading={loading}
-                        pagination={false}
-                        columns={[
-                          {
-                            title: 'Label',
-                            dataIndex: 'label',
-                            key: 'Label',
-                            render: (label, record) => (
-                              <Link to={`/projects/${project._id}/issue/${record._id}`}>
-                                {label}
-                              </Link>
-                            ),
-                          },
-                          {
-                            title: 'Subject',
-                            dataIndex: 'subject',
-                            key: 'subject',
-                            align: 'center',
-                            render: (subject) => <span>{subject || '-'}</span>,
-                          },
-                          {
-                            title: 'Status',
-                            dataIndex: 'status',
-                            key: 'status',
-                            align: 'center',
-                            filters: Object.values(Status).map((status) => ({
-                              text: status,
-                              value: status,
-                            })),
-                            onFilter: (value, record) => record.status.indexOf(value) === 0,
-                            sorter: (a: any, b: any) => a.status.localeCompare(b.status),
-                            render: (status) => {
-                              const color = getStatusTagColor(status);
-                              return (
-                                <Tag color={color} key={status}>
-                                  {status?.toUpperCase()}
-                                </Tag>
-                              );
-                            },
-                          },
-                          {
-                            title: 'Priority',
-                            dataIndex: 'priority',
-                            key: 'priority',
-                            align: 'center',
-                            filters: Object.values(Priority).map((priority) => ({
-                              text: priority,
-                              value: priority,
-                            })),
-                            onFilter: (value, record) => record.priority.indexOf(value) === 0,
-                            sorter: (a, b) => a.priority.localeCompare(b.priority),
-                            render: (priority) => {
-                              const color = getStatusTagColor(priority);
-                              return (
-                                <span className={`text-${color}-500`} key={priority}>
-                                  {toCapitalize(priority)}
-                                </span>
-                              );
-                            },
-                          },
-                          {
-                            title: 'Assignee',
-                            dataIndex: 'assignee',
-                            key: 'assignee',
-                            render: (assignee) => (
-                              <>
-                                {assignee?.firstname} {assignee?.lastname}
-                              </>
-                            ),
-                          },
-                          {
-                            title: 'Due date',
-                            dataIndex: 'dueDate',
-                            key: 'dueDate',
-                            render: (date) => (
-                              <span key={date}>
-                                {new Date(date).toLocaleDateString('vi-VN', {
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: 'numeric',
-                                })}
-                              </span>
-                            ),
-                          },
-                          {
-                            title: 'Estimate time',
-                            dataIndex: 'estimateTime',
-                            key: 'estimateTime',
-                            align: 'center',
-                            render: (estimateTime) => (
-                              <span key={estimateTime}>{estimateTime}h</span>
-                            ),
-                          },
-                          {
-                            title: 'Actions',
-                            key: 'actions',
-                            dataIndex: 'job_id',
-                            width: '50px',
-                            align: 'center',
-                            render: (_, record) => (
-                              <Dropdown
-                                menu={{
-                                  items: [
+                  </Tooltip>
+
+                  <Button type="primary" icon={<FaEllipsisV />} />
+                </div>
+              </Row>
+              <Row className="w-1/2">
+                <Col span={8}>
+                  <Input
+                    // value={searchParams.get('label') || ''}
+                    // onChange={handleSearchChange}
+                    // onPressEnter={handleSearchEnter}
+                    suffix={<FaSearch className="text-primary" />}
+                  />
+                </Col>
+                <Col className="ml-3" span={10}>
+                  {project?.members?.map((member) => (
+                    <Tooltip key={member._id} placement="top" color="fff" title={member.email}>
+                      <Avatar src={member.profilePic} />
+                    </Tooltip>
+                  ))}
+                </Col>
+              </Row>
+
+              <div className="h-full flex flex-col gap-4 overflow-auto">
+                {backlog &&
+                  backlog?.map((item, index) => (
+                    <div className="bg-lightBg rounded-md p-2" key={index}>
+                      <div className="flex gap-2 w-full items-center justify-between p-2 hover:cursor-pointer text-md">
+                        <div
+                          onClick={() => {
+                            if (!isSprintTabOpen(item._id))
+                              setOpenSprintTabs([...openSprintTabs, item._id]);
+                            else
+                              setOpenSprintTabs(openSprintTabs.filter((tab) => tab !== item._id));
+                          }}
+                          className="flex text-secondary font-bold items-center gap-2"
+                        >
+                          {isSprintTabOpen(item._id) ? <IoIosArrowDown /> : <IoIosArrowUp />}
+                          {project.name} Sprint {item.ordinary}
+                          {item.isActive && <Tag color="green-inverse">Active</Tag>}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="primary"
+                            onClick={() => {
+                              setOpenAddIssue(true);
+                              setSelectedSprint(item._id);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <FaPlus />
+                            Create issue
+                          </Button>
+
+                          <Dropdown
+                            trigger={['click']}
+                            menu={{
+                              items: item.isActive
+                                ? [
                                     {
                                       label: <span>Detail</span>,
-                                      key: 'detail',
-                                      onClick: () =>
-                                        navigate(`/projects/${project._id}/issue/${record._id}`),
+                                      key: `edit${index}`,
+                                    },
+                                    {
+                                      label: <span>Complete sprint</span>,
+                                      key: `complete${index}`,
                                     },
                                     {
                                       label: <span className="text-red-500">Delete</span>,
-                                      key: 'delete',
-                                      onClick: () => {
-                                        Modal.confirm({
-                                          centered: true,
-                                          title: 'Do you want to delete these items?',
-                                          icon: <ExclamationCircleFilled />,
-                                          onOk() {
-                                            // deleteIssue(record._id);
-                                          },
-                                          okText: 'Yes',
-                                          cancelText: 'No',
-                                          okButtonProps: { className: 'bg-primary' },
-                                        });
-                                      },
+                                      key: `delete${index}`,
+                                    },
+                                  ]
+                                : [
+                                    {
+                                      label: <span>Detail</span>,
+                                      key: `edit${index}`,
+                                    },
+                                    {
+                                      label: <span>Start sprint</span>,
+                                      key: `start${index}`,
+                                    },
+                                    {
+                                      label: <span className="text-red-500">Delete</span>,
+                                      key: `delete${index}`,
                                     },
                                   ],
-                                }}
-                                placement="bottomRight"
-                                arrow
-                              >
-                                <FaEllipsisV style={{ cursor: 'pointer' }} />
-                              </Dropdown>
-                            ),
-                          },
-                        ]}
-                      />
-                      <Button
-                        type="text"
-                        className=" mt-2 bg-lightBg flex items-center gap-2 text-secondary"
-                      >
-                        <FaPlus />
-                        Create issue
-                      </Button>
-                    </>
-                  )}
+                            }}
+                            placement="bottomRight"
+                            arrow={{ pointAtCenter: true }}
+                          >
+                            <Button type="primary" icon={<FaEllipsisV />} />
+                          </Dropdown>
+                        </div>
+                      </div>
+                      {isSprintTabOpen(item._id) && (
+                        <>
+                          <Table
+                            className="mt-2"
+                            pagination={{
+                              position: ['bottomRight'],
+                              defaultPageSize: 5,
+                              showSizeChanger: true,
+                              pageSizeOptions: ['5', '10', '30'],
+                            }}
+                            dataSource={item.issues}
+                            loading={loading}
+                            columns={[
+                              {
+                                title: 'Label',
+                                dataIndex: 'label',
+                                key: 'Label',
+                                render: (label, record) => (
+                                  <Link to={`/projects/${project._id}/issue/${record._id}`}>
+                                    {label}
+                                  </Link>
+                                ),
+                              },
+                              {
+                                title: 'Subject',
+                                dataIndex: 'subject',
+                                key: 'subject',
+                                align: 'center',
+                                render: (subject) => <span>{subject || '-'}</span>,
+                              },
+                              {
+                                title: 'Status',
+                                dataIndex: 'status',
+                                key: 'status',
+                                align: 'center',
+                                filters: Object.values(Status).map((status) => ({
+                                  text: status,
+                                  value: status,
+                                })),
+                                onFilter: (value, record) => record.status.indexOf(value) === 0,
+                                sorter: (a: any, b: any) => a.status.localeCompare(b.status),
+                                render: (status) => {
+                                  const color = getStatusTagColor(status);
+                                  return (
+                                    <Tag color={color} key={status}>
+                                      {status?.toUpperCase()}
+                                    </Tag>
+                                  );
+                                },
+                              },
+                              {
+                                title: 'Priority',
+                                dataIndex: 'priority',
+                                key: 'priority',
+                                align: 'center',
+                                filters: Object.values(Priority).map((priority) => ({
+                                  text: priority,
+                                  value: priority,
+                                })),
+                                onFilter: (value, record) => record.priority.indexOf(value) === 0,
+                                sorter: (a, b) => a.priority.localeCompare(b.priority),
+                                render: (priority) => {
+                                  const color = getStatusTagColor(priority);
+                                  return (
+                                    <span className={`text-${color}-500`} key={priority}>
+                                      {toCapitalize(priority)}
+                                    </span>
+                                  );
+                                },
+                              },
+                              {
+                                title: 'Assignee',
+                                dataIndex: 'assignee',
+                                key: 'assignee',
+                                render: (assignee) => (
+                                  <>
+                                    {assignee?.firstname} {assignee?.lastname}
+                                  </>
+                                ),
+                              },
+                              {
+                                title: 'Due date',
+                                dataIndex: 'dueDate',
+                                key: 'dueDate',
+                                render: (date) => (
+                                  <span key={date}>
+                                    {new Date(date).toLocaleDateString('vi-VN', {
+                                      year: 'numeric',
+                                      month: '2-digit',
+                                      day: 'numeric',
+                                    })}
+                                  </span>
+                                ),
+                              },
+                              {
+                                title: 'Estimate time',
+                                dataIndex: 'estimateTime',
+                                key: 'estimateTime',
+                                align: 'center',
+                                render: (estimateTime) => (
+                                  <span key={estimateTime}>{estimateTime}h</span>
+                                ),
+                              },
+                              {
+                                title: 'Actions',
+                                key: 'actions',
+                                dataIndex: 'job_id',
+                                width: '50px',
+                                align: 'center',
+                                render: (_, record) => (
+                                  <Dropdown
+                                    menu={{
+                                      items: [
+                                        {
+                                          label: <span>Detail</span>,
+                                          key: 'detail',
+                                          onClick: () =>
+                                            navigate(
+                                              `/projects/${project._id}/issue/${record._id}`,
+                                            ),
+                                        },
+                                        {
+                                          label: <span>Move</span>,
+                                          key: 'move',
+                                        },
+                                        {
+                                          label: <span className="text-red-500">Delete</span>,
+                                          key: 'delete',
+                                          onClick: () => {
+                                            Modal.confirm({
+                                              centered: true,
+                                              title: 'Do you want to delete these items?',
+                                              icon: <ExclamationCircleFilled />,
+                                              onOk() {
+                                                deleteIssue(record._id);
+                                              },
+                                              okText: 'Yes',
+                                              cancelText: 'No',
+                                              okButtonProps: { className: 'bg-primary' },
+                                            });
+                                          },
+                                        },
+                                      ],
+                                    }}
+                                    placement="bottomRight"
+                                    arrow
+                                  >
+                                    <FaEllipsisV style={{ cursor: 'pointer' }} />
+                                  </Dropdown>
+                                ),
+                              },
+                            ]}
+                          />
+                        </>
+                      )}
+                    </div>
+                  ))}
+
+                <Divider>
+                  <IoIosMore
+                    title="Load more"
+                    className="text-2xl text-primary hover:cursor-pointer"
+                  />
+                </Divider>
+
+                <div className="bg-lightBg rounded-md mt-2 p-2">
+                  <div className="flex gap-2 w-full items-center justify-between  bg-lightBg p-2 hover:cursor-pointer text-md">
+                    <div className="flex items-center text-secondary font-bold gap-2">
+                      <IoIosArrowDown />
+                      Backlog
+                    </div>
+                    <Button
+                      type="primary"
+                      onClick={() => setOpenCreate(true)}
+                      className="flex items-center gap-2"
+                    >
+                      Create sprint
+                    </Button>
+                  </div>
                 </div>
-              ))}
-          </div>
+              </div>
+            </>
+          )}
         </>
       )}
+
       <Modal
         title={<span className="text-xl font-bold text-secondary">Create new sprint</span>}
         centered
@@ -402,6 +544,150 @@ export const Backlog: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
+        </Form>
+      </Modal>
+      <Modal
+        title={<span className="text-xl font-bold text-secondary">Create new issue</span>}
+        centered
+        open={openAddIssue}
+        onCancel={() => {
+          form.resetFields();
+          setOpenAddIssue(false);
+        }}
+        okText="Create"
+        confirmLoading={createLoading}
+        onOk={form.submit}
+      >
+        <Form layout="vertical" requiredMark={false} form={form} onFinish={createIssue}>
+          <Row className="flex justify-between">
+            <Col span={11}>
+              <Form.Item
+                rules={[{ required: true, message: 'Label is required' }]}
+                name="label"
+                label={<span className="font-medium">Label</span>}
+              >
+                <Input size="large" />
+              </Form.Item>
+            </Col>
+            <Col span={11}>
+              <Form.Item
+                rules={[{ required: true, message: 'Assignee is required' }]}
+                name="assignee"
+                label={<span className="font-medium">Assignee</span>}
+              >
+                <Select
+                  className="w-full"
+                  showSearch
+                  size="large"
+                  optionFilterProp="children"
+                  filterOption={(input: string, option?: { label: string; value: string }) =>
+                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  // @ts-ignore
+                  options={options}
+                  optionRender={(option) => (
+                    <Space>
+                      <Avatar shape="square" src={option.data.emoji} alt="avatar" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{option.data.label}</span>
+                        <span className="text-sm">{option.data.desc}</span>
+                      </div>
+                    </Space>
+                  )}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row className="flex justify-between">
+            <Col span={11}>
+              <Form.Item
+                rules={[{ required: true, message: 'Priority is required' }]}
+                name="priority"
+                label={<span className="font-medium">Priority</span>}
+              >
+                <Select
+                  size="large"
+                  className="w-full text-white"
+                  options={[
+                    { value: Priority.LOW, label: 'Low' },
+                    { value: Priority.MEDIUM, label: 'Medium' },
+                    { value: Priority.HIGH, label: 'High' },
+                    { value: Priority.URGENT, label: 'Urgent' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={11}>
+              <Form.Item
+                rules={[{ required: true, message: 'Due date is required' }]}
+                name="dueDate"
+                label={<span className="font-medium">Due date</span>}
+              >
+                <DatePicker size="large" className="w-full" format="YYYY/MM/DD" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row className="flex justify-between">
+            <Col span={11}>
+              <Form.Item
+                rules={[{ required: true, message: 'Estimate time is required' }]}
+                name="estimateTime"
+                label={<span className="font-medium">Estimate time</span>}
+              >
+                <Input type="number" size="large" min={0} addonAfter="hours" />
+              </Form.Item>
+            </Col>
+            <Col span={11}>
+              <Col span={24}>
+                <Form.Item
+                  name="description"
+                  label={<span className="font-medium">Description</span>}
+                >
+                  <TextArea size="large" autoSize />
+                </Form.Item>
+              </Col>
+            </Col>
+          </Row>
+
+          <Form.Item
+            className="mt-5"
+            name="images"
+            getValueFromEvent={(e) => {
+              if (Array.isArray(e)) {
+                return e;
+              }
+              return e && e.fileList;
+            }}
+            label={<span className="font-medium">Images</span>}
+          >
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              beforeUpload={(file) => {
+                console.log(file);
+              }}
+              customRequest={async (options) => {
+                const { onSuccess, onError, file } = options;
+
+                try {
+                  //@ts-ignore
+                  onSuccess(file);
+                } catch (error) {
+                  //@ts-ignore
+                  onError(error);
+                }
+              }}
+              onChange={({ fileList: newFileList }) => {
+                setFileList(newFileList);
+                console.log(fileList);
+              }}
+              onRemove={(file) => {
+                console.log('remove', file);
+              }}
+            >
+              <PlusOutlined className="text-primary text-xl" />
+            </Upload>
+          </Form.Item>
         </Form>
       </Modal>
     </div>

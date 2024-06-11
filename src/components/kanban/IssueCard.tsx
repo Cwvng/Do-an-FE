@@ -3,7 +3,19 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FaCheck, FaEllipsisV } from 'react-icons/fa';
 import { Id } from './type.tsx';
-import { Avatar, Dropdown, Form, FormProps, Input, Modal, Spin, Tag, Tooltip } from 'antd';
+import {
+  Avatar,
+  Badge,
+  Dropdown,
+  Form,
+  FormProps,
+  Input,
+  Modal,
+  Space,
+  Spin,
+  Tag,
+  Tooltip,
+} from 'antd';
 import { CircleButton } from '../common/button/CircleButton.tsx';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
@@ -11,13 +23,46 @@ import { UniqueIdentifier } from '@dnd-kit/core';
 import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons';
 import { getStatusTagColor, toCapitalize } from '../../utils/project.util.ts';
 import { RiEditFill } from 'react-icons/ri';
+import moment from 'moment';
 
 interface IssueCardProps {
   issue: Issue;
   deleteIssue: (id: Id) => void;
   updateIssue: (id: Id, values: string) => void;
 }
-
+const StayingTime: React.FC<{ issue: Issue }> = ({ issue }) => {
+  const now = moment();
+  //@ts-ignore
+  const lastUpdateStatusHistory = issue.history.findLast((item) => item.field === 'status');
+  const lastUpdateStatusTime = moment(lastUpdateStatusHistory?.createdAt);
+  const diffTime = now.diff(lastUpdateStatusTime, 'days');
+  if (diffTime <= 1) return <Badge status="success" />;
+  if (diffTime === 2)
+    return (
+      <Space title="Not changed in 2 days">
+        <Badge status="default" />
+        <Badge status="default" />
+      </Space>
+    );
+  if (diffTime === 3)
+    return (
+      <Space title="Not changed in 3 days">
+        <Badge status="warning" />
+        <Badge status="warning" />
+        <Badge status="warning" />
+      </Space>
+    );
+  if (diffTime >= 4)
+    return (
+      <Space title="Not changed more than 4 days">
+        {moment(lastUpdateStatusTime).format('DD/MM/YYYY')}
+        <Badge status="error" />
+        <Badge status="error" />
+        <Badge status="error" />
+        <Badge status="error" />
+      </Space>
+    );
+};
 export const IssueCard: React.FC<IssueCardProps> = ({
   issue,
   deleteIssue,
@@ -78,7 +123,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
         style={style}
         {...attributes}
         {...listeners}
-        className="flex bg-white p-2.5 h-[100px] min-h-[100px] items-start border-1 border-hoverBg text-left rounded-lg cursor-grab relative issue"
+        className="flex bg-white p-2.5 h-[100px] min-h-[100px] items-start border-2 border-hoverBg text-left rounded-lg cursor-grab relative issue"
       >
         <Form form={form} onFinish={submitForm}>
           <Form.Item name="label" initialValue={issue.label}>
@@ -117,7 +162,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
         {...attributes}
         {...listeners}
         // onClick={toggleEditMode}
-        className="flex bg-white p-2.5 min-h-max items-start border-1 border-hoverBg text-left rounded-lg cursor-grab relative issue"
+        className="flex bg-white p-2.5 border-2 border-hoverBg min-h-max items-start text-left rounded-lg cursor-grab relative issue"
         onMouseEnter={() => {
           setMouseIsOver(true);
         }}
@@ -175,6 +220,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
               <Tag color={getStatusTagColor(issue.priority!)} key={issue.priority}>
                 {toCapitalize(issue.priority!)}
               </Tag>
+              <StayingTime issue={issue} />
             </div>
             <Tooltip key={issue._id} placement="right" color="fff" title={issue.assignee?.email}>
               <Avatar src={issue.assignee?.profilePic} />

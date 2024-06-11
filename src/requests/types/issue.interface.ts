@@ -12,9 +12,10 @@ export interface Issue {
   parentIssue?: Issue;
   project: string;
   dueDate?: string;
+  sprintId?: string;
   images?: string[];
   remainingDays?: string;
-  history?: IssueHistory[];
+  history: IssueHistory[];
   createdAt?: string;
   updatedAt?: string;
   estimateTime?: number;
@@ -23,10 +24,10 @@ export interface Issue {
 }
 export type UpdateIssueBody = Partial<Issue>;
 export interface GetIssueListQuery {
-  projectId: string;
   label?: string;
   assignee?: string;
   priority?: string;
+  sprintId?: string;
 }
 export interface IssueHistory {
   field: string;
@@ -34,6 +35,7 @@ export interface IssueHistory {
   newValue: string;
   updatedBy: User;
   updatedAt: string;
+  createdAt: string;
   _id: string;
 }
 export interface IssueComment {

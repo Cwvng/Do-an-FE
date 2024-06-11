@@ -44,7 +44,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const menuItems: ItemType[] = project
     ? [
         {
-          key: `/projects/${project?._id}/sprint`,
+          key: `/projects/${project?._id}/sprint/${project?.activeSprint}`,
           label: <span className="text-bold">Active sprint</span>,
           icon: <FaCode />,
         },
@@ -54,7 +54,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           icon: <IoFileTrayStacked />,
         },
         {
-          key: `/projects/${project?._id}/report`,
+          key: `/projects/${project?._id}/report/${project?.activeSprint}`,
           label: <span className="text-bold">Report</span>,
           icon: <FaChartBar />,
         },
@@ -83,7 +83,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       trigger={null}
     >
       <Menu
-        className="h-full"
+        className="h-full bg-lightBg"
         items={menuItems}
         mode="inline"
         onSelect={handleMenuSelect}
