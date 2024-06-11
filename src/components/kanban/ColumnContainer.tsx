@@ -64,7 +64,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-lightBg w-[220px] h-[500px] max-h-[500px] rounded-md flex flex-col text-secondary px-2 shadow-[0_3px_10px_rgb(0,0,0,0.2)]"
+      className="bg-lightBg w-[220px] h-[500px] max-h-[500px] rounded-md flex flex-col text-secondary px-2 shadow-md"
     >
       {/* Column title */}
       <div
@@ -106,7 +106,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
       ) : (
         <>
           {/* Column issue container */}
-          <div className="flex flex-grow flex-col gap-4 overflow-x-hidden overflow-y-auto">
+          <div className="flex flex-grow flex-col p-1 gap-4 overflow-x-hidden overflow-y-auto">
             <SortableContext
               //@ts-ignore
               items={issuesIds}
@@ -123,7 +123,7 @@ export const ColumnContainer: React.FC<ColumnContainerProps> = ({
           </div>
           {/* Column footer */}
           <Button
-            className="flex items-center gap-5 text-secondary hover:bg-hoverBg p-5 bg-lightBg border-none"
+            className="flex items-center gap-5 text-secondary hover:bg-primary hover:text-white p-5 bg-lightBg border-none mb-1"
             onClick={() => {
               createIssue(column.id);
             }}

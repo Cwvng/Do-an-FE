@@ -82,7 +82,7 @@ export const PMIssueList: React.FC = () => {
       if (id) {
         setLoading(true);
         const label = searchParams.get('label') || '';
-        const res = await getIssueList({ projectId: id, label });
+        const res = await getIssueList({ label });
         setIssueList(res);
       }
     } finally {

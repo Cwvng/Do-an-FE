@@ -1,12 +1,11 @@
 import { api } from '../utils/api.util.ts';
 import {
   CreateProjectBody,
-  CreateProjectSprintBody,
   GetAllProjectQuery,
   Project,
-  ProjectSprint,
   UpdateProjectBody,
 } from './types/project.interface.ts';
+import { CreateProjectSprintBody, ProjectSprint } from './types/sprint.interface.ts';
 
 export const getAllProject = async (params?: GetAllProjectQuery) => {
   const { data } = await api.get<Project[]>(`/project`, { params });

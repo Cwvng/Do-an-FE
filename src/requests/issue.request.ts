@@ -4,6 +4,7 @@ import {
   GetIssueListQuery,
   Issue,
   IssueComment,
+  IssueHistory,
 } from './types/issue.interface.ts';
 
 export const getIssueDetailById = async (id: string) => {
@@ -33,5 +34,9 @@ export const createIssueComment = async (id: string, body: CreateIssueCommentBod
 };
 export const getIssueComment = async (id: string) => {
   const { data } = await api.get<IssueComment[]>(`/issue/${id}/comment`);
+  return data;
+};
+export const getIssueHistory = async (id: string) => {
+  const { data } = await api.get<IssueHistory[]>(`/issue/${id}/history`);
   return data;
 };

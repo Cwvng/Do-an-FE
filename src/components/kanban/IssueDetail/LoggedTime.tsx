@@ -40,7 +40,7 @@ export const LoggedTime: React.FC<LoggedTimeProps> = ({ issue, onFinish }) => {
                       {item.updatedBy.firstname} {item.updatedBy.lastname}
                     </a>
                   }
-                  avatar={<Avatar size="large" src={item.updatedBy?.profilePic} alt="Han Solo" />}
+                  avatar={<Avatar size="large" src={item.updatedBy?.profilePic} />}
                   content={
                     <p>
                       Logged <span className="text-secondary">{item.newValue} hours</span>

@@ -9,8 +9,8 @@ import { getUserInfo } from './redux/slices/user.slice.ts';
 import { AppState, useDispatch, useSelector } from './redux/store';
 import { SocketContextProvider } from './context/SocketContext.tsx';
 import { Toaster } from 'react-hot-toast';
-import { NotificationProvider } from './context/NotificationContext.tsx';
 import { Chart, registerables } from 'chart.js';
+import { ProjectProvider } from './context/ProjectContext.tsx';
 
 Chart.register(...registerables);
 const App: React.FC = () => {
@@ -32,7 +32,7 @@ const App: React.FC = () => {
     }
   }, [pathname, userProfile.isAuthenticated]);
   return (
-    <NotificationProvider>
+    <ProjectProvider>
       <SocketContextProvider>
         <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
           <ConfigProvider
@@ -43,13 +43,14 @@ const App: React.FC = () => {
                 Menu: {
                   iconSize: 20,
                   collapsedIconSize: 20,
-                  itemColor: '#3E5B76',
-                  itemSelectedBg: '#628DB6',
+                  itemColor: '#6C718B',
+                  itemSelectedBg: '#46b4be',
                   itemSelectedColor: '#FFF',
-                  itemHoverColor: '#628DB6',
+                  itemHoverColor: '#46b4be',
                 },
                 Select: {
                   multipleItemBg: 'rgba(98,141,182,0.25)',
+                  optionActiveBg: '#B5E1E5',
                 },
                 Avatar: { groupSpace: 2, groupOverlapping: -20 },
                 Tabs: { itemSelectedColor: '#3E5B76', inkBarColor: '#3E5B76', titleFontSize: 20 },
@@ -66,7 +67,7 @@ const App: React.FC = () => {
                 Tooltip: {},
               },
               token: {
-                colorPrimary: '#628DB6',
+                colorPrimary: '#46b4be',
                 colorError: '#f56a00',
                 colorErrorBg: '#fde3cf',
               },
@@ -77,7 +78,7 @@ const App: React.FC = () => {
           </ConfigProvider>
         </GoogleOAuthProvider>
       </SocketContextProvider>
-    </NotificationProvider>
+    </ProjectProvider>
   );
 };
 

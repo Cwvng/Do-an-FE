@@ -26,24 +26,26 @@ import { getAllOtherUsers } from '../../requests/user.request.ts';
 import { updateProjectById } from '../../requests/project.request.ts';
 import { IoIosTimer } from 'react-icons/io';
 import { FaEllipsisV, FaSearch } from 'react-icons/fa';
-import { getIssueList } from '../../requests/issue.request.ts';
-import { Issue } from '../../requests/types/issue.interface.ts';
 import { getRemainingDay, getRemainingDaysPercent } from '../../utils/project.util.ts';
 import { Status } from '../../constants';
+import { ProjectSprint } from '../../requests/types/sprint.interface.ts';
+import { getSprintDetail } from '../../requests/sprint.request.ts';
+import moment from 'moment';
 
-export const ProjectDetail: React.FC = () => {
+export const ActiveSprint: React.FC = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { token } = theme.useToken();
-  const project = useSelector((app: AppState) => app.user.selectedProject!);
   const [form] = useForm();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { sprintId } = useParams();
+  const project = useSelector((app: AppState) => app.user.selectedProject);
 
   const [addModal, setAddModal] = React.useState(false);
   const [cfModal, setCfModal] = React.useState(false);
   const [options, setOptions] = React.useState<SelectProps['options']>([]);
-  const [issues, setIssues] = React.useState<Issue[]>([]);
+  const [sprint, setSprint] = React.useState<ProjectSprint>();
 
   const filterOption = (input: string, option?: { label: string; value: string }) =>
     (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
@@ -66,14 +68,11 @@ export const ProjectDetail: React.FC = () => {
     }
   };
 
-  const getIssueListByProjectId = async () => {
+  const getSprintInfor = async () => {
     try {
-      if (id) {
-        const label = searchParams.get('label') || '';
-        const assignee = searchParams.getAll('assignee').join(',') || '';
-        const priority = searchParams.getAll('priority').join(',') || '';
-        const res = await getIssueList({ projectId: id, label, assignee, priority });
-        setIssues(res);
+      if (sprintId) {
+        const res = await getSprintDetail(sprintId);
+        setSprint(res);
       }
     } finally {
     }
@@ -94,16 +93,14 @@ export const ProjectDetail: React.FC = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchParams({ label: e.target.value });
   };
-  const handleSearchEnter = () => {
-    getIssueListByProjectId();
-  };
+  const handleSearchEnter = () => {};
 
   useEffect(() => {
-    if (id) dispatch(getProjectDetail(id));
     getUserList();
+    getSprintInfor();
   }, []);
 
-  if (!project) return;
+  if (!sprint) return;
   return (
     <div className="bg-white flex flex-col gap-3 p-5 h-full">
       <Row>
@@ -120,12 +117,12 @@ export const ProjectDetail: React.FC = () => {
               title: <span>{project?.name}</span>,
             },
             {
-              title: <span>Active sprint</span>,
+              title: <span className="font-bold text-primary">Active sprint</span>,
             },
           ]}
         />
       </Row>
-      {!project.activeSprint ? (
+      {!sprint ? (
         <div className="flex flex-col items-center gap-3 justify-center">
           <img
             alt=""
@@ -142,14 +139,14 @@ export const ProjectDetail: React.FC = () => {
         <>
           <Row className="flex flex-1 items-center justify-between">
             <Col>
-              <div className="text-secondary text-xl font-bold">{`${project?.name} Sprint ${project.activeSprint.ordinary}`}</div>
+              <div className="text-secondary text-2xl m-0 font-bold">{`${project?.name} Sprint ${sprint.ordinary}`}</div>
               <span title="Sprint goal" className="text-gray-500">
-                {project.activeSprint.sprintGoal}
+                {sprint.sprintGoal}
               </span>
             </Col>
             <Col span={8} className="flex items-center gap-3">
               <Progress
-                percent={getRemainingDaysPercent(project.activeSprint.endDate)}
+                percent={getRemainingDaysPercent(sprint.endDate)}
                 strokeColor={{
                   '0%': token.colorPrimary,
                   '100%': '#87d068',
@@ -159,10 +156,10 @@ export const ProjectDetail: React.FC = () => {
                 <Tooltip
                   placement="bottom"
                   color={token.colorPrimary}
-                  title="Sprint time remaining"
+                  title={`${moment(sprint.startDate).format('DD/MM/YYYY')} - ${moment(sprint.endDate).format('DD/MM/YYYY')}`}
                 >
                   <IoIosTimer />
-                  <span>{getRemainingDay(project.activeSprint.endDate)}</span>
+                  <span>{getRemainingDay(sprint.endDate)}</span>
                 </Tooltip>
               </div>
 
@@ -190,91 +187,83 @@ export const ProjectDetail: React.FC = () => {
             </Col>
           </Row>
           <div className="h-full overflow-auto">
-            <KanbanBoard issueList={issues} />
+            <KanbanBoard />
           </div>
-          <Modal
-            title={<span className="text-xl font-bold text-secondary">Complete sprint</span>}
-            centered
-            open={cfModal}
-            onCancel={() => {
-              setCfModal(false);
-            }}
-            okText="Complete"
-            cancelText="Close"
-          >
-            <span>This sprints contains</span>
-            <ul>
-              <li>
-                {
-                  project.activeSprint.issues?.filter((issue) => issue.status === Status.DONE)
-                    .length
-                }{' '}
-                Closed issues
-              </li>
-              <li>
-                {
-                  project.activeSprint.issues?.filter((issue) => issue.status !== Status.DONE)
-                    .length
-                }{' '}
-                Open issues
-              </li>
-            </ul>
-            <div className="flex items-center gap-2">
-              Move open issues to sprint:{' '}
-              <Form.Item className="m-0" name="sprint">
-                <Select
-                  className="w-30 min-w-max text-white"
-                  options={[{ value: '2', label: 'Sprint 2' }]}
-                />
-              </Form.Item>
-            </div>
-          </Modal>
-          <Modal
-            title={<span className="text-xl font-bold text-primary">Add new member</span>}
-            centered
-            open={addModal}
-            onCancel={() => {
-              setAddModal(false);
-              form.resetFields();
-            }}
-            onOk={form.submit}
-            okText="Add"
-          >
-            <Form layout="vertical" form={form} onFinish={addNewMember}>
-              <Form.Item
-                name="members"
-                initialValue={project?.members.map((item) => ({
-                  value: item._id,
-                  label: item.firstname + ' ' + item.lastname,
-                  emoji: item.profilePic,
-                  desc: item.email,
-                }))}
-                label={<span className="font-medium">Members</span>}
-              >
-                <Select
-                  className="w-full"
-                  showSearch
-                  mode="multiple"
-                  size="large"
-                  optionFilterProp="children"
-                  filterOption={filterOption}
-                  // @ts-ignore
-                  options={options}
-                  optionRender={(option) => (
-                    <Space>
-                      <img src={option.data.emoji} className="w-10" alt="avatar" />
-                      <div className="flex flex-col">
-                        <span className="font-medium">{option.data.label}</span>
-                        <span className="text-sm">{option.data.desc}</span>
-                      </div>
-                    </Space>
-                  )}
-                />
-              </Form.Item>
-            </Form>
-          </Modal>
         </>
       )}
+      <Modal
+        title={<span className="text-xl font-bold text-secondary">Complete sprint</span>}
+        centered
+        open={cfModal}
+        onCancel={() => {
+          setCfModal(false);
+        }}
+        okText="Complete"
+        cancelText="Close"
+      >
+        <span>This sprints contains</span>
+        <ul>
+          <li>
+            {sprint.issues?.filter((issue) => issue.status === Status.DONE).length} Closed issues
+          </li>
+          <li>
+            {sprint.issues?.filter((issue) => issue.status !== Status.DONE).length} Open issues
+          </li>
+        </ul>
+        <div className="flex items-center gap-2">
+          Move open issues to sprint:{' '}
+          <Form.Item className="m-0" name="sprint">
+            <Select
+              className="w-30 min-w-max text-white"
+              options={[{ value: '2', label: 'Sprint 2' }]}
+            />
+          </Form.Item>
+        </div>
+      </Modal>
+      <Modal
+        title={<span className="text-xl font-bold text-primary">Add new member</span>}
+        centered
+        open={addModal}
+        onCancel={() => {
+          setAddModal(false);
+          form.resetFields();
+        }}
+        onOk={form.submit}
+        okText="Add"
+      >
+        <Form layout="vertical" form={form} onFinish={addNewMember}>
+          <Form.Item
+            name="members"
+            initialValue={project?.members.map((item) => ({
+              value: item._id,
+              label: item.firstname + ' ' + item.lastname,
+              emoji: item.profilePic,
+              desc: item.email,
+            }))}
+            label={<span className="font-medium">Members</span>}
+          >
+            <Select
+              className="w-full"
+              showSearch
+              mode="multiple"
+              size="large"
+              optionFilterProp="children"
+              filterOption={filterOption}
+              // @ts-ignore
+              options={options}
+              optionRender={(option) => (
+                <Space>
+                  <img src={option.data.emoji} className="w-10" alt="avatar" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">{option.data.label}</span>
+                    <span className="text-sm">{option.data.desc}</span>
+                  </div>
+                </Space>
+              )}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

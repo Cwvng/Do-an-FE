@@ -1,6 +1,6 @@
 export enum Status {
   NEW = 'new',
-  IN_PROGRESS = 'in progress',
+  IN_PROGRESS = 'in_progress',
   DONE = 'done',
   WAITING_REVIEW = 'waiting_review',
   TESTING = 'testing',

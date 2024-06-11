@@ -20,16 +20,15 @@ import { setSelectedProject, updateUser, userLogout } from '../../redux/slices/u
 import { removeAccessToken } from '../../utils/storage.util';
 import React, { useEffect } from 'react';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
-import { IoIosMenu } from 'react-icons/io';
 import { IoNotifications } from 'react-icons/io5';
 import { AppState, useDispatch, useSelector } from '../../redux/store';
 import { CircleButton } from '../../components/common/button/CircleButton';
 import { useForm } from 'antd/es/form/Form';
 import { updateUserInfo } from '../../requests/user.request.ts';
 import { UploadOutlined } from '@ant-design/icons';
-import { useNotificationContext } from '../../context/NotificationContext.tsx';
 import { getAllProject } from '../../requests/project.request.ts';
 import { Project } from '../../requests/types/project.interface.ts';
+import { TiThMenu } from 'react-icons/ti';
 
 interface AppHeaderProps {
   toggleSidebar: () => void;
@@ -46,7 +45,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
   const user = useSelector((state: AppState) => state.user);
   const navigate = useNavigate();
   const [form] = useForm();
-  const { notification } = useNotificationContext();
 
   const [openProfile, setOpenProfile] = React.useState(false);
   const [isEdit, setIsEdit] = React.useState(false);
@@ -96,18 +94,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
     if (projectList && projectList.length > 0) dispatch(setSelectedProject(projectList[0]));
   }, []);
 
-  if (!projectList) return;
-
   return (
     <>
-      <Header className="bg-white flex flex-row items-center justify-between border-b border-border gap-2 px-4 h-12">
+      <Header className="bg-primary flex flex-row items-center justify-between border-b border-border gap-2 px-4 h-12">
         <div className="flex gap-10 flex-row items-center">
           <Button
-            className="border-none bg-transparent"
+            className="border-none shadow-none bg-transparent"
             onClick={toggleSidebar}
-            icon={<IoIosMenu className="text-2xl text-gray-700" />}
+            icon={<TiThMenu className="text-2xl font-bold text-white" />}
           />
-          <h2 className="text-secondary hover:cursor-pointer" onClick={() => navigate('/')}>
+          <h2 className="text-white hover:cursor-pointer" onClick={() => navigate('/')}>
             HUST Workspace
           </h2>
           <div className="w-[120px]">
@@ -115,10 +111,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
               className="w-full"
               showSearch
               allowClear
-              defaultValue={projectList[0]._id}
+              defaultValue={projectList?.[0]?._id}
               optionFilterProp="children"
               filterOption={(input: string, option?: { label: string; value: string }) =>
                 (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              onSelect={(value) =>
+                dispatch(
+                  setSelectedProject(projectList?.filter((project) => project?._id === value)[0]!),
+                )
               }
               onChange={(value) =>
                 dispatch(
@@ -133,7 +134,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
                 <div>
                   {menu}
                   <Divider className="m-2" />
-                  <Button className="w-full" type="text" onClick={() => navigate('/projects')}>
+                  <Button
+                    className="w-full text-start	"
+                    type="primary"
+                    onClick={() => navigate('/projects')}
+                  >
                     Project list
                   </Button>
                 </div>
@@ -142,31 +147,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
           </div>
         </div>
         <div className="flex gap-3">
-          <Badge count={notification.length} offset={[-5, 10]}>
-            <Dropdown
-              menu={{
-                items: notification.map((noti, index) => ({
-                  key: `notification-${index}`,
-                  label: (
-                    <div>
-                      ✉️ You have a new message from{' '}
-                      <span className="text-secondary font-bold">
-                        {noti.chat.users[0].firstname + ' ' + noti.chat.users[0].lastname}
-                      </span>
-                    </div>
-                  ),
-                  onClick: () => navigate('/messages'),
-                })),
-              }}
-              trigger={['click']}
-              placement="bottomRight"
-              arrow={{ pointAtCenter: true }}
-            >
-              <CircleButton
-                className="border-none shadow-none"
-                icon={<IoNotifications className="text-2xl text-gray-700" />}
-              ></CircleButton>
-            </Dropdown>
+          <Badge offset={[-5, 10]}>
+            <CircleButton
+              className="border-none bg-primary shadow-none"
+              icon={<IoNotifications className="text-2xl text-white" />}
+            ></CircleButton>
           </Badge>
 
           <Dropdown
