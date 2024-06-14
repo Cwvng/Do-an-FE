@@ -1,5 +1,6 @@
 import { User } from './chat.interface.ts';
 import { Issue } from './issue.interface.ts';
+import { ProjectSprint } from './sprint.interface.ts';
 
 export interface Project {
   _id: string;
@@ -7,6 +8,7 @@ export interface Project {
   members: User[];
   issues: Issue[];
   projectManager: User;
+  backlog: ProjectSprint[];
   activeSprint: string;
   createdAt: string;
   updatedAt: string;

@@ -61,11 +61,11 @@ export const AppRoutes: React.FC = () => {
         <Route path="/" element={<Navigate to={`/projects`} replace />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/projects" element={<ProjectList />} />
-        <Route path="/projects/:id/sprint/:sprintId" element={<ActiveSprint />} />
+        <Route path="/projects/:id/active-sprint" element={<ActiveSprint />} />
         <Route path="/projects/:id/issue/:issueId" element={<IssueDetail />} />
 
         <Route path="/projects/:id/backlog" element={<Backlog />} />
-        <Route path="/projects/:id/report/:sprintId" element={<Report />} />
+        <Route path="/projects/:id/report" element={<Report />} />
       </Route>
     </Routes>
   );

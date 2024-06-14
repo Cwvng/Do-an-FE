@@ -24,6 +24,7 @@ import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons';
 import { getStatusTagColor, toCapitalize } from '../../utils/project.util.ts';
 import { RiEditFill } from 'react-icons/ri';
 import moment from 'moment';
+import { Status } from '../../constants';
 
 interface IssueCardProps {
   issue: Issue;
@@ -39,14 +40,14 @@ const StayingTime: React.FC<{ issue: Issue }> = ({ issue }) => {
   if (diffTime <= 1) return <Badge status="success" />;
   if (diffTime === 2)
     return (
-      <Space title="Not changed in 2 days">
+      <Space size={2} title="Not changed in 2 days">
         <Badge status="default" />
         <Badge status="default" />
       </Space>
     );
   if (diffTime === 3)
     return (
-      <Space title="Not changed in 3 days">
+      <Space size={2} title="Not changed in 3 days">
         <Badge status="warning" />
         <Badge status="warning" />
         <Badge status="warning" />
@@ -54,8 +55,7 @@ const StayingTime: React.FC<{ issue: Issue }> = ({ issue }) => {
     );
   if (diffTime >= 4)
     return (
-      <Space title="Not changed more than 4 days">
-        {moment(lastUpdateStatusTime).format('DD/MM/YYYY')}
+      <Space size={2} title="Not changed more than 4 days">
         <Badge status="error" />
         <Badge status="error" />
         <Badge status="error" />
@@ -220,7 +220,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
               <Tag color={getStatusTagColor(issue.priority!)} key={issue.priority}>
                 {toCapitalize(issue.priority!)}
               </Tag>
-              <StayingTime issue={issue} />
+              {issue.status !== Status.DONE && <StayingTime issue={issue} />}
             </div>
             <Tooltip key={issue._id} placement="right" color="fff" title={issue.assignee?.email}>
               <Avatar src={issue.assignee?.profilePic} />

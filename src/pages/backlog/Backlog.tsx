@@ -12,6 +12,7 @@ import {
   Input,
   message,
   Modal,
+  Progress,
   Row,
   Select,
   SelectProps,
@@ -27,24 +28,30 @@ import {
 import { IoIosArrowDown, IoIosArrowUp, IoIosMore } from 'react-icons/io';
 import moment from 'moment/moment';
 import { FaEllipsisV, FaPlus, FaSearch } from 'react-icons/fa';
-import { AppState, useSelector } from '../../redux/store';
-import { Link, useNavigate } from 'react-router-dom';
+import { AppState, dispatch, useSelector } from '../../redux/store';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getProjectBacklog } from '../../requests/project.request.ts';
 import TextArea from 'antd/es/input/TextArea';
 import { useForm } from 'antd/es/form/Form';
 import { Priority, Status } from '../../constants';
-import { getStatusTagColor, toCapitalize } from '../../utils/project.util.ts';
+import {
+  getRemainingDaysPercent,
+  getStatusTagColor,
+  toCapitalize,
+} from '../../utils/project.util.ts';
 import { ExclamationCircleFilled, PlusOutlined } from '@ant-design/icons';
-import { createProjectSprint } from '../../requests/sprint.request.ts';
+import { createProjectSprint, deleteSprint, updateSprint } from '../../requests/sprint.request.ts';
 import { ProjectSprint } from '../../requests/types/sprint.interface.ts';
 import { Id } from '../../components/kanban/type.tsx';
 import { createNewIssue, deleteIssueById } from '../../requests/issue.request.ts';
+import { getProjectDetail } from '../../redux/slices/user.slice.ts';
 
 export const Backlog: React.FC = () => {
   const project = useSelector((app: AppState) => app.user.selectedProject);
   const navigate = useNavigate();
   const { token } = theme.useToken();
   const [form] = useForm();
+  const { id } = useParams();
 
   const [backlog, setBacklog] = React.useState<ProjectSprint[]>();
   const [openCreate, setOpenCreate] = React.useState(false);
@@ -59,8 +66,8 @@ export const Backlog: React.FC = () => {
   const getProjectBacklogList = async () => {
     try {
       setLoading(true);
-      if (project?._id) {
-        const res = await getProjectBacklog(project._id);
+      if (id) {
+        const res = await getProjectBacklog(id);
         setBacklog(res);
         setOpenSprintTabs([res[0]._id]);
       }
@@ -140,6 +147,44 @@ export const Backlog: React.FC = () => {
   };
   const isSprintTabOpen = (sprintId: string) => {
     return openSprintTabs.includes(sprintId);
+  };
+
+  const startSprint = async (sprintId: string) => {
+    try {
+      if (id) {
+        setLoading(true);
+        await updateSprint(sprintId, { isActive: true, projectId: id });
+        message.success('Started new sprint');
+        await getProjectBacklogList();
+        dispatch(getProjectDetail(id));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteSelectedSprint = async (sprintId: string) => {
+    try {
+      setLoading(true);
+      await deleteSprint(sprintId);
+      await getProjectBacklogList();
+      message.success('Deleted successfully');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isConfirmToDelete = (sprintId: string) => {
+    Modal.confirm({
+      centered: true,
+      title: 'Do you want to delete these items?',
+      icon: <ExclamationCircleFilled />,
+      onOk() {
+        deleteSelectedSprint(sprintId);
+      },
+      okText: 'Yes',
+      cancelText: 'No',
+    });
   };
 
   useEffect(() => {
@@ -246,7 +291,14 @@ export const Backlog: React.FC = () => {
                           {project.name} Sprint {item.ordinary}
                           {item.isActive && <Tag color="green-inverse">Active</Tag>}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 w-1/5">
+                          <Progress
+                            percent={getRemainingDaysPercent(item.endDate)}
+                            strokeColor={{
+                              '0%': token.colorPrimary,
+                              '100%': '#87d068',
+                            }}
+                          />
                           <Button
                             type="primary"
                             onClick={() => {
@@ -260,6 +312,7 @@ export const Backlog: React.FC = () => {
                           </Button>
 
                           <Dropdown
+                            className="w-15"
                             trigger={['click']}
                             menu={{
                               items: item.isActive
@@ -272,10 +325,6 @@ export const Backlog: React.FC = () => {
                                       label: <span>Complete sprint</span>,
                                       key: `complete${index}`,
                                     },
-                                    {
-                                      label: <span className="text-red-500">Delete</span>,
-                                      key: `delete${index}`,
-                                    },
                                   ]
                                 : [
                                     {
@@ -283,12 +332,17 @@ export const Backlog: React.FC = () => {
                                       key: `edit${index}`,
                                     },
                                     {
-                                      label: <span>Start sprint</span>,
+                                      label: (
+                                        <span onClick={() => startSprint(item._id)}>
+                                          Start sprint
+                                        </span>
+                                      ),
                                       key: `start${index}`,
                                     },
                                     {
                                       label: <span className="text-red-500">Delete</span>,
                                       key: `delete${index}`,
+                                      onClick: () => isConfirmToDelete(item._id),
                                     },
                                   ],
                             }}

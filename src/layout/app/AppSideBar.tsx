@@ -4,14 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { SelectInfo } from 'rc-menu/lib/interface';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { IoChatbubbles, IoFileTrayStacked } from 'react-icons/io5';
-import { FaChartBar, FaCode } from 'react-icons/fa';
+import { FaChartBar, FaCode, FaList } from 'react-icons/fa';
 import { AppState, useSelector } from '../../redux/store';
 
 interface SidebarProps {
   collapsed: boolean;
 }
 export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
-  const [selectedMenu, setSelectedMenu] = useState('');
+  const [selectedMenu, setSelectedMenu] = useState('/projects');
   const [openKey, setOpenKey] = useState(['']);
 
   const location = useLocation();
@@ -44,7 +44,12 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const menuItems: ItemType[] = project
     ? [
         {
-          key: `/projects/${project?._id}/sprint/${project?.activeSprint}`,
+          key: `/projects`,
+          label: <span className="text-bold">Project list</span>,
+          icon: <FaList />,
+        },
+        {
+          key: `/projects/${project?._id}/active-sprint/`,
           label: <span className="text-bold">Active sprint</span>,
           icon: <FaCode />,
         },
@@ -54,7 +59,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
           icon: <IoFileTrayStacked />,
         },
         {
-          key: `/projects/${project?._id}/report/${project?.activeSprint}`,
+          key: `/projects/${project?._id}/report/`,
           label: <span className="text-bold">Report</span>,
           icon: <FaChartBar />,
         },
@@ -66,6 +71,11 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         },
       ]
     : [
+        {
+          key: `/projects`,
+          label: <span className="text-bold">Project list</span>,
+          icon: <FaList />,
+        },
         {
           key: '/messages',
           label: <span className="text-bold">Messages</span>,

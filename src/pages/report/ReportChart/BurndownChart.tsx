@@ -2,46 +2,55 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { FaRegQuestionCircle } from 'react-icons/fa';
 import { Modal } from 'antd';
-import { useParams } from 'react-router-dom';
 import moment from 'moment';
 import { getSprintSummary } from '../../../requests/sprint.request.ts';
 import { Issue } from '../../../requests/types/issue.interface.ts';
+import { AppState, useSelector } from '../../../redux/store';
 
 interface BurnDownProps {
   issueList: Issue[] | undefined;
   labels: string[];
 }
 
-export const BurndownChart: React.FC<BurnDownProps> = ({ issueList, labels }) => {
+export const BurndownChart: React.FC<BurnDownProps> = ({ labels }) => {
   const [openTutorial, setOpenTutorial] = useState(false);
   const [idealData, setIdealData] = useState<number[]>([]);
   const [burndownData, setBurndownData] = useState<number[]>([]);
-  const { sprintId } = useParams();
+  const project = useSelector((app: AppState) => app.user.selectedProject);
 
   useEffect(() => {
-    const generateIssueData = () => {
-      if (issueList) {
+    const generateIssueData = async (totalIssues: number) => {
+      if (totalIssues) {
         const data = [];
         for (let i = 0; i <= 14; i++) {
-          data.push(issueList.length - (issueList.length / 14) * i);
+          data.push(totalIssues - (totalIssues / 14) * i);
         }
         setIdealData(data);
       }
     };
+    const getLatestDailySummaryTotal = async () => {
+      try {
+        if (project?.activeSprint) {
+          const res = await getSprintSummary(project.activeSprint);
+          generateIssueData(res[res.length - 1].total);
+        }
+      } finally {
+      }
+    };
 
-    generateIssueData();
-  }, [issueList]);
+    getLatestDailySummaryTotal();
+  }, [project?.activeSprint]);
 
   useEffect(() => {
     const getSprintSummaryList = async () => {
       try {
-        if (sprintId && issueList) {
-          const res = await getSprintSummary(sprintId);
+        if (project?.activeSprint) {
+          const res = await getSprintSummary(project.activeSprint);
           const newBurndownData = labels.map((label) => {
             const summary = res.filter(
               (summary) => moment(summary.date).format('DD/MM/YYYY') === label,
             )[0];
-            return summary ? issueList.length - +summary.done : undefined;
+            return summary ? +summary.total - +summary.done : undefined;
           });
           for (let i = 1; i < newBurndownData.length; i++) {
             if (newBurndownData[i] === undefined) {
@@ -55,7 +64,7 @@ export const BurndownChart: React.FC<BurnDownProps> = ({ issueList, labels }) =>
     };
 
     getSprintSummaryList();
-  }, [labels, sprintId]);
+  }, [labels, project?.activeSprint]);
 
   const chartData = useMemo(
     () => ({
@@ -93,7 +102,17 @@ export const BurndownChart: React.FC<BurnDownProps> = ({ issueList, labels }) =>
             />
           </span>
         </div>
-        <Line className="w-full h-full" data={chartData} />
+        <Line
+          className="w-full h-full"
+          data={chartData}
+          options={{
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          }}
+        />
       </div>
       <Modal
         title={<span className="text-xl font-bold text-secondary">What is Burndown Chart?</span>}
