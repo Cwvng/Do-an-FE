@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { BurndownChart } from './ReportChart/BurndownChart.tsx';
 import { Breadcrumb, Row, Spin, Tabs } from 'antd';
 import { AppState, useSelector } from '../../redux/store';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { CumulativeFlow } from './ReportChart/CumulativeFlow.tsx';
 import moment from 'moment/moment';
 import { ProjectSprint } from '../../requests/types/sprint.interface.ts';
@@ -12,7 +12,6 @@ import { StatusChart } from './ReportChart/StatusChart.tsx';
 export const Report: React.FC = () => {
   const project = useSelector((app: AppState) => app.user.selectedProject!);
   const navigate = useNavigate();
-  const { sprintId } = useParams();
 
   const [sprint, setSprint] = React.useState<ProjectSprint>();
   const [loading, setLoading] = React.useState(false);
@@ -21,8 +20,8 @@ export const Report: React.FC = () => {
     try {
       setLoading(true);
 
-      if (sprintId) {
-        const res = await getSprintDetail(sprintId);
+      if (project.activeSprint) {
+        const res = await getSprintDetail(project.activeSprint);
         setSprint(res);
       }
     } finally {

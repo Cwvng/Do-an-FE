@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { FaRegQuestionCircle } from 'react-icons/fa';
-import { useParams } from 'react-router-dom';
 import moment from 'moment/moment';
 import { getSprintSummary } from '../../../requests/sprint.request.ts';
 import { Issue } from '../../../requests/types/issue.interface.ts';
 import { Modal } from 'antd';
+import { AppState, useSelector } from '../../../redux/store';
 
 interface CumulativeFlowProps {
   issueList: Issue[] | undefined;
@@ -13,11 +13,12 @@ interface CumulativeFlowProps {
 }
 
 export const CumulativeFlow: React.FC<CumulativeFlowProps> = ({ labels }) => {
-  const { sprintId } = useParams();
   const [newData, setNewData] = useState<number[]>([]);
   const [inProgressData, setInProgressData] = useState<number[]>([]);
   const [doneData, setDoneData] = useState<number[]>([]);
   const [openTutorial, setOpenTutorial] = React.useState(false);
+
+  const sprintId = useSelector((app: AppState) => app.user.selectedProject?.activeSprint);
 
   useEffect(() => {
     const getSprintSummaryList = async () => {
@@ -107,21 +108,21 @@ export const CumulativeFlow: React.FC<CumulativeFlowProps> = ({ labels }) => {
                 label: 'Done',
                 data: doneData,
                 borderColor: 'rgba(145,170,201,255)',
-                backgroundColor: 'rgba(145,170,201,0.7)',
+                backgroundColor: 'rgba(145,170,201,0.5)',
                 fill: 'origin',
               },
               {
                 label: 'In Progress',
                 data: inProgressData,
                 borderColor: 'rgba(205,150,149,255)',
-                backgroundColor: 'rgba(205,150,149,0.7)',
+                backgroundColor: 'rgba(205,150,149,0.5)',
                 fill: 'origin',
               },
               {
                 label: 'New',
                 data: newData,
                 borderColor: 'rgba(186,209,160,255)',
-                backgroundColor: 'rgba(186,209,160,0.7)',
+                backgroundColor: 'rgba(186,209,160,0.5)',
                 fill: 'origin',
               },
             ],

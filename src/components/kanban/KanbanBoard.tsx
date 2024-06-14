@@ -24,7 +24,8 @@ import {
   getIssueList,
   updateIssueById,
 } from '../../requests/issue.request.ts';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { AppState, useSelector } from '../../redux/store';
 
 export const KanbanBoard: React.FC = () => {
   const defaultCols: Column[] = [
@@ -58,7 +59,6 @@ export const KanbanBoard: React.FC = () => {
 
   const [searchParams] = useSearchParams();
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
-  const { sprintId } = useParams();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -66,6 +66,7 @@ export const KanbanBoard: React.FC = () => {
       },
     }),
   );
+  const sprintId = useSelector((app: AppState) => app.user.selectedProject?.activeSprint);
 
   const updateIssueDetail = async (issueId: string, body: UpdateIssueBody) => {
     try {
@@ -101,7 +102,7 @@ export const KanbanBoard: React.FC = () => {
         const body = {
           status: columnId,
           label: `Issue ${issues.length + 1}`,
-          sprintId: sprintId,
+          sprint: sprintId,
         };
         const res = await createNewIssue(body);
 
