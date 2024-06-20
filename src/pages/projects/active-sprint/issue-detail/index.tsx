@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   Avatar,
+  Badge,
   Breadcrumb,
   Button,
   Col,
@@ -23,20 +24,20 @@ import {
 } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { ChangesHistory } from './ChangesHistory.tsx';
-import { Issue } from '../../../requests/types/issue.interface.ts';
-import { getIssueDetailById, updateIssueById } from '../../../requests/issue.request.ts';
-import { Priority, Status } from '../../../constants';
+import { Issue } from '../../../../requests/types/issue.interface.ts';
+import { getIssueDetailById, updateIssueById } from '../../../../requests/issue.request.ts';
+import { Priority, Status } from '../../../../constants';
 import { PlusOutlined } from '@ant-design/icons';
 import SkeletonInput from 'antd/es/skeleton/Input';
 import SkeletonAvatar from 'antd/es/skeleton/Avatar';
 import toast from 'react-hot-toast';
-import { AppState, useDispatch, useSelector } from '../../../redux/store';
-import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
+import { AppState, useDispatch, useSelector } from '../../../../redux/store';
+import { getProjectDetail } from '../../../../redux/slices/user.slice.ts';
 import moment from 'moment';
-import { getStatusTagColor, toCapitalize } from '../../../utils/project.util.ts';
+import { getStatusTagColor, toCapitalize } from '../../../../utils/project.util.ts';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'antd/es/form/Form';
-import { Loading } from '../../loading/Loading.tsx';
+import { Loading } from '../../../../components/loading/Loading.tsx';
 import { CommentList } from './CommentList.tsx';
 import { LoggedTime } from './LoggedTime.tsx';
 
@@ -132,6 +133,7 @@ export const IssueDetail: React.FC = () => {
           label: item.firstname + ' ' + item.lastname,
           emoji: item.profilePic,
           desc: item.email,
+          rating: item.rating,
         });
       });
       setOptions(userList);
@@ -335,15 +337,21 @@ export const IssueDetail: React.FC = () => {
                           optionFilterProp="children"
                           filterOption={filterOption}
                           // @ts-ignore
-                          options={options}
+                          options={options.sort((a, b) => b.rating - a.rating)}
                           optionRender={(option) => (
                             <Space>
-                              <Avatar
-                                shape="square"
-                                src={option.data.emoji}
-                                className="w-10"
-                                alt="avatar"
-                              />
+                              <Badge.Ribbon
+                                text={option.data.rating * 5}
+                                placement="end"
+                                color="yellow"
+                              >
+                                <Avatar
+                                  shape="square"
+                                  src={option.data.emoji}
+                                  className="w-12 h-12"
+                                  alt="avatar"
+                                />
+                              </Badge.Ribbon>
                               <div className="flex flex-col">
                                 <span className="font-medium">{option.data.label}</span>
                                 <span className="text-sm">{option.data.desc}</span>
@@ -378,7 +386,7 @@ export const IssueDetail: React.FC = () => {
                         <DatePicker className="w-full" format="YYYY/MM/DD" />
                       </Form.Item>
                     ) : (
-                      <span>{moment(issue?.dueDate).calendar()}</span>
+                      <span>{moment(issue?.dueDate).format('MM/DD/YYYY')}</span>
                     )}
                   </Col>
                 </Row>

@@ -2,12 +2,15 @@ import React, { useEffect } from 'react';
 import { Avatar, Button, Form, FormProps, message, Spin, Tooltip } from 'antd';
 import { Comment } from '@ant-design/compatible';
 import moment from 'moment';
-import { CreateIssueCommentBody, IssueComment } from '../../../requests/types/issue.interface.ts';
-import { AppState, useSelector } from '../../../redux/store';
+import {
+  CreateIssueCommentBody,
+  IssueComment,
+} from '../../../../requests/types/issue.interface.ts';
+import { AppState, useSelector } from '../../../../redux/store';
 import TextArea from 'antd/es/input/TextArea';
 import { useForm } from 'antd/es/form/Form';
 import { useParams } from 'react-router-dom';
-import { createIssueComment, getIssueComment } from '../../../requests/issue.request.ts';
+import { createIssueComment, getIssueComment } from '../../../../requests/issue.request.ts';
 
 export const CommentList: React.FC = () => {
   const user = useSelector((app: AppState) => app.user.userInfo);

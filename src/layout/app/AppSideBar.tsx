@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { IoChatbubbles, IoFileTrayStacked } from 'react-icons/io5';
 import { FaChartBar, FaCode, FaList } from 'react-icons/fa';
 import { AppState, useSelector } from '../../redux/store';
+import { FaFileCode } from 'react-icons/fa6';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -41,47 +42,42 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     navigate(key);
   };
 
-  const menuItems: ItemType[] = project
-    ? [
-        {
-          key: `/projects`,
-          label: <span className="text-bold">Project list</span>,
-          icon: <FaList />,
-        },
-        {
-          key: `/projects/${project?._id}/active-sprint/`,
-          label: <span className="text-bold">Active sprint</span>,
-          icon: <FaCode />,
-        },
-        {
-          key: `/projects/${project?._id}/backlog`,
-          label: <span className="text-bold">Backlog</span>,
-          icon: <IoFileTrayStacked />,
-        },
-        {
-          key: `/projects/${project?._id}/report/`,
-          label: <span className="text-bold">Report</span>,
-          icon: <FaChartBar />,
-        },
-
-        {
-          key: '/messages',
-          label: <span className="text-bold">Messages</span>,
-          icon: <IoChatbubbles />,
-        },
-      ]
-    : [
-        {
-          key: `/projects`,
-          label: <span className="text-bold">Project list</span>,
-          icon: <FaList />,
-        },
-        {
-          key: '/messages',
-          label: <span className="text-bold">Messages</span>,
-          icon: <IoChatbubbles />,
-        },
-      ];
+  const menuItems: ItemType[] = [
+    {
+      key: '/project-list',
+      label: <span className="text-bold">Project list</span>,
+      icon: <FaList />,
+    },
+    {
+      key: `/projects`,
+      label: <span className="text-bold">{project?.name ?? 'Project'}</span>,
+      icon: <FaFileCode />,
+      children: project
+        ? [
+            {
+              key: `/projects/${project?._id}/active-sprint/`,
+              label: <span className="text-bold">Active sprint</span>,
+              icon: <FaCode />,
+            },
+            {
+              key: `/projects/${project?._id}/backlog`,
+              label: <span className="text-bold">Backlog</span>,
+              icon: <IoFileTrayStacked />,
+            },
+            {
+              key: `/projects/${project?._id}/report/`,
+              label: <span className="text-bold">Report</span>,
+              icon: <FaChartBar />,
+            },
+          ]
+        : [],
+    },
+    {
+      key: '/messages',
+      label: <span className="text-bold">Messages</span>,
+      icon: <IoChatbubbles />,
+    },
+  ];
 
   return (
     <Layout.Sider

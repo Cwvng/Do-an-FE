@@ -21,7 +21,7 @@ import {
 import { IoCreate } from 'react-icons/io5';
 import { getAllOtherUsers } from '../../../requests/user.request.ts';
 import { createGroupChat, createNewChat } from '../../../requests/chat.request.ts';
-import { ChatNameCard } from '../../../components/chat/ChatNameCard.tsx';
+import { ChatNameCard } from './ChatNameCard.tsx';
 import { AppState, useDispatch, useSelector } from '../../../redux/store';
 import { getChatList, setSelectedChat } from '../../../redux/slices/user.slice.ts';
 
@@ -118,7 +118,7 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
         />
         <Divider />
 
-        <div style={{ overflowY: 'scroll', overflowX: 'hidden' }}>
+        <div className="overflow-auto px-3">
           {chatList && chatList.length > 0 ? (
             chatList.map((item, index) => (
               <div key={index} onClick={() => dispatch(setSelectedChat(item))}>

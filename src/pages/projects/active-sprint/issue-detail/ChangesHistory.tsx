@@ -1,8 +1,8 @@
 import React from 'react';
 import { Avatar, Tooltip } from 'antd';
-import { IssueHistory } from '../../../requests/types/issue.interface';
+import { IssueHistory } from '../../../../requests/types/issue.interface.ts';
 import moment from 'moment/moment';
-import { toCapitalize } from '../../../utils/project.util.ts';
+import { toCapitalize } from '../../../../utils/project.util.ts';
 import { Comment } from '@ant-design/compatible';
 
 interface ChangesHistoryProps {

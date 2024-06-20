@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { FaRegQuestionCircle } from 'react-icons/fa';
 import moment from 'moment/moment';
-import { getSprintSummary } from '../../../requests/sprint.request.ts';
-import { Issue } from '../../../requests/types/issue.interface.ts';
-import { Modal } from 'antd';
-import { AppState, useSelector } from '../../../redux/store';
+import { getSprintSummary } from '../../../../requests/sprint.request.ts';
+import { Issue } from '../../../../requests/types/issue.interface.ts';
+import { Divider, Modal } from 'antd';
+import { AppState, useSelector } from '../../../../redux/store';
 
 interface CumulativeFlowProps {
   issueList: Issue[] | undefined;
@@ -18,13 +18,13 @@ export const CumulativeFlow: React.FC<CumulativeFlowProps> = ({ labels }) => {
   const [doneData, setDoneData] = useState<number[]>([]);
   const [openTutorial, setOpenTutorial] = React.useState(false);
 
-  const sprintId = useSelector((app: AppState) => app.user.selectedProject?.activeSprint);
+  const project = useSelector((app: AppState) => app.user.selectedProject);
 
   useEffect(() => {
     const getSprintSummaryList = async () => {
       try {
-        if (sprintId) {
-          const res = await getSprintSummary(sprintId);
+        if (project?.activeSprint) {
+          const res = await getSprintSummary(project.activeSprint);
 
           const newData = labels.map((label) => {
             const summary = res.find(
@@ -70,11 +70,11 @@ export const CumulativeFlow: React.FC<CumulativeFlowProps> = ({ labels }) => {
     };
 
     getSprintSummaryList();
-  }, [labels, sprintId]);
+  }, [labels, project, project?.activeSprint]);
 
   return (
-    <div className="w-full flex flex-row gap-5">
-      <div className="border-1 p-5 border-border w-3/4 text-nowrap rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
+    <div className="flex-1 flex flex-col gap-5">
+      <div className="border-1 p-5 border-border w-3/4 flex-1 text-nowrap rounded-lg shadow-md">
         <div className="flex items-center gap-2">
           <div className="text-secondary text-xl font-bold">Cumulative Flow Chart</div>
           <span>
@@ -83,51 +83,56 @@ export const CumulativeFlow: React.FC<CumulativeFlowProps> = ({ labels }) => {
               className="hover:cursor-pointer"
             />
           </span>
+        </div>{' '}
+        <Divider className="m-2" />
+        <div className="flex-1 h-90">
+          <Line
+            options={{
+              maintainAspectRatio: false,
+              aspectRatio: 1,
+              elements: {
+                line: {
+                  tension: 0.23,
+                },
+              },
+              responsive: true,
+              scales: {
+                x: {
+                  beginAtZero: true,
+                },
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            }}
+            data={{
+              labels,
+              datasets: [
+                {
+                  label: 'Done',
+                  data: doneData,
+                  borderColor: 'rgba(145,170,201,255)',
+                  backgroundColor: 'rgba(145,170,201,0.5)',
+                  fill: 'origin',
+                },
+                {
+                  label: 'In Progress',
+                  data: inProgressData,
+                  borderColor: 'rgba(205,150,149,255)',
+                  backgroundColor: 'rgba(205,150,149,0.5)',
+                  fill: 'origin',
+                },
+                {
+                  label: 'New',
+                  data: newData,
+                  borderColor: 'rgba(186,209,160,255)',
+                  backgroundColor: 'rgba(186,209,160,0.5)',
+                  fill: 'origin',
+                },
+              ],
+            }}
+          />
         </div>
-        <Line
-          options={{
-            elements: {
-              line: {
-                tension: 0.23,
-              },
-            },
-            responsive: true,
-            scales: {
-              x: {
-                beginAtZero: true,
-              },
-              y: {
-                beginAtZero: true,
-              },
-            },
-          }}
-          data={{
-            labels,
-            datasets: [
-              {
-                label: 'Done',
-                data: doneData,
-                borderColor: 'rgba(145,170,201,255)',
-                backgroundColor: 'rgba(145,170,201,0.5)',
-                fill: 'origin',
-              },
-              {
-                label: 'In Progress',
-                data: inProgressData,
-                borderColor: 'rgba(205,150,149,255)',
-                backgroundColor: 'rgba(205,150,149,0.5)',
-                fill: 'origin',
-              },
-              {
-                label: 'New',
-                data: newData,
-                borderColor: 'rgba(186,209,160,255)',
-                backgroundColor: 'rgba(186,209,160,0.5)',
-                fill: 'origin',
-              },
-            ],
-          }}
-        />
       </div>
       <Modal
         title={<span className="text-xl font-bold text-secondary">What is Cumulative Flow?</span>}

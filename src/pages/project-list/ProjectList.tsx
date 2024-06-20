@@ -3,12 +3,14 @@ import {
   Avatar,
   Breadcrumb,
   Button,
+  Col,
   Dropdown,
   Form,
   FormProps,
   Input,
   message,
   Modal,
+  Row,
   Select,
   SelectProps,
   Space,
@@ -28,6 +30,7 @@ import { Message } from '../../constants';
 import { createGroupChat } from '../../requests/chat.request.ts';
 import { useSelector } from '../../redux/store';
 import moment from 'moment';
+
 export const ProjectList: React.FC = () => {
   const [projectList, setProjectList] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -109,35 +112,43 @@ export const ProjectList: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-white p-5">
-      <Breadcrumb
-        items={[
-          {
-            title: (
-              <span className="cursor-pointer text-gray-400" onClick={() => navigate('/projects')}>
-                Project
-              </span>
-            ),
-          },
-        ]}
-      ></Breadcrumb>
+      <Row>
+        <Breadcrumb
+          items={[
+            {
+              title: (
+                <span
+                  className="cursor-pointer font-bold text-primary "
+                  onClick={() => navigate('/projects')}
+                >
+                  Project
+                </span>
+              ),
+            },
+          ]}
+        />
+      </Row>
+
       <h2 className="mt-5 text-secondary">Your project ({projectList.length})</h2>
-      <div>
-        <Input
-          className="w-1/3"
-          size="large"
-          value={searchParams.get('name') || ''}
-          onChange={handleSearch}
-          suffix={<FaSearch className="text-primary" />}
-        />
-        <Button
-          shape="circle"
-          className="ml-3"
-          title="Create new project"
-          type="primary"
-          onClick={() => setOpenModal(true)}
-          icon={<FaPlus />}
-        />
-      </div>
+      <Row className="w-1/2">
+        <Col span={8}>
+          <Input
+            value={searchParams.get('name') || ''}
+            onChange={handleSearch}
+            suffix={<FaSearch className="text-primary" />}
+          />
+        </Col>
+        <Col className="ml-3" span={10}>
+          <Button
+            shape="circle"
+            className="ml-3"
+            title="Create new project"
+            type="primary"
+            onClick={() => setOpenModal(true)}
+            icon={<FaPlus />}
+          />
+        </Col>
+      </Row>
       <Table
         className="mt-3"
         dataSource={projectList}
@@ -153,7 +164,7 @@ export const ProjectList: React.FC = () => {
             title: 'Name',
             dataIndex: 'name',
             key: 'name',
-            render: (name, record) => <Link to={`/projects/${record._id}`}>{name}</Link>,
+            render: (name, record) => <Link to={`/project-list/${record._id}`}>{name}</Link>,
           },
           {
             title: 'Role',
@@ -238,7 +249,7 @@ export const ProjectList: React.FC = () => {
                     {
                       label: <span>Detail</span>,
                       key: 'detail',
-                      onClick: () => navigate(`/projects/${record._id}`),
+                      onClick: () => navigate(`/project-list/${record._id}`),
                     },
                     {
                       label: <span className="text-red-500">Delete</span>,

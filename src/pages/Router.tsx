@@ -6,16 +6,17 @@ import { Error404 } from '../components/errors/Error404.tsx';
 import { Error403 } from '../components/errors/Error403.tsx';
 import { AuthLayout } from '../layout/auth/AuthLayout.tsx';
 import { AppLayout } from '../layout/app/AppLayout.tsx';
-import { ActiveSprint } from './projects/ActiveSprint.tsx';
+import { ActiveSprint } from './projects/active-sprint/ActiveSprint.tsx';
 import { getAccessToken } from '../utils/storage.util.ts';
-import { Messages } from './messages';
-import { ProjectList } from './projects/ProjectList.tsx';
+import { Messages } from './messages/Messages.tsx';
+import { ProjectList } from './project-list/ProjectList.tsx';
 import { VerifyEmail } from './auth/VerifyEmail.tsx';
 import { SendEmailReset } from './auth/SendEmailReset.tsx';
 import { ResetPassword } from './auth/ResetPassword.tsx';
-import { IssueDetail } from '../components/kanban/IssueDetail';
-import { Backlog } from './backlog/Backlog.tsx';
-import { Report } from './report/Report.tsx';
+import { IssueDetail } from './projects/active-sprint/issue-detail';
+import { Backlog } from './projects/backlog/Backlog.tsx';
+import { Report } from './projects/report/Report.tsx';
+import { ProjectDetail } from './project-list/project-detail/ProjectDetail.tsx';
 
 interface ProtectedRouteProps {
   children: any;
@@ -58,14 +59,18 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Navigate to={`/projects`} replace />} />
+        <Route path="/" element={<Navigate to={`/project-list`} replace />} />
         <Route path="/messages" element={<Messages />} />
-        <Route path="/projects" element={<ProjectList />} />
-        <Route path="/projects/:id/active-sprint" element={<ActiveSprint />} />
-        <Route path="/projects/:id/issue/:issueId" element={<IssueDetail />} />
 
+        <Route path="/project-list" element={<ProjectList />} />
+
+        <Route path="/project-list/:id" element={<ProjectDetail />} />
+
+        <Route path="/projects/:id/active-sprint" element={<ActiveSprint />} />
         <Route path="/projects/:id/backlog" element={<Backlog />} />
         <Route path="/projects/:id/report" element={<Report />} />
+
+        <Route path="/projects/:id/issue/:issueId" element={<IssueDetail />} />
       </Route>
     </Routes>
   );

@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { FaRegQuestionCircle } from 'react-icons/fa';
-import { Modal } from 'antd';
+import { Divider, Modal } from 'antd';
 import moment from 'moment';
-import { getSprintSummary } from '../../../requests/sprint.request.ts';
-import { Issue } from '../../../requests/types/issue.interface.ts';
-import { AppState, useSelector } from '../../../redux/store';
+import { getSprintSummary } from '../../../../requests/sprint.request.ts';
+import { Issue } from '../../../../requests/types/issue.interface.ts';
+import { AppState, useSelector } from '../../../../redux/store';
 
 interface BurnDownProps {
   issueList: Issue[] | undefined;
@@ -22,8 +22,8 @@ export const BurndownChart: React.FC<BurnDownProps> = ({ labels }) => {
     const generateIssueData = async (totalIssues: number) => {
       if (totalIssues) {
         const data = [];
-        for (let i = 0; i <= 14; i++) {
-          data.push(totalIssues - (totalIssues / 14) * i);
+        for (let i = 0; i < labels.length; i++) {
+          data.push(Math.floor(totalIssues - (totalIssues / labels.length) * i));
         }
         setIdealData(data);
       }
@@ -91,8 +91,8 @@ export const BurndownChart: React.FC<BurnDownProps> = ({ labels }) => {
   );
 
   return (
-    <div className="w-full flex flex-row gap-5">
-      <div className="border-1 p-5 border-border w-3/4 h-full text-nowrap rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
+    <div className="flex-1 flex flex-col gap-5">
+      <div className="border-1 p-5 border-border w-3/4 flex-1 text-nowrap rounded-lg shadow-md">
         <div className="flex items-center gap-2">
           <div className="text-secondary text-xl font-bold">Burndown chart</div>
           <span>
@@ -102,17 +102,21 @@ export const BurndownChart: React.FC<BurnDownProps> = ({ labels }) => {
             />
           </span>
         </div>
-        <Line
-          className="w-full h-full"
-          data={chartData}
-          options={{
-            scales: {
-              y: {
-                beginAtZero: true,
+        <Divider className="m-2" />
+        <div className="flex-1 h-90">
+          <Line
+            data={chartData}
+            options={{
+              maintainAspectRatio: false,
+              aspectRatio: 1,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
               },
-            },
-          }}
-        />
+            }}
+          />
+        </div>
       </div>
       <Modal
         title={<span className="text-xl font-bold text-secondary">What is Burndown Chart?</span>}

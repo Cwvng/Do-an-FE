@@ -9,6 +9,7 @@ export interface User {
   profilePic: string;
   createdAt: string;
   updatedAt: string;
+  rating: number;
 }
 export interface Chat {
   _id: string;
