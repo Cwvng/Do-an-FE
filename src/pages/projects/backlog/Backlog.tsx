@@ -28,23 +28,28 @@ import {
 import { IoIosArrowDown, IoIosArrowUp, IoIosMore } from 'react-icons/io';
 import moment from 'moment/moment';
 import { FaEllipsisV, FaPlus, FaSearch } from 'react-icons/fa';
-import { AppState, dispatch, useSelector } from '../../redux/store';
+import { AppState, dispatch, useSelector } from '../../../redux/store';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getProjectBacklog } from '../../requests/project.request.ts';
+import { getProjectBacklog } from '../../../requests/project.request.ts';
 import TextArea from 'antd/es/input/TextArea';
 import { useForm } from 'antd/es/form/Form';
-import { Priority, Status } from '../../constants';
+import { Priority, Status } from '../../../constants';
 import {
   getRemainingDaysPercent,
   getStatusTagColor,
   toCapitalize,
-} from '../../utils/project.util.ts';
+} from '../../../utils/project.util.ts';
 import { ExclamationCircleFilled, PlusOutlined } from '@ant-design/icons';
-import { createProjectSprint, deleteSprint, updateSprint } from '../../requests/sprint.request.ts';
-import { ProjectSprint } from '../../requests/types/sprint.interface.ts';
-import { Id } from '../../components/kanban/type.tsx';
-import { createNewIssue, deleteIssueById } from '../../requests/issue.request.ts';
-import { getProjectDetail } from '../../redux/slices/user.slice.ts';
+import {
+  createProjectSprint,
+  deleteSprint,
+  updateSprint,
+} from '../../../requests/sprint.request.ts';
+import { ProjectSprint } from '../../../requests/types/sprint.interface.ts';
+import { Id } from '../active-sprint/type.tsx';
+import { createNewIssue, deleteIssueById } from '../../../requests/issue.request.ts';
+import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
+import { SprintDetail } from './SprintDetail.tsx';
 
 export const Backlog: React.FC = () => {
   const project = useSelector((app: AppState) => app.user.selectedProject);
@@ -62,6 +67,7 @@ export const Backlog: React.FC = () => {
   const [openAddIssue, setOpenAddIssue] = React.useState(false);
   const [fileList, setFileList] = React.useState<UploadFile[]>();
   const [selectedSprint, setSelectedSprint] = React.useState<string>();
+  const [openDetail, setOpenDetail] = React.useState(false);
 
   const getProjectBacklogList = async () => {
     try {
@@ -220,7 +226,6 @@ export const Backlog: React.FC = () => {
           ]}
         />
       </Row>
-
       {loading ? (
         <Spin />
       ) : (
@@ -273,7 +278,7 @@ export const Backlog: React.FC = () => {
                 </Col>
               </Row>
 
-              <div className="h-full flex flex-col gap-4 overflow-auto">
+              <div className="h-full flex flex-col gap-4 overflow-auto px-3">
                 {backlog &&
                   backlog?.map((item, index) => (
                     <div className="bg-lightBg rounded-md p-2" key={index}>
@@ -320,6 +325,10 @@ export const Backlog: React.FC = () => {
                                     {
                                       label: <span>Detail</span>,
                                       key: `edit${index}`,
+                                      onClick: () => {
+                                        setOpenDetail(true);
+                                        setSelectedSprint(item._id);
+                                      },
                                     },
                                     {
                                       label: <span>Complete sprint</span>,
@@ -330,6 +339,10 @@ export const Backlog: React.FC = () => {
                                     {
                                       label: <span>Detail</span>,
                                       key: `edit${index}`,
+                                      onClick: () => {
+                                        setOpenDetail(true);
+                                        setSelectedSprint(item._id);
+                                      },
                                     },
                                     {
                                       label: (
@@ -538,7 +551,6 @@ export const Backlog: React.FC = () => {
           )}
         </>
       )}
-
       <Modal
         title={<span className="text-xl font-bold text-secondary">Create new sprint</span>}
         centered
@@ -743,6 +755,16 @@ export const Backlog: React.FC = () => {
             </Upload>
           </Form.Item>
         </Form>
+      </Modal>
+      <Modal
+        title={<span className="text-xl font-bold text-secondary">Sprint detail</span>}
+        centered
+        open={openDetail}
+        onCancel={() => setOpenDetail(false)}
+        onOk={() => setOpenDetail(false)}
+        cancelButtonProps={{ className: 'border-primary text-primary' }}
+      >
+        <SprintDetail sprintId={selectedSprint!} />
       </Modal>
     </div>
   );

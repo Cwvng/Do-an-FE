@@ -18,20 +18,20 @@ import {
   Tooltip,
 } from 'antd';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { KanbanBoard } from '../../components/kanban/KanbanBoard.tsx';
-import { AppState, useDispatch, useSelector } from '../../redux/store';
-import { getProjectDetail } from '../../redux/slices/user.slice.ts';
+import { KanbanBoard } from './KanbanBoard.tsx';
+import { AppState, useDispatch, useSelector } from '../../../redux/store';
+import { getProjectDetail } from '../../../redux/slices/user.slice.ts';
 import { useForm } from 'antd/es/form/Form';
-import { getAllOtherUsers } from '../../requests/user.request.ts';
-import { updateProjectById } from '../../requests/project.request.ts';
+import { getAllOtherUsers } from '../../../requests/user.request.ts';
+import { updateProjectById } from '../../../requests/project.request.ts';
 import { IoIosTimer } from 'react-icons/io';
 import { FaEllipsisV, FaSearch } from 'react-icons/fa';
-import { getRemainingDay, getRemainingDaysPercent } from '../../utils/project.util.ts';
-import { Priority, Status } from '../../constants';
-import { ProjectSprint } from '../../requests/types/sprint.interface.ts';
-import { getSprintDetail, updateSprint } from '../../requests/sprint.request.ts';
+import { getRemainingDay, getRemainingDaysPercent } from '../../../utils/project.util.ts';
+import { Priority, Status } from '../../../constants';
+import { ProjectSprint } from '../../../requests/types/sprint.interface.ts';
+import { getSprintDetail, updateSprint } from '../../../requests/sprint.request.ts';
 import moment from 'moment';
-import { updateIssueById } from '../../requests/issue.request.ts';
+import { updateIssueById } from '../../../requests/issue.request.ts';
 
 export const ActiveSprint: React.FC = () => {
   const { id } = useParams();
@@ -276,7 +276,7 @@ export const ActiveSprint: React.FC = () => {
             </div>
           </>
           <Modal
-            title={<span className="text-xl font-bold text-secondary">Complete sprint</span>}
+            title={<span className="text-xl font-bold text-secondary">Complete sprint 🎯</span>}
             centered
             open={openCompleteSprint}
             onCancel={() => {

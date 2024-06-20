@@ -1,5 +1,5 @@
 import React from 'react';
-import { Message } from '../../requests/types/chat.interface.ts';
+import { Message } from '../../../requests/types/chat.interface.ts';
 import ScrollableFeed from 'react-scrollable-feed';
 import {
   isFirstMessageOfDay,
@@ -9,12 +9,12 @@ import {
   isSameUser,
   isTodayFirstMessage,
   isUserMessage,
-} from './utils.tsx';
+} from '../utils.tsx';
 import { useSelector } from 'react-redux';
 import { Avatar, Divider, Dropdown, Image, Input, message, theme, Tooltip } from 'antd';
-import { AppState } from '../../redux/store';
-import { getTime } from '../../utils/message.util.tsx';
-import { deleteMessage, updateMessage } from '../../requests/message.request.ts';
+import { AppState } from '../../../redux/store';
+import { getTime } from '../../../utils/message.util.tsx';
+import { deleteMessage, updateMessage } from '../../../requests/message.request.ts';
 
 interface MessageContainerProps {
   messages: Message[];

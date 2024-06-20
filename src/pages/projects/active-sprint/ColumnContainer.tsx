@@ -6,7 +6,7 @@ import { Button, Input, Spin } from 'antd';
 import { IoClose } from 'react-icons/io5';
 import { IssueCard } from './IssueCard.tsx';
 import { FaPlus } from 'react-icons/fa';
-import { Issue } from '../../requests/types/issue.interface.ts';
+import { Issue } from '../../../requests/types/issue.interface.ts';
 
 interface ColumnContainerProps {
   column: Column;

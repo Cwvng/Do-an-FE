@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
-import { BurndownChart } from './ReportChart/BurndownChart.tsx';
+import { BurndownChart } from './component/BurndownChart.tsx';
 import { Breadcrumb, Row, Spin, Tabs } from 'antd';
-import { AppState, useSelector } from '../../redux/store';
+import { AppState, useSelector } from '../../../redux/store';
 import { useNavigate } from 'react-router-dom';
-import { CumulativeFlow } from './ReportChart/CumulativeFlow.tsx';
+import { CumulativeFlow } from './component/CumulativeFlow.tsx';
 import moment from 'moment/moment';
-import { ProjectSprint } from '../../requests/types/sprint.interface.ts';
-import { getSprintDetail } from '../../requests/sprint.request.ts';
-import { StatusChart } from './ReportChart/StatusChart.tsx';
+import { ProjectSprint } from '../../../requests/types/sprint.interface.ts';
+import { getSprintDetail } from '../../../requests/sprint.request.ts';
+import { StatusChart } from './component/StatusChart.tsx';
 
 export const Report: React.FC = () => {
   const project = useSelector((app: AppState) => app.user.selectedProject!);
@@ -20,7 +20,7 @@ export const Report: React.FC = () => {
     try {
       setLoading(true);
 
-      if (project.activeSprint) {
+      if (project?.activeSprint) {
         const res = await getSprintDetail(project.activeSprint);
         setSprint(res);
       }
@@ -44,8 +44,12 @@ export const Report: React.FC = () => {
     getSprintInfor();
   }, []);
 
+  useEffect(() => {
+    getSprintInfor();
+  }, [project]);
+
   return (
-    <div className="bg-white gap-3 flex flex-col p-5 h-full">
+    <div className="bg-white gap-3 flex flex-col p-5 flex-1 overflow-hidden">
       <Row>
         <Breadcrumb
           items={[
@@ -66,12 +70,15 @@ export const Report: React.FC = () => {
           ]}
         />
       </Row>
-      <div className="text-secondary text-2xl m-0 p-0 font-bold">Report</div>
+
+      <div className="text-secondary text-2xl m-0 p-0 font-bold">
+        Sprint {sprint?.ordinary} Report
+      </div>
       {loading ? (
         <Spin />
       ) : (
         <Tabs
-          className="m-0"
+          className="m-0 flex-1 overflow-overlay overflow-scroll"
           items={[
             {
               key: 'Burndown',

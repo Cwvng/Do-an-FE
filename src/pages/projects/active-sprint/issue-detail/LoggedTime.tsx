@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, Button, DatePicker, Input, message, Modal, Progress, Tooltip } from 'antd';
-import { Issue } from '../../../requests/types/issue.interface.ts';
-import { updateIssueById } from '../../../requests/issue.request.ts';
+import { Issue } from '../../../../requests/types/issue.interface.ts';
+import { updateIssueById } from '../../../../requests/issue.request.ts';
 import moment from 'moment/moment';
 import { Comment } from '@ant-design/compatible';
 

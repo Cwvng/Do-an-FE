@@ -15,7 +15,9 @@ export const AppLayout: React.FC<IAppLayout> = ({ children }) => {
       <AppHeader toggleSidebar={toggleSidebar} />
       <Layout className="flex-1">
         <AppSidebar collapsed={isSidebarCollapsed} />
-        <Layout.Content className="bg-gsray-100 font-semibold">{children}</Layout.Content>
+        <Layout.Content className="bg-gsray-100 font-semibold flex flex-col">
+          {children}
+        </Layout.Content>
       </Layout>
     </Layout>
   );

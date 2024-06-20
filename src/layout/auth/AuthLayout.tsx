@@ -16,10 +16,7 @@ export const AuthLayout: React.FC<IAuthLayout> = ({ children }) => {
   return (
     <section className="auth">
       <div className="h-screen flex flex-row bg-auth-bg bg-cover bg-center justify-center items-center">
-        <div
-          className="w-1/3 h-min bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-70 border border-gray-100
- flex flex-col p-10 my-20 justify-center"
-        >
+        <div className="w-1/3 h-min bg-white rounded-md border border-gray-100 flex flex-col p-10 my-20 justify-center">
           {children}
         </div>
       </div>

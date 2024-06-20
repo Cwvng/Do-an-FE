@@ -16,16 +16,16 @@ import { FaPlus } from 'react-icons/fa';
 import { ColumnContainer } from './ColumnContainer.tsx';
 import { IssueCard } from './IssueCard.tsx';
 import { Button, message } from 'antd';
-import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
-import { Status } from '../../constants';
+import { Issue, UpdateIssueBody } from '../../../requests/types/issue.interface.ts';
+import { Status } from '../../../constants';
 import {
   createNewIssue,
   deleteIssueById,
   getIssueList,
   updateIssueById,
-} from '../../requests/issue.request.ts';
+} from '../../../requests/issue.request.ts';
 import { useSearchParams } from 'react-router-dom';
-import { AppState, useSelector } from '../../redux/store';
+import { AppState, useSelector } from '../../../redux/store';
 
 export const KanbanBoard: React.FC = () => {
   const defaultCols: Column[] = [

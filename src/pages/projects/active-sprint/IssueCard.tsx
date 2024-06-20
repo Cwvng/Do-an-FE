@@ -16,15 +16,15 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
-import { CircleButton } from '../common/button/CircleButton.tsx';
+import { CircleButton } from '../../../components/common/button/CircleButton.tsx';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Issue, UpdateIssueBody } from '../../requests/types/issue.interface.ts';
+import { Issue, UpdateIssueBody } from '../../../requests/types/issue.interface.ts';
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons';
-import { getStatusTagColor, toCapitalize } from '../../utils/project.util.ts';
+import { getStatusTagColor, toCapitalize } from '../../../utils/project.util.ts';
 import { RiEditFill } from 'react-icons/ri';
 import moment from 'moment';
-import { Status } from '../../constants';
+import { Status } from '../../../constants';
 
 interface IssueCardProps {
   issue: Issue;

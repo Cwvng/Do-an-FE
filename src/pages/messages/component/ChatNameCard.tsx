@@ -1,11 +1,11 @@
 import React from 'react';
-import { Chat } from '../../requests/types/chat.interface.ts';
+import { Chat } from '../../../requests/types/chat.interface.ts';
 import { Avatar, theme } from 'antd';
 import { useSelector } from 'react-redux';
-import { AppState } from '../../redux/store';
-import { getReceiverUser } from '../../utils/message.util.tsx';
-import { useSocketContext } from '../../context/SocketContext.tsx';
-import { isTodayMessage } from './utils.tsx';
+import { AppState } from '../../../redux/store';
+import { getReceiverUser } from '../../../utils/message.util.tsx';
+import { useSocketContext } from '../../../context/SocketContext.tsx';
+import { isTodayMessage } from '../utils.tsx';
 
 interface ChatNameCardProps {
   item: Chat;
@@ -37,7 +37,8 @@ export const ChatNameCard: React.FC<ChatNameCardProps> = ({ item, isSelected }) 
               <Avatar
                 src={getReceiverUser(item.users, user.userInfo?._id)?.profilePic}
                 alt=""
-                className="rounded-8 object-contain w-full h-full"
+                shape="circle"
+                size="large"
               />
               {onlineUsers.includes(getReceiverUser(item.users, user.userInfo?._id)?._id) && (
                 <span className="absolute text-green-500 top-0 right-0">
