@@ -24,7 +24,7 @@ import { Issue } from '../../../requests/types/issue.interface.ts';
 import { ExclamationCircleFilled, PlusOutlined } from '@ant-design/icons';
 import { FaEllipsisV, FaPlus, FaSearch } from 'react-icons/fa';
 import { createNewIssue, deleteIssueById, getIssueList } from '../../../requests/issue.request.ts';
-import { CircleButton } from '../../../components/common/button/CircleButton.tsx';
+import { CircleButton } from '../../../components/button/CircleButton.tsx';
 import { getStatusTagColor, toCapitalize } from '../../../utils/project.util.ts';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useForm } from 'antd/es/form/Form';

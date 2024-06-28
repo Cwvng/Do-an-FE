@@ -14,28 +14,29 @@ import {
   UploadFile,
 } from 'antd';
 import { IoMdSend } from 'react-icons/io';
-import { Message } from '../../../requests/types/chat.interface.ts';
-import { accessChat, deleteChat } from '../../../requests/chat.request.ts';
+import { Chat, Message, User } from '../../../requests/types/chat.interface.ts';
+import { deleteChat, getChatDetail } from '../../../requests/chat.request.ts';
 import { MessageContainer } from './MessageContainer.tsx';
 import { SendMessagesBody } from '../../../requests/types/message.interface.ts';
 import { sendNewMessage } from '../../../requests/message.request.ts';
 import { useSocketContext } from '../../../context/SocketContext.tsx';
-import { getReceiverUser } from '../../../utils/message.util.tsx';
+import { getReceiverUser } from '../../../utils/message.util.ts';
 import { AppState, useDispatch, useSelector } from '../../../redux/store';
 import { FaSearch } from 'react-icons/fa';
-import { CircleButton } from '../../../components/common/button/CircleButton.tsx';
+import { CircleButton } from '../../../components/button/CircleButton.tsx';
 import { IoImageOutline } from 'react-icons/io5';
 import { FaEllipsisVertical, FaImage } from 'react-icons/fa6';
 import { Loading } from '../../../components/loading/Loading.tsx';
 import { getChatList } from '../../../redux/slices/user.slice.ts';
 import { ExclamationCircleFilled, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
 
 interface ChatContainerProps {
   toggleAttachment: () => void;
 }
 
 export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }) => {
-  const [chatData, setChatData] = React.useState<Message[]>([]);
+  const [messageList, setMessageList] = React.useState<Message[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [openModal, setOpenModal] = React.useState(false);
   const [previewImage, setPreviewImage] = React.useState('');
@@ -43,28 +44,31 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
   const [fileList, setFileList] = React.useState<UploadFile[]>();
   const [sendMessageLoading, setSendMessageLoading] = React.useState(false);
   const [openUpload, setOpenUpload] = React.useState(false);
+  const [receiver, setReceiver] = React.useState<User>();
+  const [selectedChat, setSelectedChat] = React.useState<Chat>();
 
   const { token } = theme.useToken();
   const { socket, onlineUsers } = useSocketContext();
   const userId = useSelector((app: AppState) => app.user.userInfo?._id);
-  const selectedChat = useSelector((app: AppState) => app.user.selectedChat);
-  const receiver = getReceiverUser(selectedChat?.users, userId);
+  const { id } = useParams();
   const [form] = Form.useForm();
   const dispatch = useDispatch();
 
-  const getSelectedChatData = async () => {
+  const getSelectedChatDetail = async () => {
     try {
-      if (selectedChat) {
-        const res = await accessChat(selectedChat._id);
-        setChatData(res);
+      if (id !== 'undefined' && id) {
+        const res = await getChatDetail(id);
+        setSelectedChat(res);
+        const receiver = getReceiverUser(res.users, userId);
+        setReceiver(receiver);
       }
     } finally {
-      console.log('done');
     }
   };
+
   const sendMessage: FormProps<SendMessagesBody>['onFinish'] = async (values) => {
     try {
-      if (selectedChat && values.content !== '') {
+      if (id && values.content !== '') {
         setSendMessageLoading(true);
         const formData = new FormData();
         if (values.images && values.images.length > 0)
@@ -72,9 +76,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
             formData.append('images', image.originFileObj);
           });
         if (values.content) formData.append('content', values.content);
-        if (selectedChat._id) formData.append('chatId', selectedChat._id);
+        if (id) formData.append('chatId', id);
         const res = await sendNewMessage(formData);
-        setChatData([...chatData, res]);
+        setMessageList([...messageList, res]);
 
         setOpenUpload(false);
         dispatch(getChatList());
@@ -88,7 +92,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
   const deleteSelectedChat = async () => {
     try {
       setLoading(true);
-      if (selectedChat?._id) await deleteChat(selectedChat._id);
+      if (id) await deleteChat(id);
       dispatch(getChatList());
     } finally {
       setLoading(false);
@@ -125,18 +129,18 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
   useEffect(() => {
     socket?.on('newMessage', (newMessage) => {
       newMessage.shouldShake = true;
-      if (newMessage.chat._id === selectedChat?._id) setChatData([...chatData, newMessage]);
+      if (newMessage.chat._id === id) setMessageList([...messageList, newMessage]);
     });
 
     return () => socket?.off('newMessage');
-  }, [socket, setChatData, chatData]);
+  }, [socket, setMessageList, messageList]);
 
   useEffect(() => {
-    getSelectedChatData();
-  }, [selectedChat]);
+    getSelectedChatDetail();
+  }, [id]);
 
   if (loading) return <Loading />;
-  if (!selectedChat)
+  if (!id || id === 'undefined')
     return (
       <div className="bg-lightBg h-full flex items-center justify-center flex-col">
         <img
@@ -200,7 +204,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
       </div>
       <div className="bg-lightBg flex flex-col h-full overflow-y-hidden justify-between p-5">
         <div className="h-full overflow-y-hidden">
-          <MessageContainer messages={chatData} updateMessageList={getSelectedChatData} />
+          <MessageContainer />
         </div>
         <div className="mt-5">
           <Form form={form} onFinish={sendMessage}>

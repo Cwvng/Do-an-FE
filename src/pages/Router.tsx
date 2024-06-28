@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { Login } from './auth/Login.tsx';
-import { Signup } from './auth/Signup.tsx';
 import { Error404 } from '../components/errors/Error404.tsx';
 import { Error403 } from '../components/errors/Error403.tsx';
 import { AuthLayout } from '../layout/auth/AuthLayout.tsx';
@@ -17,6 +16,8 @@ import { IssueDetail } from './projects/active-sprint/issue-detail';
 import { Backlog } from './projects/backlog/Backlog.tsx';
 import { Report } from './projects/report/Report.tsx';
 import { ProjectDetail } from './project-list/project-detail/ProjectDetail.tsx';
+import { SendEmailSignup } from './auth/SendEmailSignup.tsx';
+import { Signup } from './auth/Signup.tsx';
 
 interface ProtectedRouteProps {
   children: any;
@@ -43,9 +44,13 @@ export const AppRoutes: React.FC = () => {
         }
       >
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+
+        <Route path="/signup" element={<SendEmailSignup />} />
+        <Route path="/signup/:token" element={<Signup />} />
+
         <Route path="/reset-password/:id/:token" element={<ResetPassword />} />
         <Route path="/send-email" element={<SendEmailReset />} />
+
         <Route path="/verify-email/:id/:token" element={<VerifyEmail />} />
       </Route>
 
@@ -60,7 +65,7 @@ export const AppRoutes: React.FC = () => {
         }
       >
         <Route path="/" element={<Navigate to={`/project-list`} replace />} />
-        <Route path="/messages" element={<Messages />} />
+        <Route path="/messages/:id" element={<Messages />} />
 
         <Route path="/project-list" element={<ProjectList />} />
 

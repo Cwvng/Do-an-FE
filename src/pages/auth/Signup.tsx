@@ -1,12 +1,15 @@
 import { Button, Col, Form, Input, message, Row, Select } from 'antd';
 import Password from 'antd/es/input/Password';
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { signup } from '../../requests/auth.request.ts';
 import { setAccessToken } from '../../utils/storage.util.ts';
+import { isTokenExpired } from '../../utils/token.util.ts';
 
 export const Signup: React.FC = () => {
   const [loading, setLoading] = useState(false);
+
+  const { token } = useParams();
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -16,9 +19,9 @@ export const Signup: React.FC = () => {
       const values = await form.validateFields();
       // delete values.confirmPassword;
       const res = await signup(values);
-      if (res.access_token && res.user.isVerified) setAccessToken(res.access_token);
+      if (res.access_token) setAccessToken(res.access_token);
       // dispatch(updateUser(user));
-      message.success('Signup successfully. Please verify your email to login');
+      message.success('Signup successfully 🎉');
       navigate('/login');
     } catch (err) {
       console.error(err);
@@ -26,7 +29,15 @@ export const Signup: React.FC = () => {
       setLoading(false);
     }
   };
-
+  if (!isTokenExpired(token))
+    return (
+      <div className="flex flex-col items-center text-secondary">
+        <h3>Token has expired ⌛</h3>
+        <Button type="primary" onClick={() => navigate('/signup')}>
+          Register again
+        </Button>
+      </div>
+    );
   return (
     <>
       <h2>Sign up a new account ✍️</h2>

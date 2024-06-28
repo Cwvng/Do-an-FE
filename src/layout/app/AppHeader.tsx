@@ -22,7 +22,7 @@ import React, { useEffect } from 'react';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
 import { IoNotifications } from 'react-icons/io5';
 import { AppState, useDispatch, useSelector } from '../../redux/store';
-import { CircleButton } from '../../components/common/button/CircleButton';
+import { CircleButton } from '../../components/button/CircleButton';
 import { useForm } from 'antd/es/form/Form';
 import { updateUserInfo } from '../../requests/user.request.ts';
 import { UploadOutlined } from '@ant-design/icons';

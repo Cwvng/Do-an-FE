@@ -19,7 +19,7 @@ export interface ChangePassword {
   oldPassword: string;
   newPassword: string;
 }
-export interface SendEmailResetBody {
+export interface SendEmailBody {
   email: string;
 }
 export interface ResetPasswordBody {
