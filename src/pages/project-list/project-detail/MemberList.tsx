@@ -18,7 +18,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import { FaEllipsisV, FaPlus, FaSearch } from 'react-icons/fa';
-import { CircleButton } from '../../../components/common/button/CircleButton.tsx';
+import { CircleButton } from '../../../components/button/CircleButton.tsx';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useForm } from 'antd/es/form/Form';
 import { getAllOtherUsers, getUserIssueSummary } from '../../../requests/user.request.ts';

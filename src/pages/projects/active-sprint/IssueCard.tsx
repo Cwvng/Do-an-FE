@@ -16,7 +16,7 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
-import { CircleButton } from '../../../components/common/button/CircleButton.tsx';
+import { CircleButton } from '../../../components/button/CircleButton.tsx';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Issue, UpdateIssueBody } from '../../../requests/types/issue.interface.ts';
 import { UniqueIdentifier } from '@dnd-kit/core';

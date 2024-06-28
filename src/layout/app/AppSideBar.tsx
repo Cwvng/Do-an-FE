@@ -73,7 +73,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         : [],
     },
     {
-      key: '/messages',
+      key: '/messages/undefined',
       label: <span className="text-bold">Messages</span>,
       icon: <IoChatbubbles />,
     },
@@ -92,6 +92,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         className="h-full bg-lightBg"
         items={menuItems}
         mode="inline"
+        defaultOpenKeys={['/projects']}
         onSelect={handleMenuSelect}
         selectedKeys={[selectedMenu]}
         openKeys={openKey}

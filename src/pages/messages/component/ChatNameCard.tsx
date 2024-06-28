@@ -3,7 +3,7 @@ import { Chat } from '../../../requests/types/chat.interface.ts';
 import { Avatar, theme } from 'antd';
 import { useSelector } from 'react-redux';
 import { AppState } from '../../../redux/store';
-import { getReceiverUser } from '../../../utils/message.util.tsx';
+import { getReceiverUser } from '../../../utils/message.util.ts';
 import { useSocketContext } from '../../../context/SocketContext.tsx';
 import { isTodayMessage } from '../utils.tsx';
 

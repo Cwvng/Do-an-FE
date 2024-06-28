@@ -1,18 +1,17 @@
 import React, { useEffect } from 'react';
-import { AppState, useSelector } from '../../../redux/store';
 import { getChatImagesList } from '../../../requests/message.request.ts';
 import { Divider, Image } from 'antd';
 import moment from 'moment';
+import { useParams } from 'react-router-dom';
 
 export const Attachment: React.FC = () => {
-  const selectedChat = useSelector((app: AppState) => app.user.selectedChat);
-
   const [imagesList, setImagesList] = React.useState<any[]>();
+  const { id } = useParams();
 
   const getImagesList = async () => {
     try {
-      if (selectedChat) {
-        const res = await getChatImagesList(selectedChat._id);
+      if (id) {
+        const res = await getChatImagesList(id);
         setImagesList(res);
       }
     } finally {
@@ -21,7 +20,7 @@ export const Attachment: React.FC = () => {
 
   useEffect(() => {
     getImagesList();
-  }, [selectedChat]);
+  }, [id]);
 
   return (
     <div className="flex h-full flex-col ">

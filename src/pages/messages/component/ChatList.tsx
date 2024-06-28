@@ -22,8 +22,9 @@ import { IoCreate } from 'react-icons/io5';
 import { getAllOtherUsers } from '../../../requests/user.request.ts';
 import { createGroupChat, createNewChat } from '../../../requests/chat.request.ts';
 import { ChatNameCard } from './ChatNameCard.tsx';
-import { AppState, useDispatch, useSelector } from '../../../redux/store';
-import { getChatList, setSelectedChat } from '../../../redux/slices/user.slice.ts';
+import { useDispatch } from '../../../redux/store';
+import { getChatList } from '../../../redux/slices/user.slice.ts';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface ChatListProps {
   chatList: Chat[] | null;
@@ -36,7 +37,8 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
 
   const [form] = Form.useForm();
   const dispatch = useDispatch();
-  const selectedChat = useSelector((app: AppState) => app.user.selectedChat);
+  const navigate = useNavigate();
+  const { id } = useParams();
 
   const getUserList = async () => {
     try {
@@ -121,8 +123,8 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
         <div className="overflow-auto px-3">
           {chatList && chatList.length > 0 ? (
             chatList.map((item, index) => (
-              <div key={index} onClick={() => dispatch(setSelectedChat(item))}>
-                <ChatNameCard isSelected={selectedChat?._id === item._id} item={item} />
+              <div key={index} onClick={() => navigate(`/messages/${item._id}`)}>
+                <ChatNameCard isSelected={id === item._id} item={item} />
               </div>
             ))
           ) : (

@@ -28,6 +28,9 @@ export interface CreateGroupChatBody {
 export interface CreateNewChatBody {
   userId: string;
 }
+export interface GetMessageListBody {
+  page: number;
+}
 export interface Message {
   _id: string;
   sender: User;

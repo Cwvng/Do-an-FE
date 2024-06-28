@@ -4,7 +4,7 @@ import {
   GoogleLoginBody,
   LoginBody,
   ResetPasswordBody,
-  SendEmailResetBody,
+  SendEmailBody,
   SignupBody,
 } from './types/auth.interface.ts';
 
@@ -31,8 +31,12 @@ export const verifyEmail = async (id: string, token: string) => {
   return data;
 };
 
-export const sendEmailReset = async (body: SendEmailResetBody) => {
+export const sendEmailReset = async (body: SendEmailBody) => {
   const { data } = await api.post('auth/reset-password', body);
+  return data;
+};
+export const sendEmailSignup = async (body: SendEmailBody) => {
+  const { data } = await api.post('auth/signup', body);
   return data;
 };
 
