@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   dms-fe:
-    image: cwvngtran/datn-be
+    image: cwvngtran/datn-fe
     container_name: datn-fe
     env_file:
       - .env
