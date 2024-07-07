@@ -14,53 +14,38 @@ import { Avatar, Divider, Dropdown, Image, Input, message, Spin, theme, Tooltip 
 import { AppState } from '../../../redux/store';
 import { getTime } from '../../../utils/message.util.ts';
 import { deleteMessage, updateMessage } from '../../../requests/message.request.ts';
-import { getMessageList } from '../../../requests/chat.request.ts';
-import { useParams } from 'react-router-dom';
 
-export const MessageContainer: React.FC = () => {
+interface MessageListProps {
+  messages: Message[];
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  page: number;
+  canLoadMore: boolean;
+  getChatMessageList: any;
+  loading: boolean;
+  scrollToBottom: boolean;
+  setScrollToBottom: React.Dispatch<React.SetStateAction<boolean>>;
+}
+export const MessageList: React.FC<MessageListProps> = ({
+  messages,
+  setPage,
+  canLoadMore,
+  getChatMessageList,
+  page,
+  loading,
+  scrollToBottom,
+  setScrollToBottom,
+}) => {
   const user = useSelector((state: AppState) => state.user).userInfo;
   const { token } = theme.useToken();
-  const { id } = useParams();
-
-  const [selectedMsg, setSelectedMsg] = React.useState<Message | null>(null);
-  const [messages, setMessages] = React.useState<Message[]>([]);
-  const [page, setPage] = React.useState(1);
-  const [canLoadMore, setCanLoadMore] = React.useState(true);
-  const [loading, setLoading] = React.useState(false);
-
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const getChatMessageList = async () => {
-    try {
-      if (id !== 'undefined' && id) {
-        const res = await getMessageList(id, { page: 1 });
-        setMessages(res);
-      }
-    } finally {
-    }
-  };
-
-  const loadMoreMessage = async (page: number) => {
-    try {
-      if (id !== 'undefined' && id) {
-        setLoading(true);
-        const res = await getMessageList(id, { page });
-        if (res.length > 0) {
-          setMessages((prev) => [...res, ...prev]);
-        } else {
-          setCanLoadMore(false);
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [selectedMsg, setSelectedMsg] = React.useState<Message | null>(null);
 
   const deleteSelectedMessage = async (id: string) => {
     try {
       if (messages) {
         await deleteMessage(id);
-        await getChatMessageList();
+        await getChatMessageList(page);
         message.success('Deleted successfully');
       }
     } finally {
@@ -71,7 +56,7 @@ export const MessageContainer: React.FC = () => {
     try {
       if (selectedMsg && !selectedMsg.isUpdated) {
         await updateMessage(selectedMsg._id, { content: selectedMsg.content });
-        await getChatMessageList();
+        await getChatMessageList(page);
         setSelectedMsg(null);
         message.success('Updated successfully');
       }
@@ -89,17 +74,6 @@ export const MessageContainer: React.FC = () => {
   };
 
   useEffect(() => {
-    setCanLoadMore(true);
-    setPage(1);
-    setMessages([]);
-    getChatMessageList();
-  }, [id]);
-
-  useEffect(() => {
-    loadMoreMessage(page);
-  }, [page]);
-
-  useEffect(() => {
     const container = containerRef.current;
     if (container) {
       container.addEventListener('scroll', handleScroll);
@@ -111,6 +85,19 @@ export const MessageContainer: React.FC = () => {
     };
   }, [canLoadMore, loading]);
 
+  useEffect(() => {
+    if (scrollToBottom && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      setScrollToBottom(false);
+    }
+  }, [scrollToBottom, messages]);
+
+  if (messages.length === 0)
+    return (
+      <div className="flex justify-center text-secondary">
+        No message yet. Start chat by sending a new message 💬.
+      </div>
+    );
   return (
     <div className="overflow-auto h-full pr-2" ref={containerRef}>
       {loading && (

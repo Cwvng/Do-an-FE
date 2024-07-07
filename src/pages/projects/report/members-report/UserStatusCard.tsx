@@ -1,0 +1,103 @@
+import { Avatar, Dropdown, Rate, Spin } from 'antd';
+import React, { useEffect } from 'react';
+import { User } from '../../../../requests/types/chat.interface.ts';
+import { getUserIssueSummary } from '../../../../requests/user.request.ts';
+import { ProjectSprint } from '../../../../requests/types/sprint.interface.ts';
+import { UserIssueSummaryResponse } from '../../../../requests/types/user.interface.ts';
+import { FaEllipsisV } from 'react-icons/fa';
+
+interface UserStatusCardProps {
+  user: User;
+  sprint: ProjectSprint;
+}
+export const UserStatusCard: React.FC<UserStatusCardProps> = ({ user, sprint }) => {
+  const [loading, setLoading] = React.useState(false);
+  const [summary, setSummary] = React.useState<UserIssueSummaryResponse>();
+  const [totalDone, setTotalDone] = React.useState<number>();
+
+  const getUserIssueSummaryDetail = async () => {
+    try {
+      setLoading(true);
+      const res = await getUserIssueSummary(user._id, { sprintId: sprint._id });
+      setSummary(res);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getUserIssueSummaryDetail();
+    //@ts-ignore
+    setTotalDone(sprint.issues.filter((item) => item.assignee === user._id).length);
+  }, []);
+
+  return (
+    <>
+      {loading ? (
+        <Spin />
+      ) : (
+        <>
+          <div className="h-min w-75 flex flex-col items-center p-5 gap-2 rounded-md shadow-md">
+            <div className="flex w-full justify-end">
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: 'chat',
+                      label: <span>Chat</span>,
+                    },
+                    {
+                      key: 'remove',
+                      label: <span className="text-red-500">Remove</span>,
+                    },
+                  ],
+                }}
+                trigger={['click']}
+                placement="bottomRight"
+                arrow={{ pointAtCenter: true }}
+              >
+                <FaEllipsisV className="text-secondary cursor-pointer" />
+              </Dropdown>
+            </div>
+            <Avatar size={150} src={user?.profilePic} />
+            <div className="text-secondary text-lg font-bold">
+              {user?.firstname} {user?.lastname}
+            </div>
+            <Rate allowHalf disabled value={user?.rating! * 5} />
+            <div className="mt-3 flex flex-col gap-2">
+              <div>
+                <span className="font-bold text-secondary">Email:</span> {user?.email}
+              </div>
+              <div>
+                <span className="font-bold text-secondary">Completed:</span>
+                <span className="text-primary"> {totalDone} </span>issues
+              </div>
+              <ul className="m-0">
+                <li>
+                  <div>
+                    On time:{' '}
+                    <span className="text-primary">
+                      {Math.round((summary?.issuesCompletedOnTime! / totalDone!) * 100)}%
+                    </span>
+                  </div>
+                </li>
+                <li>
+                  Without feedback:{' '}
+                  <span className="text-primary">
+                    {Math.round((summary?.issuesCompletedWithoutFeedback! / totalDone!) * 100)}%
+                  </span>
+                </li>
+              </ul>
+              <div>
+                <span className="font-bold text-secondary">Github:</span>
+              </div>
+              <div>
+                <span className="font-bold text-secondary">Joined:</span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+};

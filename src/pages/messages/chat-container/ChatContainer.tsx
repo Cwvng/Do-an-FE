@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Avatar,
   Dropdown,
@@ -7,7 +7,11 @@ import {
   Image,
   Input,
   MenuProps,
+  message,
   Modal,
+  Select,
+  SelectProps,
+  Space,
   Spin,
   theme,
   Upload,
@@ -15,8 +19,13 @@ import {
 } from 'antd';
 import { IoMdSend } from 'react-icons/io';
 import { Chat, Message, User } from '../../../requests/types/chat.interface.ts';
-import { deleteChat, getChatDetail } from '../../../requests/chat.request.ts';
-import { MessageContainer } from './MessageContainer.tsx';
+import {
+  deleteChat,
+  getChatDetail,
+  getMessageList,
+  updateChat,
+} from '../../../requests/chat.request.ts';
+import { MessageList } from './MessageList.tsx';
 import { SendMessagesBody } from '../../../requests/types/message.interface.ts';
 import { sendNewMessage } from '../../../requests/message.request.ts';
 import { useSocketContext } from '../../../context/SocketContext.tsx';
@@ -26,43 +35,78 @@ import { FaSearch } from 'react-icons/fa';
 import { CircleButton } from '../../../components/button/CircleButton.tsx';
 import { IoImageOutline } from 'react-icons/io5';
 import { FaEllipsisVertical, FaImage } from 'react-icons/fa6';
-import { Loading } from '../../../components/loading/Loading.tsx';
 import { getChatList } from '../../../redux/slices/user.slice.ts';
 import { ExclamationCircleFilled, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
+import { getAllOtherUsers } from '../../../requests/user.request.ts';
 
 interface ChatContainerProps {
   toggleAttachment: () => void;
 }
 
 export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }) => {
-  const [messageList, setMessageList] = React.useState<Message[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [openModal, setOpenModal] = React.useState(false);
-  const [previewImage, setPreviewImage] = React.useState('');
   const [previewOpen, setPreviewOpen] = React.useState(false);
-  const [fileList, setFileList] = React.useState<UploadFile[]>();
   const [sendMessageLoading, setSendMessageLoading] = React.useState(false);
+  const [updateLoading, setUpdateLoading] = React.useState(false);
   const [openUpload, setOpenUpload] = React.useState(false);
-  const [receiver, setReceiver] = React.useState<User>();
+  const [canLoadMore, setCanLoadMore] = React.useState(true);
+  const [scrollToBottom, setScrollToBottom] = React.useState(false);
   const [selectedChat, setSelectedChat] = React.useState<Chat>();
+  const [receiver, setReceiver] = React.useState<User>();
+  const [fileList, setFileList] = React.useState<UploadFile[]>();
+  const [messageList, setMessageList] = React.useState<Message[]>([]);
+  const [previewImage, setPreviewImage] = React.useState('');
+  const [page, setPage] = React.useState(1);
+  const [options, setOptions] = useState<SelectProps['options']>([]);
 
   const { token } = theme.useToken();
   const { socket, onlineUsers } = useSocketContext();
   const userId = useSelector((app: AppState) => app.user.userInfo?._id);
   const { id } = useParams();
   const [form] = Form.useForm();
+  const [updateForm] = Form.useForm();
   const dispatch = useDispatch();
 
-  const getSelectedChatDetail = async () => {
+  const getUserList = async () => {
+    try {
+      const data = await getAllOtherUsers();
+      const userList: SelectProps['options'] = [];
+      data.forEach((item) => {
+        userList.push({
+          value: item._id,
+          label: item.firstname + ' ' + item.lastname,
+          emoji: item.profilePic,
+          desc: item.email,
+        });
+      });
+      setOptions(userList);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const getChatInfo = async () => {
     try {
       if (id !== 'undefined' && id) {
         const res = await getChatDetail(id);
         setSelectedChat(res);
         const receiver = getReceiverUser(res.users, userId);
         setReceiver(receiver);
+        setScrollToBottom(true);
       }
     } finally {
+    }
+  };
+  const getChatMessageList = async (page: number) => {
+    try {
+      if (id !== 'undefined' && id) {
+        setLoading(true);
+        const res = await getMessageList(id, { page });
+        setMessageList(res.messages);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,9 +127,29 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
         setOpenUpload(false);
         dispatch(getChatList());
         form.resetFields();
+        setScrollToBottom(true);
       }
     } finally {
       setSendMessageLoading(false);
+    }
+  };
+  const updateSelectedChat: FormProps['onFinish'] = async (values) => {
+    try {
+      if (id) {
+        setUpdateLoading(true);
+        const updateData = {
+          chatName: values.chatName,
+          users: values.users,
+        };
+        await updateChat(id, updateData);
+        message.success('Updated successfully');
+        form.resetFields();
+        setOpenModal(false);
+        await getChatInfo();
+        dispatch(getChatList());
+      }
+    } finally {
+      setUpdateLoading(false);
     }
   };
 
@@ -111,11 +175,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
     });
   };
 
-  const items: MenuProps['items'] = [
-    {
-      label: <span onClick={() => setOpenModal(true)}>Edit chat</span>,
-      key: 'editChat',
-    },
+  let items: MenuProps['items'] = [
     {
       label: (
         <span className="text-red-500" onClick={isConfirmToDelete}>
@@ -125,6 +185,12 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
       key: 'deleteChat',
     },
   ];
+  if (selectedChat?.groupAdmin === userId)
+    items.unshift({
+      label: <span onClick={() => setOpenModal(true)}>Edit chat</span>,
+      key: 'editChat',
+    });
+
   //@ts-ignore
   useEffect(() => {
     socket?.on('newMessage', (newMessage) => {
@@ -136,10 +202,20 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
   }, [socket, setMessageList, messageList]);
 
   useEffect(() => {
-    getSelectedChatDetail();
+    setMessageList([]);
+    setCanLoadMore(true);
+    setPage(1);
+    getChatInfo();
+    getChatMessageList(page);
   }, [id]);
 
-  if (loading) return <Loading />;
+  useEffect(() => {
+    getChatMessageList(page);
+  }, [page]);
+  useEffect(() => {
+    getUserList();
+  }, []);
+
   if (!id || id === 'undefined')
     return (
       <div className="bg-lightBg h-full flex items-center justify-center flex-col">
@@ -204,7 +280,16 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
       </div>
       <div className="bg-lightBg flex flex-col h-full overflow-y-hidden justify-between p-5">
         <div className="h-full overflow-y-hidden">
-          <MessageContainer />
+          <MessageList
+            getChatMessageList={getChatMessageList}
+            page={page}
+            messages={messageList}
+            setPage={setPage}
+            canLoadMore={canLoadMore}
+            loading={loading}
+            scrollToBottom={scrollToBottom}
+            setScrollToBottom={setScrollToBottom}
+          />
         </div>
         <div className="mt-5">
           <Form form={form} onFinish={sendMessage}>
@@ -300,10 +385,74 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
         title={<span className="text-xl font-bold text-primary">Edit chat</span>}
         centered
         open={openModal}
-        onCancel={() => setOpenModal(false)}
+        onCancel={() => {
+          setOpenModal(false);
+          updateForm.resetFields();
+        }}
         okText="Save"
-        onOk={form.submit}
-      ></Modal>
+        confirmLoading={updateLoading}
+        onOk={updateForm.submit}
+      >
+        <Form
+          initialValues={{
+            chatName: selectedChat?.chatName,
+            users: selectedChat?.users.map((item) => ({
+              value: item._id,
+              label: item.firstname + ' ' + item.lastname,
+              emoji: item.profilePic,
+              desc: item.email,
+            })),
+          }}
+          layout="vertical"
+          form={updateForm}
+          requiredMark={false}
+          onFinish={updateSelectedChat}
+        >
+          <Form.Item
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+            name="users"
+            label={<span className="font-medium">Members</span>}
+          >
+            <Select
+              className="w-full"
+              showSearch
+              mode="multiple"
+              size="large"
+              optionFilterProp="children"
+              filterOption={(input: string, option?: { label: string; value: string }) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              // @ts-ignore
+              options={options}
+              optionRender={(option) => (
+                <Space>
+                  <img src={option.data.emoji} className="w-10" alt="avatar" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">{option.data.label}</span>
+                    <span className="text-sm">{option.data.desc}</span>
+                  </div>
+                </Space>
+              )}
+            />
+          </Form.Item>
+          <Form.Item
+            name="chatName"
+            label={<span className="font-medium">Group chat name</span>}
+            rules={[
+              {
+                required: true,
+                message: 'Group name is required',
+              },
+            ]}
+          >
+            <Input size="large" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

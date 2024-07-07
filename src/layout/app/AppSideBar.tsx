@@ -7,6 +7,7 @@ import { IoChatbubbles, IoFileTrayStacked } from 'react-icons/io5';
 import { FaChartBar, FaCode, FaList } from 'react-icons/fa';
 import { AppState, useSelector } from '../../redux/store';
 import { FaFileCode } from 'react-icons/fa6';
+import { BiSolidReport } from 'react-icons/bi';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -69,6 +70,11 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
               label: <span className="text-bold">Report</span>,
               icon: <FaChartBar />,
             },
+            {
+              key: `/projects/${project?._id}/personal-report/`,
+              label: <span className="text-bold">Personal Report</span>,
+              icon: <BiSolidReport />,
+            },
           ]
         : [],
     },
@@ -85,7 +91,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       collapsible
       collapsed={collapsed}
       collapsedWidth={60}
-      width={200}
+      width={250}
       trigger={null}
     >
       <Menu

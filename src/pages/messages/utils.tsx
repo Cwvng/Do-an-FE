@@ -1,4 +1,5 @@
 import { Message } from '../../requests/types/chat.interface.ts';
+import moment from 'moment';
 
 export const isSameSenderMargin = (
   messages: Message[],
@@ -92,9 +93,7 @@ export const isFirstMessageOfDay = (messages: Message[], m: Message) => {
 };
 
 export const isTodayFirstMessage = (date: string) => {
-  const today = new Date();
-  const updatedAt = new Date(date);
-  return updatedAt.getDate() < today.getDate()
-    ? updatedAt.toLocaleDateString('en-US', { weekday: 'short' })
-    : 'Today';
+  const today = moment();
+  const updatedAt = moment(date);
+  return updatedAt.diff(today, 'days') < 0 ? updatedAt.format('DD/MM/YYYY') : 'Today';
 };

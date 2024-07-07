@@ -4,7 +4,6 @@ import { Divider, theme } from 'antd';
 import { Issue } from '../../../../requests/types/issue.interface.ts';
 import { Status } from '../../../../constants';
 import { ProjectSprint } from '../../../../requests/types/sprint.interface.ts';
-import { UserStatusCard } from './UserStatusCard.tsx';
 import moment from 'moment';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
@@ -13,7 +12,7 @@ interface StatusChartProps {
   sprint: ProjectSprint;
 }
 
-export const StatusChart: React.FC<StatusChartProps> = ({ issueList, sprint }) => {
+export const StatusChart: React.FC<StatusChartProps> = ({ issueList }) => {
   const { token } = theme.useToken();
   const statusLabels = ['New', 'In progress', 'Waiting review', 'Feedback', 'Done'];
   const completionLabels = ['Not Done', 'Done In Time', 'Done Late'];
@@ -190,13 +189,6 @@ export const StatusChart: React.FC<StatusChartProps> = ({ issueList, sprint }) =
             />
           </div>
         </div>
-      </div>
-
-      <div className="flex overflow-auto flex-col border-1 p-5 border-border w-full h-90 text-nowrap rounded-lg shadow-md">
-        <div className="text-secondary text-xl font-bold">Members Working Quality</div>
-        {sprint?.members.map((item, index) => (
-          <UserStatusCard key={index} user={item} sprint={sprint} />
-        ))}
       </div>
     </div>
   );

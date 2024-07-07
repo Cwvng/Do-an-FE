@@ -5,7 +5,8 @@ import {
   CreateNewChatBody,
   GetChatListQuery,
   GetMessageListBody,
-  Message,
+  MessageListResponse,
+  UpdateChatBody,
 } from './types/chat.interface.ts';
 
 export const getAllChats = async (params?: GetChatListQuery) => {
@@ -21,7 +22,7 @@ export const createNewChat = async (body: CreateNewChatBody) => {
   return data;
 };
 export const getMessageList = async (param: string, params?: GetMessageListBody) => {
-  const { data } = await api.get<Message[]>(`/chat/${param}/messages`, { params });
+  const { data } = await api.get<MessageListResponse>(`/chat/${param}/messages`, { params });
   return data;
 };
 export const deleteChat = async (params: string) => {
@@ -30,5 +31,9 @@ export const deleteChat = async (params: string) => {
 };
 export const getChatDetail = async (id: string) => {
   const { data } = await api.get<Chat>(`chat/${id}`);
+  return data;
+};
+export const updateChat = async (id: string, body: UpdateChatBody) => {
+  const { data } = await api.put<Chat>(`chat/${id}`, body);
   return data;
 };

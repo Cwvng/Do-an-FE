@@ -18,6 +18,7 @@ import { Report } from './projects/report/Report.tsx';
 import { ProjectDetail } from './project-list/project-detail/ProjectDetail.tsx';
 import { SendEmailSignup } from './auth/SendEmailSignup.tsx';
 import { Signup } from './auth/Signup.tsx';
+import { PersonalReport } from './projects/personal-report/PersonalReport.tsx';
 
 interface ProtectedRouteProps {
   children: any;
@@ -74,6 +75,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/projects/:id/active-sprint" element={<ActiveSprint />} />
         <Route path="/projects/:id/backlog" element={<Backlog />} />
         <Route path="/projects/:id/report" element={<Report />} />
+        <Route path="/projects/:id/personal-report" element={<PersonalReport />} />
 
         <Route path="/projects/:id/issue/:issueId" element={<IssueDetail />} />
       </Route>

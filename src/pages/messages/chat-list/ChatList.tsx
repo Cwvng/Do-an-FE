@@ -120,7 +120,7 @@ const ChatList: React.FC<ChatListProps> = ({ chatList }) => {
         />
         <Divider />
 
-        <div className="overflow-auto px-3">
+        <div className="overflow-auto">
           {chatList && chatList.length > 0 ? (
             chatList.map((item, index) => (
               <div key={index} onClick={() => navigate(`/messages/${item._id}`)}>
