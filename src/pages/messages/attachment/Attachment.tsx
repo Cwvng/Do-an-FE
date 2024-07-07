@@ -32,7 +32,7 @@ export const Attachment: React.FC = () => {
           <Image.PreviewGroup>
             {imagesList.map((img, index) => (
               <div key={index}>
-                <div className="text-primary">{moment(img?.createdAt).calendar()}</div>
+                <div className="text-primary">{moment(img?.createdAt).format('DD/MM/YYYY')}</div>
                 <Image className="w-full max-h-min" src={img.image} />
                 <Divider />
               </div>

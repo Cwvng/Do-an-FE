@@ -16,7 +16,7 @@ export interface Chat {
   chatName: string;
   isGroupChat: boolean;
   users: User[];
-  groupAdmin: User | null;
+  groupAdmin: string | null;
   latestMessage: Message | null;
   createdAt: string;
   updatedAt: string;
@@ -45,3 +45,8 @@ export interface Message {
 export interface GetChatListQuery {
   name: string;
 }
+export interface MessageListResponse {
+  messages: Message[];
+  total: number;
+}
+export type UpdateChatBody = Partial<Chat>;

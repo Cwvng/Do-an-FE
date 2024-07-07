@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import ChatList from './component/ChatList.tsx';
-import { ChatContainer } from './component/ChatContainer.tsx';
-import { Attachment } from './component/Attachment.tsx';
+import ChatList from './chat-list/ChatList.tsx';
+import { ChatContainer } from './chat-container/ChatContainer.tsx';
+import { Attachment } from './attachment/Attachment.tsx';
 import { AppState, useDispatch, useSelector } from '../../redux/store';
 import { getChatList } from '../../redux/slices/user.slice.ts';
 
@@ -18,9 +18,7 @@ export const Messages: React.FC = () => {
   useEffect(() => {
     dispatch(getChatList());
   }, []);
-  // useEffect(() => {
-  // if (chatList) setSelectedChat(chatList[0]);
-  // }, [chatList]);
+
   return (
     <div className="flex flex-row bg-white h-full">
       <div className="w-1/4 border-r border-border">

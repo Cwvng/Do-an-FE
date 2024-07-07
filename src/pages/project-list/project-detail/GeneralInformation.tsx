@@ -304,7 +304,7 @@ export const GeneralInformation: React.FC = () => {
             rules={[
               {
                 required: true,
-                message: 'Group name is required',
+                message: 'Project name is required',
               },
             ]}
             name="name"

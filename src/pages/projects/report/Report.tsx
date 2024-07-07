@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
-import { BurndownChart } from './component/BurndownChart.tsx';
+import { BurndownChart } from './burndown-chart/BurndownChart.tsx';
 import { Breadcrumb, Row, Spin, Tabs } from 'antd';
 import { AppState, useSelector } from '../../../redux/store';
 import { useNavigate } from 'react-router-dom';
-import { CumulativeFlow } from './component/CumulativeFlow.tsx';
+import { CumulativeFlow } from './cumulative-flow/CumulativeFlow.tsx';
 import moment from 'moment/moment';
 import { ProjectSprint } from '../../../requests/types/sprint.interface.ts';
 import { getSprintDetail } from '../../../requests/sprint.request.ts';
-import { StatusChart } from './component/StatusChart.tsx';
+import { StatusChart } from './status-chart/StatusChart.tsx';
+import { MembersReport } from './members-report/MembersReport.tsx';
 
 export const Report: React.FC = () => {
   const project = useSelector((app: AppState) => app.user.selectedProject!);
@@ -94,6 +95,11 @@ export const Report: React.FC = () => {
               key: 'Status',
               label: 'Status',
               children: <StatusChart issueList={sprint?.issues!} sprint={sprint!} />,
+            },
+            {
+              key: 'Members report',
+              label: 'Members report',
+              children: <MembersReport sprint={sprint!} />,
             },
           ]}
         />
