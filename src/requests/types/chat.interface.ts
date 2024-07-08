@@ -10,6 +10,8 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   rating: number;
+  github: string | null;
+  dob: string | null;
 }
 export interface Chat {
   _id: string;

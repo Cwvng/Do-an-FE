@@ -22,4 +22,4 @@ export interface DailySummary {
   _id: string;
 }
 export type CreateProjectSprintBody = Partial<ProjectSprint>;
-export type UpdateProjectSprintBody = Partial<ProjectSprint> & { projectId: string };
+export type UpdateProjectSprintBody = Partial<ProjectSprint> & { projectId?: string };

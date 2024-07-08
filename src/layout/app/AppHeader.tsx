@@ -1,9 +1,10 @@
 import { Header } from 'antd/es/layout/layout';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Avatar,
   Badge,
   Button,
+  DatePicker,
   Divider,
   Dropdown,
   Form,
@@ -13,6 +14,7 @@ import {
   message,
   Modal,
   Select,
+  Typography,
   Upload,
   UploadProps,
 } from 'antd';
@@ -29,6 +31,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { getAllProject } from '../../requests/project.request.ts';
 import { Project } from '../../requests/types/project.interface.ts';
 import { TiThMenu } from 'react-icons/ti';
+import moment from 'moment/moment';
 
 interface AppHeaderProps {
   toggleSidebar: () => void;
@@ -78,6 +81,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
         });
       if (values.firstname) formData.append('firstname', values.firstname);
       if (values.lastname) formData.append('lastname', values.lastname);
+      if (values.github) formData.append('github', values.github);
+      if (values.dob) formData.append('dob', values.dob);
 
       const res = await updateUserInfo(formData);
       message.success('Updated successfully');
@@ -298,16 +303,54 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
               <Form.Item
                 label={<span className="font-medium">Firstname</span>}
                 name="firstname"
+                className="m-0"
                 initialValue={user.userInfo?.firstname}
               >
-                <Input size="large" disabled={!isEdit} />
+                {isEdit ? (
+                  <Input size="large" />
+                ) : (
+                  <Typography className="m-0">{user.userInfo?.firstname}</Typography>
+                )}
               </Form.Item>
               <Form.Item
                 label={<span className="font-medium">Lastname</span>}
                 name="lastname"
+                className="m-0"
                 initialValue={user.userInfo?.lastname}
               >
-                <Input size="large" disabled={!isEdit} />
+                {isEdit ? (
+                  <Input size="large" />
+                ) : (
+                  <Typography className="m-0">{user.userInfo?.lastname}</Typography>
+                )}
+              </Form.Item>
+              <Form.Item
+                label={<span className="font-medium">Dob</span>}
+                className="m-0"
+                name="dob"
+                initialValue={moment(user.userInfo?.dob)}
+              >
+                {isEdit ? (
+                  <DatePicker size="large" className="w-full" format="DD/MM/YYYY" />
+                ) : (
+                  <Typography className="m-0">
+                    {moment(user.userInfo?.dob).format('DD/MM/YYYY')}
+                  </Typography>
+                )}
+              </Form.Item>
+              <Form.Item
+                label={<span className="font-medium">Github</span>}
+                name="github"
+                className="m-0"
+                initialValue={user.userInfo?.github}
+              >
+                {isEdit ? (
+                  <Input size="large" />
+                ) : (
+                  <Link target="_blank" to={user.userInfo?.github!}>
+                    {user.userInfo?.github}
+                  </Link>
+                )}
               </Form.Item>
             </div>
           </Form>

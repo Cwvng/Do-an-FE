@@ -5,6 +5,9 @@ import { getUserIssueSummary } from '../../../../requests/user.request.ts';
 import { ProjectSprint } from '../../../../requests/types/sprint.interface.ts';
 import { UserIssueSummaryResponse } from '../../../../requests/types/user.interface.ts';
 import { FaEllipsisV } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { createNewChat } from '../../../../requests/chat.request.ts';
+import { AppState, useSelector } from '../../../../redux/store';
 
 interface UserStatusCardProps {
   user: User;
@@ -12,8 +15,22 @@ interface UserStatusCardProps {
 }
 export const UserStatusCard: React.FC<UserStatusCardProps> = ({ user, sprint }) => {
   const [loading, setLoading] = React.useState(false);
+  const [chatLoading, setChatLoading] = React.useState(false);
   const [summary, setSummary] = React.useState<UserIssueSummaryResponse>();
   const [totalDone, setTotalDone] = React.useState<number>();
+
+  const navigate = useNavigate();
+  const userInfo = useSelector((app: AppState) => app.user.userInfo);
+
+  const goToChat = async (userId: string) => {
+    try {
+      setChatLoading(true);
+      await createNewChat({ userId: userId });
+      navigate(`/messages/${userId}`);
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   const getUserIssueSummaryDetail = async () => {
     try {
@@ -44,11 +61,8 @@ export const UserStatusCard: React.FC<UserStatusCardProps> = ({ user, sprint }) 
                   items: [
                     {
                       key: 'chat',
-                      label: <span>Chat</span>,
-                    },
-                    {
-                      key: 'remove',
-                      label: <span className="text-red-500">Remove</span>,
+                      label: chatLoading ? <Spin /> : <span>Chat</span>,
+                      onClick: () => goToChat(user._id),
                     },
                   ],
                 }}
@@ -61,12 +75,18 @@ export const UserStatusCard: React.FC<UserStatusCardProps> = ({ user, sprint }) 
             </div>
             <Avatar size={150} src={user?.profilePic} />
             <div className="text-secondary text-lg font-bold">
-              {user?.firstname} {user?.lastname}
+              {user?.firstname} {user?.lastname} {userInfo?._id === user._id && '<<Me>>'}
             </div>
             <Rate allowHalf disabled value={user?.rating! * 5} />
             <div className="mt-3 flex flex-col gap-2">
               <div>
                 <span className="font-bold text-secondary">Email:</span> {user?.email}
+              </div>
+              <div>
+                <span className="font-bold text-secondary ">Github:</span>{' '}
+                <Link className="text-primary" target="_blank" to={user?.github!}>
+                  {user?.github}
+                </Link>
               </div>
               <div>
                 <span className="font-bold text-secondary">Completed:</span>
@@ -88,12 +108,6 @@ export const UserStatusCard: React.FC<UserStatusCardProps> = ({ user, sprint }) 
                   </span>
                 </li>
               </ul>
-              <div>
-                <span className="font-bold text-secondary">Github:</span>
-              </div>
-              <div>
-                <span className="font-bold text-secondary">Joined:</span>
-              </div>
             </div>
           </div>
         </>

@@ -19,6 +19,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const project = useSelector((app: AppState) => app.user.selectedProject!);
+  const user = useSelector((app: AppState) => app.user.userInfo);
 
   useEffect(() => {
     for (const item of menuItems) {
@@ -42,7 +43,29 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const handleMenuSelect = ({ key }: SelectInfo) => {
     navigate(key);
   };
-
+  let projectChildren = [
+    {
+      key: `/projects/${project?._id}/active-sprint/`,
+      label: <span className="text-bold">Active sprint</span>,
+      icon: <FaCode />,
+    },
+    {
+      key: `/projects/${project?._id}/backlog`,
+      label: <span className="text-bold">Backlog</span>,
+      icon: <IoFileTrayStacked />,
+    },
+    {
+      key: `/projects/${project?._id}/report/`,
+      label: <span className="text-bold">Report</span>,
+      icon: <FaChartBar />,
+    },
+  ];
+  if (project?.projectManager?._id !== user?._id)
+    projectChildren.push({
+      key: `/projects/${project?._id}/personal-report/`,
+      label: <span className="text-bold">Personal Report</span>,
+      icon: <BiSolidReport />,
+    });
   const menuItems: ItemType[] = [
     {
       key: '/project-list',
@@ -53,30 +76,7 @@ export const AppSidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       key: `/projects`,
       label: <span className="text-bold">{project?.name ?? 'Project'}</span>,
       icon: <FaFileCode />,
-      children: project
-        ? [
-            {
-              key: `/projects/${project?._id}/active-sprint/`,
-              label: <span className="text-bold">Active sprint</span>,
-              icon: <FaCode />,
-            },
-            {
-              key: `/projects/${project?._id}/backlog`,
-              label: <span className="text-bold">Backlog</span>,
-              icon: <IoFileTrayStacked />,
-            },
-            {
-              key: `/projects/${project?._id}/report/`,
-              label: <span className="text-bold">Report</span>,
-              icon: <FaChartBar />,
-            },
-            {
-              key: `/projects/${project?._id}/personal-report/`,
-              label: <span className="text-bold">Personal Report</span>,
-              icon: <BiSolidReport />,
-            },
-          ]
-        : [],
+      children: project ? projectChildren : [],
     },
     {
       key: '/messages/undefined',
