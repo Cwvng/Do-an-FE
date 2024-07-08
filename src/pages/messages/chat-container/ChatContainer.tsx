@@ -396,7 +396,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ toggleAttachment }
         <Form
           initialValues={{
             chatName: selectedChat?.chatName,
-            users: selectedChat?.users.map((item) => ({
+            users: selectedChat?.users?.map((item) => ({
               value: item._id,
               label: item.firstname + ' ' + item.lastname,
               emoji: item.profilePic,

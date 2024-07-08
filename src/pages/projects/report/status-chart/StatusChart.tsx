@@ -122,7 +122,7 @@ export const StatusChart: React.FC<StatusChartProps> = ({ issueList }) => {
 
   return (
     <div className="flex-1 flex flex-row gap-5">
-      <div className="border-1 p-5 border-border w-full h-90 text-nowrap rounded-lg shadow-md">
+      <div className="border-1 p-5 border-border w-2/3 h-90 text-nowrap rounded-lg shadow-md">
         <div className="flex items-center gap-2">
           <div title="Number of issue status" className="text-secondary text-xl font-bold">
             Issue Status
