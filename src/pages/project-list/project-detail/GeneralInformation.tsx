@@ -114,11 +114,17 @@ export const GeneralInformation: React.FC = () => {
         ) : (
           <div className="mt-5  flex flex-col gap-3">
             <Row className="flex items-center">
-              <Col span={24}>
+              <Col span={12}>
                 <div>Project name</div>
               </Col>
-              <Col span={24}>
+              <Col span={12}>
+                <div>Project repository</div>
+              </Col>
+              <Col span={12}>
                 <div className="text-secondary"> {project?.name}</div>
+              </Col>
+              <Col span={12}>
+                <div className="text-secondary"> {project?.repository}</div>
               </Col>
             </Row>
             <Row className="flex justify-between">
@@ -141,7 +147,7 @@ export const GeneralInformation: React.FC = () => {
                 </Avatar.Group>
               </Col>
               <Col span={12}>
-                <Link to={`${import.meta.env.VITE_CLIENT}/messages`}>{project?.name}</Link>
+                <Link to={`/messages/undefined`}>{project?.name}</Link>
               </Col>
             </Row>
             <Row className="flex justify-between">

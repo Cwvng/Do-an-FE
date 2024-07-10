@@ -9,6 +9,7 @@ export interface Project {
   issues: Issue[];
   projectManager: User;
   backlog: ProjectSprint[];
+  repository: string;
   activeSprint: string;
   createdAt: string;
   updatedAt: string;

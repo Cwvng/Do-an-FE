@@ -23,7 +23,6 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useForm } from 'antd/es/form/Form';
 import { getAllOtherUsers, getUserIssueSummary } from '../../../requests/user.request.ts';
 import { getProjectById, updateProjectById } from '../../../requests/project.request.ts';
-import { AppState, useSelector } from '../../../redux/store';
 import { Project } from '../../../requests/types/project.interface.ts';
 import { User } from '../../../requests/types/chat.interface.ts';
 import { UserIssueSummaryResponse } from '../../../requests/types/user.interface.ts';
@@ -32,7 +31,6 @@ export const MemberList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openAddMember, setOpenAddMember] = React.useState(false);
   const [options, setOptions] = useState<SelectProps['options']>([]);
-  const user = useSelector((app: AppState) => app.user);
   const [project, setProject] = React.useState<Project>();
   const [selectedUser, setSelectedUser] = React.useState<User>();
   const [userStatic, setUserStatic] = React.useState<UserIssueSummaryResponse>();
@@ -138,11 +136,11 @@ export const MemberList: React.FC = () => {
       </div>
       <Table
         className="mt-3"
-        dataSource={project?.members.filter((item) => item._id !== user.userInfo?._id)}
+        dataSource={project?.members}
         loading={loading}
         pagination={{
           position: ['bottomCenter'],
-          defaultPageSize: 10,
+          defaultPageSize: 5,
           showSizeChanger: true,
           pageSizeOptions: ['5', '10', '30'],
         }}

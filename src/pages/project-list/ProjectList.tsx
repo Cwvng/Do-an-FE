@@ -192,11 +192,11 @@ export const ProjectList: React.FC = () => {
             render: (createdAt) => <>{moment(createdAt).format('DD/MM/YYYY')}</>,
           },
           {
-            title: 'Total issues',
-            dataIndex: 'issues',
-            key: 'issues',
+            title: 'Repository',
+            dataIndex: 'repository',
+            key: 'repository',
             align: 'center',
-            render: (issues) => <>{issues.length}</>,
+            render: (issues) => <>{issues}</>,
           },
           {
             title: 'Project manager',
@@ -293,6 +293,17 @@ export const ProjectList: React.FC = () => {
           <Form.Item
             name="name"
             label={<span className="font-medium">Project name</span>}
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <Input size="large" />
+          </Form.Item>
+          <Form.Item
+            name="repository"
+            label={<span className="font-medium">Project repository</span>}
             rules={[
               {
                 required: true,

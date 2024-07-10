@@ -72,9 +72,10 @@ export const GeneralReport: React.FC<TotalReportProps> = ({
       {issueList?.length}
       <div className="text-secondary font-bold">Completed issue:</div>
       {doneIssueList?.length}
-      <div className="text-secondary font-bold">Contribution:</div>
-      {Math.floor((issueList?.length / sprintIssueList?.length!) * 100)}% of{' '}
-      {sprintIssueList?.length} sprint issues
+      <div className="text-secondary font-bold">
+        Contribution: (Total {sprintIssueList?.length} sprint issues)
+      </div>
+      {Math.floor((issueList?.length / sprintIssueList?.length!) * 100)}%
       <div className="text-secondary font-bold">Total logged time:</div>
       {getLoggedWorkingTime()} (hours)
       <div className="text-secondary font-bold">Average issue complete time:</div>
