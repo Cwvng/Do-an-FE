@@ -35,11 +35,12 @@ import { AppState, useDispatch, useSelector } from '../../../../redux/store';
 import { getProjectDetail } from '../../../../redux/slices/user.slice.ts';
 import moment from 'moment';
 import { getStatusTagColor, toCapitalize } from '../../../../utils/project.util.ts';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'antd/es/form/Form';
 import { Loading } from '../../../../components/loading/Loading.tsx';
 import { CommentList } from './CommentList.tsx';
 import { LoggedTime } from './LoggedTime.tsx';
+import axios from 'axios';
 
 export const IssueDetail: React.FC = () => {
   const [issue, setIssue] = React.useState<Issue>();
@@ -50,6 +51,7 @@ export const IssueDetail: React.FC = () => {
   const [fileList, setFileList] = React.useState<UploadFile[]>();
   const [options, setOptions] = React.useState<any[]>();
   const [isEdit, setIsEdit] = React.useState(false);
+  const [prStatus, setPrStatus] = React.useState(404);
 
   const { issueId } = useParams();
   const navigate = useNavigate();
@@ -63,6 +65,11 @@ export const IssueDetail: React.FC = () => {
         setDetailLoading(true);
         const res = await getIssueDetailById(issueId);
         setIssue(res);
+        const git = res?.pullRequest?.split('/');
+        const status = await axios.get(
+          `https://api.github.com/repos/${git?.[3]}/${git?.[4]}/pulls/${git?.[6]}/merge`,
+        );
+        setPrStatus(status.status);
       }
     } finally {
       setDetailLoading(false);
@@ -111,6 +118,7 @@ export const IssueDetail: React.FC = () => {
         if (values.dueDate) formData.append('dueDate', values.dueDate);
         if (values.label) formData.append('label', values.label);
         if (values.estimateTime) formData.append('estimateTime', values.estimateTime);
+        if (values.pullRequest) formData.append('pullRequest', values.pullRequest);
 
         await toast.promise(updateIssueById(issueId, formData), {
           loading: 'Saving...',
@@ -141,6 +149,7 @@ export const IssueDetail: React.FC = () => {
       console.log(error);
     }
   };
+
   const filterOption = (input: string, option?: { label: string; value: string }) =>
     (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
@@ -408,6 +417,46 @@ export const IssueDetail: React.FC = () => {
                     )}
                   </Col>
                 </Row>
+                <Row className="flex ">
+                  <Col span={10} className="text-secondary">
+                    Pull request
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonInput size="small" active />
+                    ) : isEdit ? (
+                      <Form.Item
+                        className="m-0"
+                        name="pullRequest"
+                        initialValue={issue?.pullRequest}
+                      >
+                        <Input />
+                      </Form.Item>
+                    ) : (
+                      <Link
+                        className="text-primary w-full text-wrap"
+                        to={issue?.pullRequest!}
+                        target="_blank"
+                      >
+                        {issue?.pullRequest}
+                      </Link>
+                    )}
+                  </Col>
+                </Row>
+                {issue.pullRequest && (
+                  <Row className="flex items-center">
+                    <Col span={10} className="text-secondary">
+                      Pull request status
+                    </Col>
+                    <Col span={14}>
+                      {loading ? (
+                        <SkeletonInput size="small" active />
+                      ) : (
+                        <Tag color="blue">{prStatus === 404 ? 'Not merge' : 'Merged'}</Tag>
+                      )}
+                    </Col>
+                  </Row>
+                )}
                 <Row className="flex items-center">
                   <Col span={10} className="text-secondary">
                     Estimate time
@@ -426,7 +475,7 @@ export const IssueDetail: React.FC = () => {
                             title={issue.estimateTime! - issue.loggedTime! + ' days remaining'}
                             placement="bottom"
                           >
-                            {issue.estimateTime! - issue.loggedTime!}d
+                            {issue.estimateTime! - issue.loggedTime!}h
                           </Tooltip>
                         )}
                       />

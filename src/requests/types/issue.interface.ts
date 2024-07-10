@@ -21,6 +21,7 @@ export interface Issue {
   estimateTime?: number;
   loggedTime?: number;
   comments?: IssueComment[];
+  pullRequest?: string;
 }
 export type UpdateIssueBody = Partial<Issue>;
 export interface GetIssueListQuery {
