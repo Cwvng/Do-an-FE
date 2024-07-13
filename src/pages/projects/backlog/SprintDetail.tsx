@@ -66,6 +66,12 @@ export const SprintDetail: React.FC<SprintDetailProps> = ({ sprintId }) => {
         <Col span={12}>{moment(sprint?.endDate).format('DD/MM/YYYY')}</Col>
       </Row>
       <Row>
+        <Col span={24} className="font-bold text-secondary">
+          Members
+        </Col>
+        <Col span={24}>{sprint?.members.length}</Col>
+      </Row>
+      <Row>
         <Col span={24}>
           <div>
             Time{' '}

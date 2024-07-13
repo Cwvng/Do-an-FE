@@ -104,7 +104,9 @@ export const GeneralReport: React.FC<TotalReportProps> = ({
         Completed without feedback ({summary?.issuesCompletedWithoutFeedback})
       </div>
       <Progress
-        percent={(summary?.issuesCompletedWithoutFeedback! / doneIssueList?.length!) * 100}
+        percent={
+          +((summary?.issuesCompletedWithoutFeedback! / doneIssueList?.length!) * 100).toFixed(2)
+        }
         strokeColor={{
           '0%': token.colorPrimary,
           '100%': '#87d068',
