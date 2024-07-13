@@ -53,6 +53,7 @@ import { SprintDetail } from './SprintDetail.tsx';
 
 export const Backlog: React.FC = () => {
   const project = useSelector((app: AppState) => app.user.selectedProject);
+  const user = useSelector((app: AppState) => app.user.userInfo);
   const navigate = useNavigate();
   const { token } = theme.useToken();
   const [form] = useForm();
@@ -93,6 +94,7 @@ export const Backlog: React.FC = () => {
         await getProjectBacklogList();
       }
     } finally {
+      form.resetFields();
       setCreateLoading(false);
     }
   };
@@ -140,7 +142,7 @@ export const Backlog: React.FC = () => {
       if (values.dueDate) formData.append('dueDate', values.dueDate);
       if (values.label) formData.append('label', values.label);
       if (values.estimateTime) formData.append('estimateTime', values.estimateTime);
-      if (selectedSprint) formData.append('sprintId', selectedSprint);
+      if (selectedSprint) formData.append('sprint', selectedSprint);
       await createNewIssue(formData);
       await getProjectBacklogList();
 
@@ -256,8 +258,31 @@ export const Backlog: React.FC = () => {
                       <span>{moment(project?.createdAt).fromNow()}</span>
                     </div>
                   </Tooltip>
-
-                  <Button type="primary" icon={<FaEllipsisV />} />
+                  <Dropdown
+                    className="w-8"
+                    trigger={['click']}
+                    menu={{
+                      items: [
+                        {
+                          label: <span>Detail</span>,
+                          key: `complete`,
+                          onClick: () => navigate(`/project-list/${project?._id}`),
+                        },
+                        {
+                          label: <span>Create new sprint</span>,
+                          key: `createSprint`,
+                          onClick: () => {
+                            if (project.projectManager._id === user?._id) setOpenCreate(true);
+                          },
+                          disabled: project.projectManager._id !== user?._id,
+                        },
+                      ],
+                    }}
+                    placement="bottomRight"
+                    arrow={{ pointAtCenter: true }}
+                  >
+                    <Button type="primary" icon={<FaEllipsisV />} />
+                  </Dropdown>
                 </div>
               </Row>
               <Row className="w-1/2">
@@ -317,7 +342,7 @@ export const Backlog: React.FC = () => {
                           </Button>
 
                           <Dropdown
-                            className="w-15"
+                            className="w-10"
                             trigger={['click']}
                             menu={{
                               items: item.isActive
@@ -333,6 +358,7 @@ export const Backlog: React.FC = () => {
                                     {
                                       label: <span>Complete sprint</span>,
                                       key: `complete${index}`,
+                                      disabled: project.projectManager._id !== user?._id,
                                     },
                                   ]
                                 : [
@@ -346,16 +372,26 @@ export const Backlog: React.FC = () => {
                                     },
                                     {
                                       label: (
-                                        <span onClick={() => startSprint(item._id)}>
+                                        <span
+                                          onClick={() => {
+                                            if (project.projectManager._id === user?._id)
+                                              startSprint(item._id);
+                                          }}
+                                        >
                                           Start sprint
                                         </span>
                                       ),
                                       key: `start${index}`,
+                                      disabled: project.projectManager._id !== user?._id,
                                     },
                                     {
                                       label: <span className="text-red-500">Delete</span>,
                                       key: `delete${index}`,
-                                      onClick: () => isConfirmToDelete(item._id),
+                                      onClick: () => {
+                                        if (project.projectManager._id === user?._id)
+                                          isConfirmToDelete(item._id);
+                                      },
+                                      disabled: project.projectManager._id !== user?._id,
                                     },
                                   ],
                             }}
@@ -531,21 +567,20 @@ export const Backlog: React.FC = () => {
                   />
                 </Divider>
 
-                <div className="bg-lightBg rounded-md mt-2 p-2">
-                  <div className="flex gap-2 w-full items-center justify-between  bg-lightBg p-2 hover:cursor-pointer text-md">
-                    <div className="flex items-center text-secondary font-bold gap-2">
-                      <IoIosArrowDown />
-                      Backlog
-                    </div>
-                    <Button
-                      type="primary"
-                      onClick={() => setOpenCreate(true)}
-                      className="flex items-center gap-2"
-                    >
-                      Create sprint
-                    </Button>
-                  </div>
-                </div>
+                {/*<div className="bg-lightBg rounded-md mt-2 p-2">*/}
+                {/*  <div className="flex gap-2 w-full items-center justify-between  bg-lightBg p-2 hover:cursor-pointer text-md">*/}
+                {/*    <div className="flex items-center text-secondary font-bold gap-2">*/}
+                {/*      <IoIosArrowDown />*/}
+                {/*      Backlog*/}
+                {/*    </div>*/}
+                {/*    <Button*/}
+                {/*      type="primary"*/}
+                {/*      className="flex items-center gap-2"*/}
+                {/*    >*/}
+                {/*      Create sprint*/}
+                {/*    </Button>*/}
+                {/*  </div>*/}
+                {/*</div>*/}
               </div>
             </>
           )}

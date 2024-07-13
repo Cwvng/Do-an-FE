@@ -41,6 +41,7 @@ import { Loading } from '../../../../components/loading/Loading.tsx';
 import { CommentList } from './CommentList.tsx';
 import { LoggedTime } from './LoggedTime.tsx';
 import axios from 'axios';
+import { getSprintDetail } from '../../../../requests/sprint.request.ts';
 
 export const IssueDetail: React.FC = () => {
   const [issue, setIssue] = React.useState<Issue>();
@@ -132,19 +133,22 @@ export const IssueDetail: React.FC = () => {
       setLoading(false);
     }
   };
-  const getUserList = () => {
+  const getUserList = async () => {
     try {
-      const userList: SelectProps['options'] = [];
-      project?.members.forEach((item) => {
-        userList.push({
-          value: item._id,
-          label: item.firstname + ' ' + item.lastname,
-          emoji: item.profilePic,
-          desc: item.email,
-          rating: item.rating,
+      if (project?.activeSprint) {
+        const userList: SelectProps['options'] = [];
+        const res = await getSprintDetail(project.activeSprint);
+        res?.members.forEach((item) => {
+          userList.push({
+            value: item._id,
+            label: item.firstname + ' ' + item.lastname,
+            emoji: item.profilePic,
+            desc: item.email,
+            rating: item.rating,
+          });
         });
-      });
-      setOptions(userList);
+        setOptions(userList);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -350,7 +354,7 @@ export const IssueDetail: React.FC = () => {
                           optionRender={(option) => (
                             <Space>
                               <Badge.Ribbon
-                                text={option.data.rating * 5}
+                                text={(option.data.rating * 5).toFixed(2)}
                                 placement="end"
                                 color="yellow"
                               >

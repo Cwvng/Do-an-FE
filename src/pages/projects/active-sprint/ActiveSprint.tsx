@@ -183,7 +183,7 @@ export const ActiveSprint: React.FC = () => {
                     maxCount={5}
                     maxStyle={{ color: token.colorError, backgroundColor: token.colorErrorBg }}
                   >
-                    {project?.members?.map((member) => (
+                    {sprint?.members?.map((member) => (
                       <Tooltip key={member._id} placement="top" color="fff" title={member.email}>
                         <Avatar src={member.profilePic} />
                       </Tooltip>
@@ -210,7 +210,9 @@ export const ActiveSprint: React.FC = () => {
                     title={`${moment(sprint.startDate).format('DD/MM/YYYY')} - ${moment(sprint.endDate).format('DD/MM/YYYY')}`}
                   >
                     <IoIosTimer />
-                    <span>{getRemainingDay(sprint.endDate)}</span>
+                    <span>
+                      {+getRemainingDay(sprint.endDate) > 0 ? getRemainingDay(sprint.endDate) : 0}
+                    </span>
                   </Tooltip>
                 </div>
 

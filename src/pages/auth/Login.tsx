@@ -3,9 +3,7 @@ import Password from 'antd/es/input/Password';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getUserInfo, updateUser } from '../../redux/slices/user.slice.ts';
-import { googleLogin, login } from '../../requests/auth.request.ts';
-import { FcGoogle } from '@react-icons/all-files/fc/FcGoogle';
-import { useGoogleLogin } from '@react-oauth/google';
+import { login } from '../../requests/auth.request.ts';
 import { useDispatch } from '../../redux/store';
 
 export const Login: React.FC = () => {
@@ -31,29 +29,29 @@ export const Login: React.FC = () => {
     }
   };
 
-  const loginWithGoogle = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        console.log(tokenResponse);
-        await googleLogin({ access_token: tokenResponse.access_token });
-      } catch (err) {
-        console.log('login with google error:', err);
-      }
-    },
-  });
+  // const loginWithGoogle = useGoogleLogin({
+  //   onSuccess: async (tokenResponse) => {
+  //     try {
+  //       console.log(tokenResponse);
+  //       await googleLogin({ access_token: tokenResponse.access_token });
+  //     } catch (err) {
+  //       console.log('login with google error:', err);
+  //     }
+  //   },
+  // });
 
   return (
     <>
       <h2>Welcome to HUST Workspace 🎉</h2>
-      <Button
-        className="ant-btn"
-        size="large"
-        onClick={() => loginWithGoogle()}
-        icon={<FcGoogle className="anticon" size={20} />}
-      >
-        Login with Google
-      </Button>
-      <Divider plain>Or login with</Divider>{' '}
+      {/*<Button*/}
+      {/*  className="ant-btn"*/}
+      {/*  size="large"*/}
+      {/*  onClick={() => loginWithGoogle()}*/}
+      {/*  icon={<FcGoogle className="anticon" size={20} />}*/}
+      {/*>*/}
+      {/*  Login with Google*/}
+      {/*</Button>*/}
+      <Divider />
       <Form
         form={form}
         layout="vertical"
