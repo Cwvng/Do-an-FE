@@ -221,17 +221,17 @@ export const IssueCard: React.FC<IssueCardProps> = ({
           <div className="mt-2 flex flex-row items-center justify-between">
             <div>
               {issue.type === IssueType.TASK && (
-                <Tag color="blue-inverse">
+                <Tag title="Task" color="blue-inverse">
                   <SiTask />
                 </Tag>
               )}
               {issue.type === IssueType.SUB_TASK && (
-                <Tag color="geekblue-inverse">
+                <Tag title="Subtask" color="geekblue-inverse">
                   <TiFlowChildren />
                 </Tag>
               )}
               {issue.type === IssueType.BUG && (
-                <Tag color="orange-inverse">
+                <Tag title="Bug" color="orange-inverse">
                   <FaBug />
                 </Tag>
               )}
