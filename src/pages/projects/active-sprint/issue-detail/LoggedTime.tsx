@@ -56,7 +56,7 @@ export const LoggedTime: React.FC<LoggedTimeProps> = ({ issue, onFinish }) => {
           })}
           <div className="flex justify-end">
             <Button onClick={() => setOpenLog(true)} type="primary">
-              Logged time
+              Log time
             </Button>
           </div>
         </>
@@ -68,12 +68,12 @@ export const LoggedTime: React.FC<LoggedTimeProps> = ({ issue, onFinish }) => {
             alt=""
           />
           <Button onClick={() => setOpenLog(true)} type="primary">
-            Logged time
+            Log time
           </Button>
         </div>
       )}
       <Modal
-        title={<span className="text-xl font-bold text-secondary">Logged time</span>}
+        title={<span className="text-xl font-bold text-secondary">Log time</span>}
         centered
         open={openLog}
         onCancel={() => {

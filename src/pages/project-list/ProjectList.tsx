@@ -217,7 +217,7 @@ export const ProjectList: React.FC = () => {
           {
             title: 'Members',
             dataIndex: 'members',
-            key: 'subject',
+            key: 'members',
             render: (members) => (
               <Avatar.Group
                 maxCount={3}

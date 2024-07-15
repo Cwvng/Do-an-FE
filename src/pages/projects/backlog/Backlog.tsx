@@ -426,11 +426,11 @@ export const Backlog: React.FC = () => {
                                 ),
                               },
                               {
-                                title: 'Subject',
-                                dataIndex: 'subject',
-                                key: 'subject',
+                                title: 'Type',
+                                dataIndex: 'type',
+                                key: 'type',
                                 align: 'center',
-                                render: (subject) => <span>{subject || '-'}</span>,
+                                render: (type) => <span>{type || '-'}</span>,
                               },
                               {
                                 title: 'Status',

@@ -1,9 +1,10 @@
 import { User } from './chat.interface.ts';
+import { IssueType } from '../../constants';
 
 export interface Issue {
   _id?: string;
   label?: string;
-  subject?: string;
+  type?: IssueType;
   description?: string;
   status?: string;
   priority?: string;

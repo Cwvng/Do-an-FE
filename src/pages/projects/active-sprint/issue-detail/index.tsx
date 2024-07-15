@@ -26,7 +26,7 @@ import TextArea from 'antd/es/input/TextArea';
 import { ChangesHistory } from './ChangesHistory.tsx';
 import { Issue } from '../../../../requests/types/issue.interface.ts';
 import { getIssueDetailById, updateIssueById } from '../../../../requests/issue.request.ts';
-import { Priority, Status } from '../../../../constants';
+import { IssueType, Priority, Status } from '../../../../constants';
 import { PlusOutlined } from '@ant-design/icons';
 import SkeletonInput from 'antd/es/skeleton/Input';
 import SkeletonAvatar from 'antd/es/skeleton/Avatar';
@@ -42,6 +42,9 @@ import { CommentList } from './CommentList.tsx';
 import { LoggedTime } from './LoggedTime.tsx';
 import axios from 'axios';
 import { getSprintDetail } from '../../../../requests/sprint.request.ts';
+import { SiTask } from 'react-icons/si';
+import { TbSubtask } from 'react-icons/tb';
+import { FaBug } from 'react-icons/fa6';
 
 export const IssueDetail: React.FC = () => {
   const [issue, setIssue] = React.useState<Issue>();
@@ -115,7 +118,7 @@ export const IssueDetail: React.FC = () => {
         if (values.status) formData.append('status', values.status);
         if (values.assignee) formData.append('assignee', values.assignee);
         if (values.priority) formData.append('priority', values.priority);
-        if (values.subject) formData.append('subject', values.subject);
+        if (values.type) formData.append('type', values.type);
         if (values.dueDate) formData.append('dueDate', values.dueDate);
         if (values.label) formData.append('label', values.label);
         if (values.estimateTime) formData.append('estimateTime', values.estimateTime);
@@ -151,6 +154,16 @@ export const IssueDetail: React.FC = () => {
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+  const getIssueTypeColor = (type: IssueType) => {
+    switch (type) {
+      case IssueType.BUG:
+        return 'orange-inverse';
+      case IssueType.SUB_TASK:
+        return 'blue-inverse';
+      default:
+        return 'blue-inverse';
     }
   };
 
@@ -350,7 +363,7 @@ export const IssueDetail: React.FC = () => {
                           optionFilterProp="children"
                           filterOption={filterOption}
                           // @ts-ignore
-                          options={options.sort((a, b) => b.rating - a.rating)}
+                          options={options?.sort((a, b) => b.rating - a.rating)}
                           optionRender={(option) => (
                             <Space>
                               <Badge.Ribbon
@@ -405,19 +418,33 @@ export const IssueDetail: React.FC = () => {
                 </Row>
                 <Row className="flex items-center">
                   <Col span={10} className="text-secondary">
-                    Subject
+                    Type
                   </Col>
                   <Col span={14}>
                     {loading ? (
                       <SkeletonInput size="small" active />
                     ) : isEdit ? (
-                      <Form.Item className="m-0" name="subject" initialValue={issue?.subject}>
-                        <Input />
+                      <Form.Item className="m-0" name="type" initialValue={issue?.type}>
+                        <Select
+                          value={issue?.type}
+                          className="w-full text-white"
+                          options={[
+                            { value: IssueType.TASK, label: 'Task' },
+                            { value: IssueType.SUB_TASK, label: 'Subtask' },
+                            { value: IssueType.BUG, label: 'Bug' },
+                          ]}
+                        />
                       </Form.Item>
                     ) : (
-                      <span className={!issue.subject ? 'text-gray-300' : ''}>
-                        {issue?.subject || 'no subject'}
-                      </span>
+                      <Tag color={getIssueTypeColor(issue?.type!)}>
+                        <div className="flex items-center gap-1">
+                          {issue.type === IssueType.TASK && <SiTask />}
+                          {issue.type === IssueType.SUB_TASK && <TbSubtask />}
+                          {issue.type === IssueType.BUG && <FaBug />}
+
+                          {toCapitalize(issue?.type!)}
+                        </div>
+                      </Tag>
                     )}
                   </Col>
                 </Row>
