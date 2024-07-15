@@ -450,6 +450,26 @@ export const IssueDetail: React.FC = () => {
                 </Row>
                 <Row className="flex ">
                   <Col span={10} className="text-secondary">
+                    Parent task
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonInput size="small" active />
+                    ) : isEdit ? (
+                      <Form.Item
+                        className="m-0"
+                        name="parentIssue"
+                        initialValue={issue?.parentIssue}
+                      >
+                        <Input />
+                      </Form.Item>
+                    ) : (
+                      <>{issue?.parentIssue}</>
+                    )}
+                  </Col>
+                </Row>
+                <Row className="flex ">
+                  <Col span={10} className="text-secondary">
                     Pull request
                   </Col>
                   <Col span={14}>
