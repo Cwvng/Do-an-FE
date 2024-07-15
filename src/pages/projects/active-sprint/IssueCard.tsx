@@ -26,8 +26,8 @@ import { RiEditFill } from 'react-icons/ri';
 import moment from 'moment';
 import { IssueType, Status } from '../../../constants';
 import { SiTask } from 'react-icons/si';
-import { TbSubtask } from 'react-icons/tb';
 import { FaBug } from 'react-icons/fa6';
+import { TiFlowChildren } from 'react-icons/ti';
 
 interface IssueCardProps {
   issue: Issue;
@@ -227,7 +227,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
               )}
               {issue.type === IssueType.SUB_TASK && (
                 <Tag color="geekblue-inverse">
-                  <TbSubtask />
+                  <TiFlowChildren />
                 </Tag>
               )}
               {issue.type === IssueType.BUG && (

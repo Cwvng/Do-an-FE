@@ -43,8 +43,8 @@ import { LoggedTime } from './LoggedTime.tsx';
 import axios from 'axios';
 import { getSprintDetail } from '../../../../requests/sprint.request.ts';
 import { SiTask } from 'react-icons/si';
-import { TbSubtask } from 'react-icons/tb';
 import { FaBug } from 'react-icons/fa6';
+import { TiFlowChildren } from 'react-icons/ti';
 
 export const IssueDetail: React.FC = () => {
   const [issue, setIssue] = React.useState<Issue>();
@@ -161,7 +161,7 @@ export const IssueDetail: React.FC = () => {
       case IssueType.BUG:
         return 'orange-inverse';
       case IssueType.SUB_TASK:
-        return 'blue-inverse';
+        return 'geekblue-inverse';
       default:
         return 'blue-inverse';
     }
@@ -439,7 +439,7 @@ export const IssueDetail: React.FC = () => {
                       <Tag color={getIssueTypeColor(issue?.type!)}>
                         <div className="flex items-center gap-1">
                           {issue.type === IssueType.TASK && <SiTask />}
-                          {issue.type === IssueType.SUB_TASK && <TbSubtask />}
+                          {issue.type === IssueType.SUB_TASK && <TiFlowChildren />}
                           {issue.type === IssueType.BUG && <FaBug />}
 
                           {toCapitalize(issue?.type!)}
