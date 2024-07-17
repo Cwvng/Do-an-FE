@@ -26,7 +26,7 @@ import TextArea from 'antd/es/input/TextArea';
 import { ChangesHistory } from './ChangesHistory.tsx';
 import { Issue } from '../../../../requests/types/issue.interface.ts';
 import { getIssueDetailById, updateIssueById } from '../../../../requests/issue.request.ts';
-import { Priority, Status } from '../../../../constants';
+import { IssueType, Priority, Status } from '../../../../constants';
 import { PlusOutlined } from '@ant-design/icons';
 import SkeletonInput from 'antd/es/skeleton/Input';
 import SkeletonAvatar from 'antd/es/skeleton/Avatar';
@@ -42,6 +42,9 @@ import { CommentList } from './CommentList.tsx';
 import { LoggedTime } from './LoggedTime.tsx';
 import axios from 'axios';
 import { getSprintDetail } from '../../../../requests/sprint.request.ts';
+import { SiTask } from 'react-icons/si';
+import { FaBug } from 'react-icons/fa6';
+import { TiFlowChildren } from 'react-icons/ti';
 
 export const IssueDetail: React.FC = () => {
   const [issue, setIssue] = React.useState<Issue>();
@@ -115,7 +118,7 @@ export const IssueDetail: React.FC = () => {
         if (values.status) formData.append('status', values.status);
         if (values.assignee) formData.append('assignee', values.assignee);
         if (values.priority) formData.append('priority', values.priority);
-        if (values.subject) formData.append('subject', values.subject);
+        if (values.type) formData.append('type', values.type);
         if (values.dueDate) formData.append('dueDate', values.dueDate);
         if (values.label) formData.append('label', values.label);
         if (values.estimateTime) formData.append('estimateTime', values.estimateTime);
@@ -151,6 +154,16 @@ export const IssueDetail: React.FC = () => {
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+  const getIssueTypeColor = (type: IssueType) => {
+    switch (type) {
+      case IssueType.BUG:
+        return 'orange-inverse';
+      case IssueType.SUB_TASK:
+        return 'geekblue-inverse';
+      default:
+        return 'blue-inverse';
     }
   };
 
@@ -333,8 +346,8 @@ export const IssueDetail: React.FC = () => {
                 Detail
               </div>
               <div className="flex flex-col p-5 w-full mr-8 gap-3">
-                <Row>
-                  <Col span={10} className="text-secondary mt-2 ">
+                <Row className="flex items-center">
+                  <Col span={10} className="text-secondary">
                     Assignee
                   </Col>
                   <Col span={14}>
@@ -350,7 +363,7 @@ export const IssueDetail: React.FC = () => {
                           optionFilterProp="children"
                           filterOption={filterOption}
                           // @ts-ignore
-                          options={options.sort((a, b) => b.rating - a.rating)}
+                          options={options?.sort((a, b) => b.rating - a.rating)}
                           optionRender={(option) => (
                             <Space>
                               <Badge.Ribbon
@@ -383,6 +396,23 @@ export const IssueDetail: React.FC = () => {
                     )}
                   </Col>
                 </Row>
+                <Row>
+                  <Col span={10} className="text-secondary">
+                    Create by
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonAvatar active />
+                    ) : (
+                      <Space>
+                        <Avatar src={issue?.creator?.profilePic} alt="avatar" />
+                        <div className="flex flex-col">
+                          {issue?.creator?.firstname} {issue?.creator?.lastname}
+                        </div>
+                      </Space>
+                    )}
+                  </Col>
+                </Row>
                 <Row className="flex items-center">
                   <Col span={10} className="text-secondary">
                     Due date
@@ -405,23 +435,83 @@ export const IssueDetail: React.FC = () => {
                 </Row>
                 <Row className="flex items-center">
                   <Col span={10} className="text-secondary">
-                    Subject
+                    Estimate time
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonInput size="small" active />
+                    ) : issue.estimateTime ? (
+                      <Progress
+                        className="w-2/3"
+                        percent={
+                          (Math.round((issue.loggedTime! / issue.estimateTime) * 100) / 100) * 100
+                        }
+                        format={() => (
+                          <Tooltip
+                            title={issue.estimateTime! - issue.loggedTime! + ' days remaining'}
+                            placement="bottom"
+                          >
+                            {issue.estimateTime! - issue.loggedTime!}h
+                          </Tooltip>
+                        )}
+                      />
+                    ) : isEdit ? (
+                      <Form.Item className="m-0" name="estimateTime">
+                        <Input min={0} type="number" addonAfter="hours" />
+                      </Form.Item>
+                    ) : (
+                      <span className="text-gray-300">no estimated time</span>
+                    )}
+                  </Col>
+                </Row>
+                <Row className="flex items-center">
+                  <Col span={10} className="text-secondary">
+                    Parent task
                   </Col>
                   <Col span={14}>
                     {loading ? (
                       <SkeletonInput size="small" active />
                     ) : isEdit ? (
-                      <Form.Item className="m-0" name="subject" initialValue={issue?.subject}>
+                      <Form.Item
+                        className="m-0"
+                        name="parentIssue"
+                        initialValue={issue?.parentIssue}
+                      >
                         <Input />
                       </Form.Item>
                     ) : (
-                      <span className={!issue.subject ? 'text-gray-300' : ''}>
-                        {issue?.subject || 'no subject'}
-                      </span>
+                      <>{issue?.parentIssue}</>
                     )}
                   </Col>
                 </Row>
-                <Row className="flex ">
+                <Row className="flex items-center">
+                  <Col span={10} className="text-secondary">
+                    Priority
+                  </Col>
+                  <Col span={14}>
+                    {loading ? (
+                      <SkeletonInput size="small" active />
+                    ) : isEdit ? (
+                      <Form.Item className="m-0" initialValue={issue?.priority} name="priority">
+                        <Select
+                          value={issue?.priority}
+                          className="w-full text-white"
+                          options={[
+                            { value: Priority.LOW, label: 'Low' },
+                            { value: Priority.MEDIUM, label: 'Medium' },
+                            { value: Priority.HIGH, label: 'High' },
+                            { value: Priority.URGENT, label: 'Urgent' },
+                          ]}
+                        />
+                      </Form.Item>
+                    ) : (
+                      <Tag color={getStatusTagColor(issue?.priority!)}>
+                        {toCapitalize(issue?.priority!)}
+                      </Tag>
+                    )}
+                  </Col>
+                </Row>
+                <Row className="flex items-center">
                   <Col span={10} className="text-secondary">
                     Pull request
                   </Col>
@@ -463,76 +553,32 @@ export const IssueDetail: React.FC = () => {
                 )}
                 <Row className="flex items-center">
                   <Col span={10} className="text-secondary">
-                    Estimate time
-                  </Col>
-                  <Col span={14}>
-                    {loading ? (
-                      <SkeletonInput size="small" active />
-                    ) : issue.estimateTime ? (
-                      <Progress
-                        className="w-2/3"
-                        percent={
-                          (Math.round((issue.loggedTime! / issue.estimateTime) * 100) / 100) * 100
-                        }
-                        format={() => (
-                          <Tooltip
-                            title={issue.estimateTime! - issue.loggedTime! + ' days remaining'}
-                            placement="bottom"
-                          >
-                            {issue.estimateTime! - issue.loggedTime!}h
-                          </Tooltip>
-                        )}
-                      />
-                    ) : isEdit ? (
-                      <Form.Item className="m-0" name="estimateTime">
-                        <Input min={0} type="number" addonAfter="hours" />
-                      </Form.Item>
-                    ) : (
-                      <span className="text-gray-300">no estimated time</span>
-                    )}
-                  </Col>
-                </Row>
-                <Row className="flex items-center">
-                  <Col span={10} className="text-secondary">
-                    Priority
+                    Type
                   </Col>
                   <Col span={14}>
                     {loading ? (
                       <SkeletonInput size="small" active />
                     ) : isEdit ? (
-                      <Form.Item className="m-0" initialValue={issue?.priority} name="priority">
+                      <Form.Item className="m-0" name="type" initialValue={issue?.type}>
                         <Select
-                          value={issue?.priority}
+                          value={issue?.type}
                           className="w-full text-white"
                           options={[
-                            { value: Priority.LOW, label: 'Low' },
-                            { value: Priority.MEDIUM, label: 'Medium' },
-                            { value: Priority.HIGH, label: 'High' },
-                            { value: Priority.URGENT, label: 'Urgent' },
+                            { value: IssueType.TASK, label: 'Task' },
+                            { value: IssueType.SUB_TASK, label: 'Subtask' },
+                            { value: IssueType.BUG, label: 'Bug' },
                           ]}
                         />
                       </Form.Item>
                     ) : (
-                      <Tag color={getStatusTagColor(issue?.priority!)}>
-                        {toCapitalize(issue?.priority!)}
-                      </Tag>
-                    )}
-                  </Col>
-                </Row>
-                <Row>
-                  <Col span={10} className="text-secondary">
-                    Create by
-                  </Col>
-                  <Col span={14}>
-                    {loading ? (
-                      <SkeletonAvatar active />
-                    ) : (
-                      <Space>
-                        <Avatar src={issue?.creator?.profilePic} alt="avatar" />
-                        <div className="flex flex-col">
-                          {issue?.creator?.firstname} {issue?.creator?.lastname}
+                      <Tag color={getIssueTypeColor(issue?.type!)}>
+                        <div className="flex items-center gap-1">
+                          {issue.type === IssueType.TASK && <SiTask />}
+                          {issue.type === IssueType.SUB_TASK && <TiFlowChildren />}
+                          {issue.type === IssueType.BUG && <FaBug />}
+                          {toCapitalize(issue?.type!)}
                         </div>
-                      </Space>
+                      </Tag>
                     )}
                   </Col>
                 </Row>

@@ -17,3 +17,8 @@ export enum Message {
   DELETED = 'Deleted successfully',
   UPDATED = 'Updated successfully',
 }
+export enum IssueType {
+  BUG = 'bug',
+  TASK = 'task',
+  SUB_TASK = 'subtask',
+}

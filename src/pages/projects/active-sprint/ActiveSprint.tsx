@@ -6,6 +6,7 @@ import {
   Col,
   Form,
   FormProps,
+  Image,
   Input,
   message,
   Modal,
@@ -14,6 +15,7 @@ import {
   Select,
   SelectProps,
   Space,
+  Tag,
   theme,
   Tooltip,
 } from 'antd';
@@ -25,13 +27,16 @@ import { useForm } from 'antd/es/form/Form';
 import { getAllOtherUsers } from '../../../requests/user.request.ts';
 import { updateProjectById } from '../../../requests/project.request.ts';
 import { IoIosTimer } from 'react-icons/io';
-import { FaEllipsisV, FaSearch } from 'react-icons/fa';
+import { FaSearch } from 'react-icons/fa';
 import { getRemainingDay, getRemainingDaysPercent } from '../../../utils/project.util.ts';
 import { Priority, Status } from '../../../constants';
 import { ProjectSprint } from '../../../requests/types/sprint.interface.ts';
 import { getSprintDetail, updateSprint } from '../../../requests/sprint.request.ts';
 import moment from 'moment';
 import { updateIssueById } from '../../../requests/issue.request.ts';
+import { FaBug, FaQuestion } from 'react-icons/fa6';
+import { SiTask } from 'react-icons/si';
+import { TiFlowChildren } from 'react-icons/ti';
 
 export const ActiveSprint: React.FC = () => {
   const { id } = useParams();
@@ -48,6 +53,7 @@ export const ActiveSprint: React.FC = () => {
   const [options, setOptions] = React.useState<SelectProps['options']>([]);
   const [sprint, setSprint] = React.useState<ProjectSprint>();
   const [loading, setLoading] = React.useState(false);
+  const [openGuide, setOpenGuide] = React.useState(false);
 
   const filterOption = (input: string, option?: { label: string; value: string }) =>
     (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
@@ -223,7 +229,12 @@ export const ActiveSprint: React.FC = () => {
                 >
                   Complete sprint
                 </Button>
-                <Button className="w-[80px]" type="primary" icon={<FaEllipsisV />} />
+                <Button
+                  className="w-[50px] flex items-center justify-center"
+                  type="primary"
+                  onClick={() => setOpenGuide(true)}
+                  icon={<FaQuestion />}
+                />
               </Col>
             </Row>
             <Row className="w-2/3 flex gap-2">
@@ -363,6 +374,60 @@ export const ActiveSprint: React.FC = () => {
                 />
               </Form.Item>
             </Form>
+          </Modal>
+          <Modal
+            title={<span className="text-xl font-bold text-secondary">Sprint workflow</span>}
+            centered
+            open={openGuide}
+            onCancel={() => setOpenGuide(false)}
+            onOk={() => setOpenGuide(false)}
+            okText="OK"
+            width="60vw"
+          >
+            By default, business projects come with three standard issue type:
+            <ul>
+              <li>
+                <b>Task: </b>A task (represent by icon{' '}
+                <Tag color="blue-inverse">
+                  <SiTask />
+                </Tag>
+                ) represents work that needs to be done. Alternatively, a complex task can be
+                divided into smaller subtasks.
+              </li>
+              <li>
+                <b>Subtask: </b>A subtask (represent by icon{' '}
+                <Tag color="geekblue-inverse">
+                  <TiFlowChildren />
+                </Tag>
+                ) is a piece of work that is required to complete a task.
+              </li>
+              <li>
+                <b>Bug: </b>A bug (represent by icon{' '}
+                <Tag color="orange-inverse">
+                  <FaBug />
+                </Tag>
+                ) is a problem which impairs or prevents the functions of a product.
+              </li>
+            </ul>
+            Managing issues follows the workflow as shown below, with the following notes:
+            <ul>
+              <li>Only the assigned person can change the status of the issue.</li>
+              <li>
+                For issues of type <i>Task</i>, the <i>Testing</i> status can be skipped and moved
+                directly to <i>Done</i>.
+              </li>
+              <li>
+                An issue of type <i>Task</i> cannot be moved to the <i>Done</i> status if any of its
+                <i>Subtasks</i> (if any) are not in the <i>Done</i> status.
+              </li>
+              <li>
+                To move an issue with an accompanying pull request from the <i>Waiting Review</i>{' '}
+                status to other statuses, the pull request must be merged
+              </li>
+            </ul>
+            <div className="flex justify-center">
+              <Image className="w-full" src="../../../src/assets/images/workflow.png" />
+            </div>
           </Modal>
         </>
       )}

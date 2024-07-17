@@ -24,7 +24,10 @@ import { ExclamationCircleFilled, LoadingOutlined } from '@ant-design/icons';
 import { getStatusTagColor, toCapitalize } from '../../../utils/project.util.ts';
 import { RiEditFill } from 'react-icons/ri';
 import moment from 'moment';
-import { Status } from '../../../constants';
+import { IssueType, Status } from '../../../constants';
+import { SiTask } from 'react-icons/si';
+import { FaBug } from 'react-icons/fa6';
+import { TiFlowChildren } from 'react-icons/ti';
 
 interface IssueCardProps {
   issue: Issue;
@@ -217,6 +220,21 @@ export const IssueCard: React.FC<IssueCardProps> = ({
           </div>
           <div className="mt-2 flex flex-row items-center justify-between">
             <div>
+              {issue.type === IssueType.TASK && (
+                <Tag title="Task" color="blue-inverse">
+                  <SiTask />
+                </Tag>
+              )}
+              {issue.type === IssueType.SUB_TASK && (
+                <Tag title="Subtask" color="geekblue-inverse">
+                  <TiFlowChildren />
+                </Tag>
+              )}
+              {issue.type === IssueType.BUG && (
+                <Tag title="Bug" color="orange-inverse">
+                  <FaBug />
+                </Tag>
+              )}
               <Tag color={getStatusTagColor(issue.priority!)} key={issue.priority}>
                 {toCapitalize(issue.priority!)}
               </Tag>
